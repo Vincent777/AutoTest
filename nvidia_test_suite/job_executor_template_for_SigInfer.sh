@@ -378,6 +378,7 @@ EXEC_COMMAND="docker run --name=siginfer_nvidia_<<<TEST_TYPE>>>_${SESSION_ID}_${
     -u root \
     -e CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES    \
     -e SIG_LOG_LEVEL='warn,console_logger=info' \
+    <<<ENV_VARS>>>
     $DOCKER_IMAGE_URL"
 
 <<<generated source code>>>

@@ -4,6 +4,11 @@ import os
 import sys
 
 
+PRESET_ENV_FILTER = [
+    "HCCL_SOCKET_IFNAME",
+    "ASCEND_RT_VISIBLE_DEVICES"
+]
+
 def main():
     verison = ""
     if len(sys.argv) != 3:
@@ -39,13 +44,19 @@ def main():
         target_file = "SigInfer_job_executor_for_AccuracyTest.sh"
     
     start = True
+    env_vars = []
     for row in sheet.iter_rows(min_row=2, max_row=row_count, values_only=True):
         # print(row)  # 每行数据以元组形式返回
         name = row[0]
         GPU = row[1]
         args = row[2]
         args = args.split('\n')[0]
-        
+
+        env_vars += [
+            v for v in re.findall(r'-e\s+"?([^"\s]+=[^"\s]+)"?', args)
+            if v.split('=')[0] not in PRESET_ENV_FILTER
+        ]
+
         result = re.sub(r"^.*docker\.xcoresigma\.com/docker/siginfer-aarch64-ascend\:\S+", "", args)
         result = re.sub(r"--swap-space\s+\d+", "$SWAP_SPACE_OPTION", result)
         result = re.sub(r"--prometheus-port\s+\d+", "--prometheus-port $PROMETHEUS_PORT", result)
@@ -76,6 +87,8 @@ def main():
         
     src_code += "fi\n"
 
+    env_vars = list(dict.fromkeys(env_vars))
+
     # print(src_code)
 
     template_file = "job_executor_template_for_SigInfer.sh"
@@ -101,6 +114,15 @@ def main():
                     lines[line_num] = line.replace("<<<TEST_TYPE>>>", "AccuracyTest")
                 elif test_type == "Stability":
                     lines[line_num] = line.replace("<<<TEST_TYPE>>>", "StabilityTest")
+            elif "<<<ENV_VARS>>>" in line:
+                if len(env_vars) > 0:
+                    env_var_lines = ""
+                    for var_def in env_vars:
+                        env_var_lines += f"     -e {var_def} \\\n"
+                    lines[line_num] = env_var_lines
+                else:
+                    lines.pop(line_num)
+                    continue
             line_num += 1
     except FileNotFoundError:
         print(f"Error: Log file '{curr_dir}/{template_file}' not found.")

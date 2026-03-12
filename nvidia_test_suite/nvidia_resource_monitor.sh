@@ -123,7 +123,20 @@ elif [ $TEST_TYPE == "Stability" ]; then
     touch ${processed_models}
     num_of_prefix_cache_options=1
 elif [ $TEST_TYPE == "Accuracy" ]; then
-    full_model_list=(${full_model_list_for_accuracy[@]})
+    if [ $MODEL_LIST == "default" ]; then
+        full_model_list=(${full_model_list_for_accuracy[@]})
+    else
+        model_list=($(echo "$MODEL_LIST" | tr ',' ' '))
+        full_model_list=()
+        for model in "${model_list[@]}"; do
+            for item in "${full_model_list_for_accuracy[@]}"; do
+                name=`echo "$item" | awk -F : '{print $1}'`
+                if [ $model == $name ]; then
+                    full_model_list+=($item)
+                fi
+            done
+        done
+    fi
     rm -rf $curr_dir/logs/accuracy/$SESSION_ID/*.log $curr_dir/logs/accuracy/$SESSION_ID/processed_models_*
     processed_models=${curr_dir}/logs/accuracy/$SESSION_ID/"processed_models"_${log_name_suffix}
     touch ${processed_models}

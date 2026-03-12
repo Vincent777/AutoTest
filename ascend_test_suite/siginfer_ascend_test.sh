@@ -514,7 +514,7 @@ for option in "${schedule_policies[@]}"; do
                         unset pid_map[$done_pid]
                     fi
                 elif [ $TEST_TYPE == "Performance" ]; then
-                    if [ $model == "Qwen3-235B-A22B" ] || [[ $model =~ ^Qwen3-32B(-v[0-9]+)?$ ]] || [ $model == "Qwen3-30B-A3B" ]; then
+                    if [ $model == "Qwen3-235B-A22B" ] || [[ $model =~ ^Qwen3-32B(-v[0-9]+)?$ ]] || [ $model == "Qwen3-30B-A3B" ] || [ $model == "Qwen3-14B" ]; then
                         data_path="/home/weight/Qwen3"
                     else
                         data_path="/home/weight"

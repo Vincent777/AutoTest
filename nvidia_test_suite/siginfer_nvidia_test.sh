@@ -446,7 +446,7 @@ for option in "${schedule_policies[@]}"; do
                 echo "开始执行模型${TEST_TYPE}测试任务......"
 
                 if [ $TEST_TYPE == "Performance" ]; then
-                    if [ $model == "Qwen3-235B-A22B" ] || [ $model == "Qwen3-235B-A22B-FP8" ] || [ $model == "Qwen3-32B-FP8" ] || [ $model == "Qwen3-32B-AWQ" ]; then
+                    if [ $model == "Qwen3-235B-A22B" ] || [ $model == "Qwen3-235B-A22B-FP8" ] || [ $model == "Qwen3-32B-FP8" ] || [ $model == "Qwen3-32B-AWQ" ] || [[ $model =~ ^Qwen3-32B(-v[0-9]+)?$ ]]; then
                         data_path="/home/weight/Qwen3"
                     elif [ $model == "QwQ-32B" ] || [ $model == "QwQ-32B-AWQ" ]; then
                         data_path="/home/weight/Qwen"

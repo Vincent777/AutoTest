@@ -267,6 +267,7 @@ EXEC_COMMAND="docker run --name=siginfer_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${
      --ipc=host	\
      -e HCCL_SOCKET_IFNAME=enp67s0f0 \
      -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES    \
+     <<<ENV_VARS>>>
      docker.xcoresigma.com/docker/siginfer-aarch64-ascend:$LATEST_TAG"
 
 <<<generated source code>>>
