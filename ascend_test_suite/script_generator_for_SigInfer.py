@@ -121,8 +121,7 @@ def main():
                         env_var_lines += f"     -e {var_def} \\\n"
                     lines[line_num] = env_var_lines
                 else:
-                    lines.pop(line_num)
-                    continue
+                    lines[line_num] = ""
             line_num += 1
     except FileNotFoundError:
         print(f"Error: Log file '{curr_dir}/{template_file}' not found.")
