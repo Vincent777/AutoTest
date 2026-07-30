@@ -1,0 +1,23 @@
+{
+  "run_id": "example_vllm_v0.0.0_DeepSeek-R1-Distill-Llama-8B_1024+128_c16",
+  "engine": "vllm",
+  "engine_version": "v0.0.0",
+  "model": "DeepSeek-R1-Distill-Llama-8B",
+  "hardware": "Ascend910B",
+  "workload": "1024+128",
+  "concurrency": 16,
+  "input_len": 1024,
+  "output_len": 128,
+  "metrics": {
+    "request_throughput": 12.3,
+    "output_token_throughput": 4500.0,
+    "ttft_p50_ms": 80.0,
+    "ttft_p99_ms": 200.0,
+    "tpot_p50_ms": 15.0,
+    "tpot_p99_ms": 40.0,
+    "success_rate": 1.0
+  },
+  "started_at": "2026-07-14T02:00:00+00:00",
+  "finished_at": "2026-07-14T02:30:00+00:00",
+  "artifacts_path": "artifacts/example"
+}

@@ -1,0 +1,41 @@
+# Ascend 推理引擎镜像与 release tag 拉取策略
+# 版本策略：只跟 release tag（不跟 main / nightly）
+
+hardware: ascend
+npu_arch: Ascend910B
+
+engines:
+  vllm:
+    name: vLLM-Ascend
+    # quay.io/ascend/vllm-ascend 的 release tag；请确认 GitHub release 与镜像 tag 一致
+    # （不一致时可 runners/run_vllm.sh --tag <实际镜像tag>）
+    image_repo: quay.io/ascend/vllm-ascend
+    github_releases: https://api.github.com/repos/vllm-project/vllm-ascend/releases
+    serve_entrypoint: vllm
+    openai_endpoint: /v1/completions
+    default_port: 20000
+    container_prefix: llm_perf_vllm
+
+  sglang:
+    name: SGLang-Ascend
+    # 官方仓库为 quay.io/ascend/sglang；镜像 tag 形如 v0.5.15.post1-cann9.0.0-910b
+    # GitHub release tag（v0.5.15.post1）需加 CANN/硬件后缀后才能 pull
+    image_repo: quay.io/ascend/sglang
+    github_releases: https://api.github.com/repos/sgl-project/sglang/releases
+    image_tag_suffix: cann9.0.0-910b
+    serve_entrypoint: python3 -m sglang.launch_server
+    openai_endpoint: /v1/completions
+    default_port: 21000
+    container_prefix: llm_perf_sglang
+
+# release 过滤
+release_policy:
+  # 只接受带 v 前缀的 tag；忽略 nightly / main-xxx
+  tag_regex: "^v[0-9]+\\.[0-9]+.*"
+  # 排除明显非 release 的 tag
+  exclude_substrings:
+    - nightly
+    - main-
+    - latest
+  # 每次调度取每个引擎最新 N 个未跑过的 release（通常 1）
+  max_new_tags_per_run: 1

@@ -3,7 +3,7 @@ from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
 
-def generate_excel(model_name, exec_cmd, test_cmd, context_lengths, batch_sizes, multiplier, output_file):
+def generate_excel(engine_name, model_name, exec_cmd, test_cmd, context_lengths, batch_sizes, multiplier, output_file):
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Ascend"
@@ -28,7 +28,7 @@ def generate_excel(model_name, exec_cmd, test_cmd, context_lengths, batch_sizes,
         ("测试命令", test_cmd)
     ]
 
-    col_count = 16  # 总列数（SigInfer + 15列指标）
+    col_count = 17  # 总列数（引擎 + Batch + 14列指标，含 Request throughput）
     row_idx = 1
     for title, content in top_info:
         ws.cell(row=row_idx, column=1, value=title)
@@ -48,16 +48,16 @@ def generate_excel(model_name, exec_cmd, test_cmd, context_lengths, batch_sizes,
     # 二级表头
     # 第 4 行：大类
     top_headers = [
-        (4, 6, "Serving Benchmark Result"),
-        (7, 9, "Time to First Token"),
-        (10, 12, "Time per Output Token"),
-        (13, 15, "Inter-token Latency")
+        (4, 7, "Serving Benchmark Result"),
+        (8, 10, "Time to First Token"),
+        (11, 13, "Time per Output Token"),
+        (14, 16, "Inter-token Latency")
     ]
 
     # 第 5 行：细项
     sub_headers = [
         "Inference Engine", "上下文长度", "Batch", "Successful requests",
-        "Output token throughput", "Total Token throughput",
+        "Request throughput", "Output token throughput", "Total Token throughput",
         "Mean TTFT", "Median TTFT", "P99 TTFT",
         "Mean TPOT", "Median TPOT", "P99 TPOT",
         "Mean ITL", "Median ITL", "P99 ITL"
@@ -111,13 +111,13 @@ def generate_excel(model_name, exec_cmd, test_cmd, context_lengths, batch_sizes,
     for context in context_lengths:
         start_row = row_index  # 合并上下文开始行
         for i, batch in enumerate(batch_sizes):
-            ws.cell(row=row_index, column=1, value="SigInfer")  # 第一列
+            ws.cell(row=row_index, column=1, value=engine_name)  # 第一列
             ws.cell(row=row_index, column=2, value=context)     # 第二列
             ws.cell(row=row_index, column=3,
                     value=f"{batch} (num_prompt={int(batch * multiplier)})")
 
             # 其他列预置为空并设为浮点显示两位小数
-            for col in range(4, 16):
+            for col in range(4, 17):
                 c = ws.cell(row=row_index, column=col, value=None)
                 c.data_type = "n"
                 c.number_format = "0.00"
@@ -127,7 +127,7 @@ def generate_excel(model_name, exec_cmd, test_cmd, context_lengths, batch_sizes,
             row_fill = blue_fill if row_index % 2 == 0 else light_blue_fill
 
             # 应用样式
-            for col in range(1, 16):
+            for col in range(1, 17):
                 cell = ws.cell(row=row_index, column=col)
                 if col == 1 or col == 2:
                     cell.alignment = center_align
@@ -146,15 +146,15 @@ def generate_excel(model_name, exec_cmd, test_cmd, context_lengths, batch_sizes,
         ws.cell(start_row, 2).alignment = center_align
         ws.cell(start_row, 2).font = Font(bold=True)
 
-    # 合并 SigInfer 整列
+    # 合并整列
     ws.merge_cells(start_row=6, start_column=1,
                    end_row=row_index - 1, end_column=1)
     ws.cell(6, 1).alignment = center_align
     ws.cell(6, 1).font = Font(bold=True)
 
     # 自动调整列宽
-    for col in range(1, 16):
-        if col == 3 or col == 4 or col == 5 or col == 6:
+    for col in range(1, 17):
+        if col in (3, 4, 5, 6, 7):
             ws.column_dimensions[get_column_letter(col)].width = 26
         else:
             ws.column_dimensions[get_column_letter(col)].width = 19
@@ -190,20 +190,21 @@ def fill_benchmark_results(excel_file, benchmark_data, context_lengths, batch_si
     wb = openpyxl.load_workbook(excel_file)
     ws = wb.active
 
-    # 数据列映射 (列索引 -> 数据键)
+    # 数据列映射 (列索引 -> 数据键)；兼容日志字段名
     data_columns = {
         4: 'Successful requests',
-        5: 'Output token throughput (tok/s)',
-        6: 'Total Token throughput (tok/s)',
-        7: 'Mean TTFT (ms)',
-        8: 'Median TTFT (ms)',
-        9: 'P99 TTFT (ms)',
-        10: 'Mean TPOT (ms)',
-        11: 'Median TPOT (ms)',
-        12: 'P99 TPOT (ms)',
-        13: 'Mean ITL (ms)',
-        14: 'Median ITL (ms)',
-        15: 'P99 ITL (ms)'
+        5: 'Request throughput (req/s)',
+        6: 'Output token throughput (tok/s)',
+        7: 'Total Token throughput (tok/s)',
+        8: 'Mean TTFT (ms)',
+        9: 'Median TTFT (ms)',
+        10: 'P99 TTFT (ms)',
+        11: 'Mean TPOT (ms)',
+        12: 'Median TPOT (ms)',
+        13: 'P99 TPOT (ms)',
+        14: 'Mean ITL (ms)',
+        15: 'Median ITL (ms)',
+        16: 'P99 ITL (ms)'
     }
 
     row_index = 6  # 数据从第6行开始
@@ -244,8 +245,8 @@ def fill_benchmark_results_from_list(excel_file, results_list, context_lengths, 
     wb = openpyxl.load_workbook(excel_file)
     ws = wb.active
 
-    # 数据列索引
-    data_columns = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    # 数据列索引（含 Request throughput）
+    data_columns = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 
     row_index = 6  # 数据从第6行开始
     result_idx = 0

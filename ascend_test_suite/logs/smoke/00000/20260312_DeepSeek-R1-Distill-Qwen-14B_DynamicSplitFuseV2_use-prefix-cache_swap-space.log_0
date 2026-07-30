@@ -1,0 +1,15 @@
+The specified version : main-c2cef389
+main-c2cef389: Pulling from docker/siginfer-aarch64-ascend
+Digest: sha256:d2628f555fd346bb06160ffc9b600c71b73fb94e47f36bb27c4eaf38859f8df7
+Status: Image is up to date for docker.xcoresigma.com/docker/siginfer-aarch64-ascend:main-c2cef389
+开始扫描 GPU, 目标: 寻找 2 张空闲 GPU...
+当前空闲 GPU 数量：4, 索引: 4 5 6 7
+发现 2 张空闲 GPU, 索引: 4 5 6 7
+尝试锁定其中 2 张 GPU
+成功锁定 2 张 GPU, 索引：4 5
+ASCEND_RT_VISIBLE_DEVICES=4,5
+SIG_LOG_LEVEL='warn,console_logger=info' ./start.sh --model DeepSeek-R1-Distill-Qwen-14B --tokenizer /home/weight/DeepSeek-R1-Distill-Qwen-14B -tp 2 --block-size 128 --schedule-policy DynamicSplitFuseV2 --max-num-batched-tokens 8192 --port 20006  --master-addr 10.0.0.37 --master-port 20008  --nnodes 1 --node-rank 0 --platform-type ascend  --swap-space 40 --tool-call-parser hermes --use-prefix-cache --prometheus-port 20007
+docker run --name=siginfer_ascend_SmokeTest_00000_2      -u root       -v /usr/local/Ascend/driver/lib64:/usr/local/Ascend/driver/lib64 	     -v /usr/local/Ascend/driver/include:/usr/local/Ascend/driver/include	     -v /usr/local/Ascend/driver/tools:/usr/local/Ascend/driver/tools 	     -v /usr/local/Ascend/driver:/usr/local/Ascend/driver        -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi        -v /dev/davinci0:/dev/davinci0           -v /dev/davinci1:/dev/davinci1           -v /dev/davinci2:/dev/davinci2           -v /dev/davinci3:/dev/davinci3           -v /dev/davinci4:/dev/davinci4           -v /dev/davinci5:/dev/davinci5           -v /dev/davinci6:/dev/davinci6           -v /dev/davinci7:/dev/davinci7           --volume /home:/home        --volume /home/weight/:/home/weight/         --volume /shared/weights:/shared/weights         --network host           --privileged      --device=/dev/davinci_manager      --device=/dev/devmm_svm            --device=/dev/hisi_hdc             --ipc=host	     -e HCCL_SOCKET_IFNAME=enp67s0f0      -e ASCEND_RT_VISIBLE_DEVICES=4,5         -e GEMM_WEIGHT_DTYPE=FP32      docker.xcoresigma.com/docker/siginfer-aarch64-ascend:main-c2cef389 --model DeepSeek-R1-Distill-Qwen-14B --tokenizer /home/weight/DeepSeek-R1-Distill-Qwen-14B -tp 2 --block-size 128 --schedule-policy DynamicSplitFuseV2 --max-num-batched-tokens 8192 --port 20006  --master-addr 10.0.0.37 --master-port 20008  --nnodes 1 --node-rank 0 --platform-type ascend  --swap-space 40 --tool-call-parser hermes --use-prefix-cache --prometheus-port 20007 > server_log_SmokeTest_20260312_210721.log 2>&1 &
+INFO:     Application startup complete.
+>>> Detected master service startup completion!
+正常退出（退出码: 0），保留NPU锁

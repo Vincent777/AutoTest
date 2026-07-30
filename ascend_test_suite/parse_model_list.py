@@ -13,10 +13,10 @@ def extract_tp_number(default_params):
         return None
     
     # 匹配 -tp 后面的数字
-    pattern = r'-tp\s+(\d+)'
+    pattern = r'(-tp|--tp-size)\s+(\d+)'
     match = re.search(pattern, str(default_params))
     if match:
-        return match.group(1)
+        return match.group(2)
     else:
         pattern = r'--tensor-parallel-size\s+(\d+)'
         match = re.search(pattern, str(default_params))

@@ -1,0 +1,24 @@
+# 机房 / 路径 / API 本地默认值；GitLab CI 可通过变量覆盖
+
+project_root: /home/s_limingge/ci_autotest/llm_perf_dashboard
+results_dir: results
+artifacts_dir: artifacts
+db_path: storage/perf.db
+
+# 跑测机器（可与 ascend_test_suite 共用）
+runner:
+  ssh_user: s_limingge
+  # 留空表示本机执行；填 IP 则 SSH 到远端
+  hosts:
+    - 192.168.100.106
+  work_dir: /home/s_limingge/ci_autotest/llm_perf_dashboard
+  # Docker 运行所需设备挂载由 runner 脚本处理
+  npu_visible_devices_env: ASCEND_RT_VISIBLE_DEVICES
+
+api:
+  host: 0.0.0.0
+  port: 8088
+
+notify:
+  # 复用 ascend_test_suite 飞书通知时再打开
+  feishu_enabled: false

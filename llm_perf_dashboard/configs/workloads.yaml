@@ -1,0 +1,52 @@
+# 压测负载：vLLM 用 vllm bench serve；SGLang 用官方 sglang.bench_serving
+
+benchmark:
+  client_image: openai:1110
+  command: vllm bench serve
+  backend: openai
+  endpoint: /v1/completions
+  request_rate: inf
+  ignore_eos: true
+
+engines:
+  vllm:
+    command: vllm bench serve
+    backend: openai
+  sglang:
+    # 官方在线 serving 压测工具（容器内执行）
+    command: python3 -m sglang.bench_serving
+    backend: sglang
+
+workloads:
+  # id 与 Excel「上下文长度」一致：input+output，不用 isl/osl / 1k 简写
+  - id: 1024+128
+    dataset: random
+    # random 仍从 ShareGPT token 空间采样；离线环境必须给本地路径，否则会访问 HuggingFace
+    dataset_path: /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json
+    input_len: 1024
+    output_len: 128
+    num_prompts: 64
+    concurrencies: [1, 4, 16]
+    enabled: true
+
+  - id: 2048+256
+    dataset: random
+    dataset_path: /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json
+    input_len: 2048
+    output_len: 256
+    num_prompts: 64
+    concurrencies: [1, 4, 16]
+    enabled: false
+
+  - id: SharedGPT
+    dataset: sharegpt
+    dataset_path: /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json
+    num_prompts: 100
+    concurrencies: [1, 4, 16]
+    enabled: true
+
+# 服务就绪探测
+readiness:
+  timeout_sec: 1800
+  poll_interval_sec: 10
+  health_path: /v1/models

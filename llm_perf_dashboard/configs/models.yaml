@@ -1,0 +1,31 @@
+# Phase 1 模型清单（Ascend 910B）
+# 权重默认挂载 /home/weight，与 ascend_test_suite 保持一致
+
+weight_root: /home/weight
+hardware_label: Ascend910B
+
+models:
+  # 主测：体积小、单卡可跑，适合每周固定回归
+  - id: DeepSeek-R1-Distill-Llama-8B
+    enabled: true
+    path: /home/weight/DeepSeek-R1-Distill-Llama-8B
+    served_model_name: DeepSeek-R1-Distill-Llama-8B
+    tensor_parallel_size: 1
+    max_model_len: 8192
+    gpu_memory_utilization: 0.9
+    # 引擎侧额外参数（会拼到 serve 命令后）
+    vllm_extra_args: "--no-enable-prefix-caching"
+    sglang_extra_args: "--disable-radix-cache"
+    notes: "Phase1 主测模型"
+
+  # 大模型：可选，默认关闭；资源足够时再打开
+  - id: DeepSeek-R1-Distill-Llama-70B
+    enabled: false
+    path: /home/weight/DeepSeek-R1-Distill-Llama-70B
+    served_model_name: DeepSeek-R1-Distill-Llama-70B
+    tensor_parallel_size: 4
+    max_model_len: 8192
+    gpu_memory_utilization: 0.9
+    vllm_extra_args: "--no-enable-prefix-caching"
+    sglang_extra_args: "--disable-radix-cache"
+    notes: "可选大模型对比；需要 4 卡空闲"

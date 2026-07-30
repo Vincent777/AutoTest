@@ -97,7 +97,12 @@ def generate_model_comparison_excel(output_file, engine=None):
         ws.cell(1, 3).fill = light_blue_fill
 
         # 第2行：子表头
-        sub_headers = ["opencompass", "SGLang"]
+        if engine == "SGLang":
+            sub_headers = ["opencompass", "gsm8k"]
+        elif engine == "MindIE":
+            sub_headers = ["opencompass", "gsm8k"]
+        else:
+            sub_headers = ["opencompass", "SGLang"]
         for idx, header in enumerate(sub_headers, start=2):
             cell = ws.cell(2, idx, value=header)
             cell.fill = yellow_fill
@@ -166,14 +171,23 @@ def fill_model_comparison_data(excel_file, data_dict, engine=None):
             "SigInfer_opencompass": 2,
             "SigInfer_SGLang": 3
         }
-    elif engine == "VLLM_0.9.1":
-        # 仅VLLM列
+    elif engine in ("VLLM_0.9.1", "vLLM"):
         column_mapping = {
             "VLLM_opencompass": 2,
             "VLLM_SGLang": 3
         }
+    elif engine == "SGLang":
+        column_mapping = {
+            "SGLang_opencompass": 2,
+            "SGLang_gsm8k": 3
+        }
+    elif engine == "MindIE":
+        column_mapping = {
+            "MindIE_opencompass": 2,
+            "MindIE_gsm8k": 3
+        }
     else:
-        raise ValueError(f"不支持的引擎类型: {engine}，支持的值为: None, 'SigInfer', 'VLLM_0.9.1'")
+        raise ValueError(f"不支持的引擎类型: {engine}，支持的值为: None, 'SigInfer', 'vLLM', 'SGLang', 'MindIE'")
 
     # 从第3行开始动态添加数据行
     row_idx = 3

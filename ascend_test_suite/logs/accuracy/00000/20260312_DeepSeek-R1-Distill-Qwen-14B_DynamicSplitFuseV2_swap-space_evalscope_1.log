@@ -1,0 +1,568 @@
+2026-03-12 13:04:26,787 - evalscope - INFO - Args: Task config is provided with dictionary type.
+2026-03-12 13:04:26,960 - evalscope - INFO - Check the OpenCompass environment: OK
+2026-03-12 13:04:26,968 - evalscope - INFO - Dump task config to ./outputs/20260312_130426/configs/task_config_920b8f.yaml
+2026-03-12 13:04:26,971 - evalscope - INFO - {
+    "model": "DummyCustomModel",
+    "model_id": "dummy-model",
+    "model_args": {},
+    "model_task": "text_generation",
+    "template_type": null,
+    "chat_template": null,
+    "datasets": [],
+    "dataset_args": {},
+    "dataset_dir": "/root/.cache/modelscope/hub/datasets",
+    "dataset_hub": "modelscope",
+    "generation_config": {},
+    "eval_type": "custom",
+    "eval_backend": "OpenCompass",
+    "eval_config": {
+        "datasets": [
+            "mmlu",
+            "ceval"
+        ],
+        "models": [
+            {
+                "path": "DeepSeek-R1-Distill-Qwen-14B",
+                "openai_api_base": "http://10.9.1.86:20000/v1/chat/completions",
+                "is_chat": true,
+                "batch_size": 10
+            }
+        ],
+        "work_dir": "outputs/llama2_eval_result",
+        "limit": 10,
+        "time_str": "20260312_130426"
+    },
+    "stage": "all",
+    "limit": null,
+    "eval_batch_size": 1,
+    "mem_cache": false,
+    "use_cache": null,
+    "work_dir": "./outputs/20260312_130426",
+    "outputs": null,
+    "ignore_errors": false,
+    "debug": false,
+    "dry_run": false,
+    "seed": 42,
+    "api_url": null,
+    "api_key": "EMPTY",
+    "timeout": null,
+    "stream": false,
+    "judge_strategy": "auto",
+    "judge_worker_num": 1,
+    "judge_model_args": {},
+    "analysis_report": false
+}
+2026-03-12 13:04:36,809 - evalscope - INFO - *** Run task with config: /tmp/tmppc5a9u6p.py 
+
+['mmlu', 'ceval']
+03/12 13:04:37 - OpenCompass - INFO - Current exp folder: outputs/llama2_eval_result/20260312_130426
+03/12 13:04:44 - OpenCompass - WARNING - SlurmRunner is not used, so the partition argument is ignored.
+03/12 13:04:44 - OpenCompass - INFO - Partitioned into 109 tasks.
+  0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]  1%|          | 1/109 [10:48<19:27:24, 648.56s/it]                                                     1%|          | 1/109 [10:48<19:27:24, 648.56s/it]  2%|▏         | 2/109 [17:40<15:08:29, 509.43s/it]                                                     2%|▏         | 2/109 [17:40<15:08:29, 509.43s/it]  3%|▎         | 3/109 [17:41<8:09:28, 277.06s/it]                                                     3%|▎         | 3/109 [17:41<8:09:28, 277.06s/it]  4%|▎         | 4/109 [17:42<4:54:05, 168.05s/it]                                                    4%|▎         | 4/109 [17:42<4:54:05, 168.05s/it]  5%|▍         | 5/109 [35:13<14:03:40, 486.73s/it]                                                     5%|▍         | 5/109 [35:13<14:03:40, 486.73s/it]  6%|▌         | 6/109 [39:55<11:55:35, 416.85s/it]                                                     6%|▌         | 6/109 [39:55<11:55:35, 416.85s/it]  6%|▋         | 7/109 [39:55<7:57:13, 280.72s/it]                                                     6%|▋         | 7/109 [39:55<7:57:13, 280.72s/it]                                                    7%|▋         | 8/109 [39:55<7:52:32, 280.72s/it]  8%|▊         | 9/109 [41:57<4:50:48, 174.48s/it]                                                    8%|▊         | 9/109 [41:57<4:50:48, 174.48s/it]  9%|▉         | 10/109 [42:15<3:41:56, 134.51s/it]                                                     9%|▉         | 10/109 [42:15<3:41:56, 134.51s/it] 10%|█         | 11/109 [43:33<3:14:47, 119.26s/it]                                                    10%|█         | 11/109 [43:33<3:14:47, 119.26s/it]                                                    11%|█         | 12/109 [43:33<3:12:48, 119.26s/it] 12%|█▏        | 13/109 [44:58<2:17:34, 85.98s/it]                                                    12%|█▏        | 13/109 [44:58<2:17:34, 85.98s/it] 13%|█▎        | 14/109 [45:11<1:48:49, 68.74s/it]                                                   13%|█▎        | 14/109 [45:11<1:48:49, 68.74s/it] 14%|█▍        | 15/109 [45:20<1:24:08, 53.71s/it]                                                   14%|█▍        | 15/109 [45:20<1:24:08, 53.71s/it] 15%|█▍        | 16/109 [45:48<1:12:35, 46.83s/it]                                                   15%|█▍        | 16/109 [45:48<1:12:35, 46.83s/it] 16%|█▌        | 17/109 [46:05<59:04, 38.53s/it]                                                   16%|█▌        | 17/109 [46:05<59:04, 38.53s/it] 17%|█▋        | 18/109 [46:13<45:44, 30.16s/it]                                                 17%|█▋        | 18/109 [46:13<45:44, 30.16s/it] 17%|█▋        | 19/109 [46:20<35:16, 23.51s/it]                                                 17%|█▋        | 19/109 [46:20<35:16, 23.51s/it] 18%|█▊        | 20/109 [47:29<54:27, 36.72s/it]                                                 18%|█▊        | 20/109 [47:29<54:27, 36.72s/it] 19%|█▉        | 21/109 [48:34<1:06:02, 45.03s/it]                                                   19%|█▉        | 21/109 [48:34<1:06:02, 45.03s/it] 20%|██        | 22/109 [48:40<48:27, 33.43s/it]                                                   20%|██        | 22/109 [48:40<48:27, 33.43s/it] 21%|██        | 23/109 [48:56<40:27, 28.23s/it]                                                 21%|██        | 23/109 [48:56<40:27, 28.23s/it] 22%|██▏       | 24/109 [49:03<31:06, 21.96s/it]                                                 22%|██▏       | 24/109 [49:03<31:06, 21.96s/it] 23%|██▎       | 25/109 [49:28<31:46, 22.69s/it]                                                 23%|██▎       | 25/109 [49:28<31:46, 22.69s/it] 24%|██▍       | 26/109 [49:58<34:32, 24.97s/it]                                                 24%|██▍       | 26/109 [49:58<34:32, 24.97s/it] 25%|██▍       | 27/109 [50:54<46:42, 34.18s/it]                                                 25%|██▍       | 27/109 [50:54<46:42, 34.18s/it] 26%|██▌       | 28/109 [50:55<32:43, 24.24s/it]                                                 26%|██▌       | 28/109 [50:55<32:43, 24.24s/it] 27%|██▋       | 29/109 [51:11<29:03, 21.79s/it]                                                 27%|██▋       | 29/109 [51:11<29:03, 21.79s/it] 28%|██▊       | 30/109 [51:37<30:26, 23.13s/it]                                                 28%|██▊       | 30/109 [51:37<30:26, 23.13s/it] 28%|██▊       | 31/109 [52:03<31:16, 24.06s/it]                                                 28%|██▊       | 31/109 [52:03<31:16, 24.06s/it] 29%|██▉       | 32/109 [52:09<23:53, 18.61s/it]                                                 29%|██▉       | 32/109 [52:09<23:53, 18.61s/it] 30%|███       | 33/109 [53:14<41:11, 32.52s/it]                                                 30%|███       | 33/109 [53:14<41:11, 32.52s/it] 31%|███       | 34/109 [53:50<41:47, 33.43s/it]                                                 31%|███       | 34/109 [53:50<41:47, 33.43s/it] 32%|███▏      | 35/109 [54:10<36:29, 29.59s/it]                                                 32%|███▏      | 35/109 [54:10<36:29, 29.59s/it] 33%|███▎      | 36/109 [54:14<26:24, 21.70s/it]                                                 33%|███▎      | 36/109 [54:14<26:24, 21.70s/it] 34%|███▍      | 37/109 [54:44<29:03, 24.22s/it]                                                 34%|███▍      | 37/109 [54:44<29:03, 24.22s/it] 35%|███▍      | 38/109 [55:41<40:32, 34.26s/it]                                                 35%|███▍      | 38/109 [55:41<40:32, 34.26s/it] 36%|███▌      | 39/109 [56:08<37:14, 31.92s/it]                                                 36%|███▌      | 39/109 [56:08<37:14, 31.92s/it] 37%|███▋      | 40/109 [56:27<32:18, 28.09s/it]                                                 37%|███▋      | 40/109 [56:27<32:18, 28.09s/it] 38%|███▊      | 41/109 [56:48<29:21, 25.90s/it]                                                 38%|███▊      | 41/109 [56:48<29:21, 25.90s/it] 39%|███▊      | 42/109 [57:19<30:41, 27.48s/it]                                                 39%|███▊      | 42/109 [57:19<30:41, 27.48s/it] 39%|███▉      | 43/109 [57:27<23:54, 21.73s/it]                                                 39%|███▉      | 43/109 [57:27<23:54, 21.73s/it] 40%|████      | 44/109 [58:04<28:31, 26.33s/it]                                                 40%|████      | 44/109 [58:04<28:31, 26.33s/it] 41%|████▏     | 45/109 [58:23<25:33, 23.97s/it]                                                 41%|████▏     | 45/109 [58:23<25:33, 23.97s/it] 42%|████▏     | 46/109 [58:56<28:06, 26.77s/it]                                                 42%|████▏     | 46/109 [58:56<28:06, 26.77s/it] 43%|████▎     | 47/109 [59:42<33:33, 32.48s/it]                                                 43%|████▎     | 47/109 [59:42<33:33, 32.48s/it] 44%|████▍     | 48/109 [59:58<27:56, 27.48s/it]                                                 44%|████▍     | 48/109 [59:58<27:56, 27.48s/it] 45%|████▍     | 49/109 [1:00:06<21:52, 21.87s/it]                                                   45%|████▍     | 49/109 [1:00:06<21:52, 21.87s/it] 46%|████▌     | 50/109 [1:00:45<26:29, 26.93s/it]                                                   46%|████▌     | 50/109 [1:00:45<26:29, 26.93s/it] 47%|████▋     | 51/109 [1:01:32<31:55, 33.02s/it]                                                   47%|████▋     | 51/109 [1:01:32<31:55, 33.02s/it] 48%|████▊     | 52/109 [1:01:40<23:58, 25.24s/it]                                                   48%|████▊     | 52/109 [1:01:40<23:58, 25.24s/it] 49%|████▊     | 53/109 [1:02:28<30:07, 32.28s/it]                                                   49%|████▊     | 53/109 [1:02:28<30:07, 32.28s/it] 50%|████▉     | 54/109 [1:03:27<36:50, 40.20s/it]                                                   50%|████▉     | 54/109 [1:03:27<36:50, 40.20s/it] 50%|█████     | 55/109 [1:04:12<37:31, 41.70s/it]                                                   50%|█████     | 55/109 [1:04:12<37:31, 41.70s/it] 51%|█████▏    | 56/109 [1:04:17<26:58, 30.54s/it]                                                   51%|█████▏    | 56/109 [1:04:17<26:58, 30.54s/it] 52%|█████▏    | 57/109 [1:05:03<30:39, 35.37s/it]                                                   52%|█████▏    | 57/109 [1:05:03<30:39, 35.37s/it] 53%|█████▎    | 58/109 [1:05:09<22:34, 26.56s/it]                                                   53%|█████▎    | 58/109 [1:05:09<22:34, 26.56s/it] 54%|█████▍    | 59/109 [1:05:46<24:39, 29.60s/it]                                                   54%|█████▍    | 59/109 [1:05:46<24:39, 29.60s/it] 55%|█████▌    | 60/109 [1:06:49<32:17, 39.54s/it]                                                   55%|█████▌    | 60/109 [1:06:49<32:17, 39.54s/it] 56%|█████▌    | 61/109 [1:07:29<31:42, 39.63s/it]                                                   56%|█████▌    | 61/109 [1:07:29<31:42, 39.63s/it] 57%|█████▋    | 62/109 [1:07:31<22:25, 28.62s/it]                                                   57%|█████▋    | 62/109 [1:07:31<22:25, 28.62s/it] 58%|█████▊    | 63/109 [1:07:34<15:55, 20.78s/it]                                                   58%|█████▊    | 63/109 [1:07:34<15:55, 20.78s/it] 59%|█████▊    | 64/109 [1:07:46<13:30, 18.02s/it]                                                   59%|█████▊    | 64/109 [1:07:46<13:30, 18.02s/it] 60%|█████▉    | 65/109 [1:08:14<15:33, 21.21s/it]                                                   60%|█████▉    | 65/109 [1:08:14<15:33, 21.21s/it] 61%|██████    | 66/109 [1:08:38<15:43, 21.95s/it]                                                   61%|██████    | 66/109 [1:08:38<15:43, 21.95s/it] 61%|██████▏   | 67/109 [1:08:57<14:51, 21.23s/it]                                                   61%|██████▏   | 67/109 [1:08:57<14:51, 21.23s/it] 62%|██████▏   | 68/109 [1:09:01<10:56, 16.02s/it]                                                   62%|██████▏   | 68/109 [1:09:01<10:56, 16.02s/it] 63%|██████▎   | 69/109 [1:09:52<17:41, 26.53s/it]                                                   63%|██████▎   | 69/109 [1:09:52<17:41, 26.53s/it] 64%|██████▍   | 70/109 [1:10:08<15:07, 23.26s/it]                                                   64%|██████▍   | 70/109 [1:10:08<15:07, 23.26s/it] 65%|██████▌   | 71/109 [1:10:25<13:32, 21.37s/it]                                                   65%|██████▌   | 71/109 [1:10:25<13:32, 21.37s/it] 66%|██████▌   | 72/109 [1:11:00<15:41, 25.45s/it]                                                   66%|██████▌   | 72/109 [1:11:00<15:41, 25.45s/it] 67%|██████▋   | 73/109 [1:11:18<14:02, 23.40s/it]                                                   67%|██████▋   | 73/109 [1:11:18<14:02, 23.40s/it] 68%|██████▊   | 74/109 [1:11:47<14:36, 25.05s/it]                                                   68%|██████▊   | 74/109 [1:11:47<14:36, 25.05s/it] 69%|██████▉   | 75/109 [1:12:03<12:34, 22.19s/it]                                                   69%|██████▉   | 75/109 [1:12:03<12:34, 22.19s/it] 70%|██████▉   | 76/109 [1:12:10<09:42, 17.64s/it]                                                   70%|██████▉   | 76/109 [1:12:10<09:42, 17.64s/it] 71%|███████   | 77/109 [1:12:39<11:15, 21.12s/it]                                                   71%|███████   | 77/109 [1:12:39<11:15, 21.12s/it] 72%|███████▏  | 78/109 [1:13:02<11:06, 21.49s/it]                                                   72%|███████▏  | 78/109 [1:13:02<11:06, 21.49s/it] 72%|███████▏  | 79/109 [1:13:15<09:32, 19.08s/it]                                                   72%|███████▏  | 79/109 [1:13:15<09:32, 19.08s/it] 73%|███████▎  | 80/109 [1:13:54<12:10, 25.21s/it]                                                   73%|███████▎  | 80/109 [1:13:54<12:10, 25.21s/it] 74%|███████▍  | 81/109 [1:14:32<13:29, 28.90s/it]                                                   74%|███████▍  | 81/109 [1:14:32<13:29, 28.90s/it] 75%|███████▌  | 82/109 [1:14:53<11:54, 26.47s/it]                                                   75%|███████▌  | 82/109 [1:14:53<11:54, 26.47s/it] 76%|███████▌  | 83/109 [1:15:15<10:52, 25.09s/it]                                                   76%|███████▌  | 83/109 [1:15:15<10:52, 25.09s/it] 77%|███████▋  | 84/109 [1:15:34<09:40, 23.21s/it]                                                   77%|███████▋  | 84/109 [1:15:34<09:40, 23.21s/it] 78%|███████▊  | 85/109 [1:16:18<11:53, 29.74s/it]                                                   78%|███████▊  | 85/109 [1:16:18<11:53, 29.74s/it] 79%|███████▉  | 86/109 [1:16:32<09:33, 24.93s/it]                                                   79%|███████▉  | 86/109 [1:16:32<09:33, 24.93s/it] 80%|███████▉  | 87/109 [1:16:33<06:29, 17.71s/it]                                                   80%|███████▉  | 87/109 [1:16:33<06:29, 17.71s/it] 81%|████████  | 88/109 [1:17:33<10:37, 30.37s/it]                                                   81%|████████  | 88/109 [1:17:33<10:37, 30.37s/it] 82%|████████▏ | 89/109 [1:17:38<07:38, 22.91s/it]                                                   82%|████████▏ | 89/109 [1:17:38<07:38, 22.91s/it] 83%|████████▎ | 90/109 [1:18:04<07:30, 23.68s/it]                                                   83%|████████▎ | 90/109 [1:18:04<07:30, 23.68s/it] 83%|████████▎ | 91/109 [1:18:07<05:14, 17.46s/it]                                                   83%|████████▎ | 91/109 [1:18:07<05:14, 17.46s/it]launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-computer_network] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-operating_system] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-computer_architecture] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-college_programming] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-college_physics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-college_chemistry] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-advanced_mathematics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-probability_and_statistics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-discrete_mathematics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-electrical_engineer] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-metrology_engineer] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_mathematics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_physics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_chemistry] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_biology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_mathematics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_biology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_physics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_chemistry] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-veterinary_medicine] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-college_economics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-business_administration] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-marxism] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-mao_zedong_thought] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-education_science] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-teacher_qualification] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_politics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_geography] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_politics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_geography] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-modern_chinese_history] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-ideological_and_moral_cultivation] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-logic] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-law] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-chinese_language_and_literature] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-art_studies] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-professional_tour_guide] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-legal_professional] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_chinese] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_history] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_history] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-civil_servant] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-sports_science] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-plant_protection] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-basic_medicine] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-clinical_medicine] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-urban_and_rural_planner] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-accountant] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-fire_engineer] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-environmental_impact_assessment_engineer] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-tax_accountant] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/ceval-physician] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_biology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_chemistry] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_computer_science] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_mathematics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_physics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_electrical_engineering] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_astronomy] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_anatomy] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_abstract_algebra] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_machine_learning] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_clinical_knowledge] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_global_facts] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_management] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_nutrition] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_marketing] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_accounting] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_geography] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_international_law] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_moral_scenarios] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_computer_security] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_microeconomics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_law] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_medical_genetics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_psychology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_jurisprudence] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_world_religions] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_philosophy] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_virology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_chemistry] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_public_relations] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_macroeconomics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_human_sexuality] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_elementary_mathematics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_physics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_computer_science] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_european_history] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_business_ethics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_moral_disputes] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_statistics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_miscellaneous] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_formal_logic] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_government_and_politics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_prehistory] on CPU  84%|████████▍ | 92/109 [1:19:15<09:14, 32.64s/it]                                                   84%|████████▍ | 92/109 [1:19:15<09:14, 32.64s/it] 85%|████████▌ | 93/109 [1:19:19<06:25, 24.12s/it]                                                   85%|████████▌ | 93/109 [1:19:19<06:25, 24.12s/it] 86%|████████▌ | 94/109 [1:19:52<06:42, 26.85s/it]                                                   86%|████████▌ | 94/109 [1:19:52<06:42, 26.85s/it] 87%|████████▋ | 95/109 [1:20:18<06:09, 26.41s/it]                                                   87%|████████▋ | 95/109 [1:20:18<06:09, 26.41s/it] 88%|████████▊ | 96/109 [1:20:32<04:56, 22.83s/it]                                                   88%|████████▊ | 96/109 [1:20:32<04:56, 22.83s/it] 89%|████████▉ | 97/109 [1:20:58<04:43, 23.64s/it]                                                   89%|████████▉ | 97/109 [1:20:58<04:43, 23.64s/it] 90%|████████▉ | 98/109 [1:21:20<04:16, 23.27s/it]                                                   90%|████████▉ | 98/109 [1:21:20<04:16, 23.27s/it] 91%|█████████ | 99/109 [1:21:38<03:34, 21.48s/it]                                                   91%|█████████ | 99/109 [1:21:38<03:34, 21.48s/it] 92%|█████████▏| 100/109 [1:22:50<05:31, 36.87s/it]                                                    92%|█████████▏| 100/109 [1:22:50<05:31, 36.87s/it] 93%|█████████▎| 101/109 [1:22:58<03:45, 28.23s/it]                                                    93%|█████████▎| 101/109 [1:22:58<03:45, 28.23s/it] 94%|█████████▎| 102/109 [1:22:59<02:19, 19.90s/it]                                                    94%|█████████▎| 102/109 [1:22:59<02:19, 19.90s/it] 94%|█████████▍| 103/109 [1:23:15<01:52, 18.74s/it]                                                    94%|█████████▍| 103/109 [1:23:15<01:52, 18.74s/it] 95%|█████████▌| 104/109 [1:23:49<01:57, 23.49s/it]                                                    95%|█████████▌| 104/109 [1:23:49<01:57, 23.49s/it] 96%|█████████▋| 105/109 [1:24:02<01:20, 20.24s/it]                                                    96%|█████████▋| 105/109 [1:24:02<01:20, 20.24s/it] 97%|█████████▋| 106/109 [1:24:31<01:08, 22.91s/it] 98%|█████████▊| 107/109 [1:24:58<00:48, 24.15s/it] 99%|█████████▉| 108/109 [1:25:30<00:26, 26.30s/it]100%|██████████| 109/109 [1:26:18<00:00, 32.98s/it]100%|██████████| 109/109 [1:26:18<00:00, 47.51s/it]
+
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_security_studies] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_biology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_logical_fallacies] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_world_history] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_medicine] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_mathematics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_medicine] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_us_history] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_sociology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_econometrics] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_psychology] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_human_aging] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_us_foreign_policy] on CPU 
+launch OpenICLInfer[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_conceptual_physics] on CPU 
+03/12 14:31:03 - OpenCompass - INFO - Partitioned into 109 tasks.
+  0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:00<?, ?it/s]                                         0%|          | 0/109 [00:01<?, ?it/s]                                         0%|          | 0/109 [00:02<?, ?it/s]  1%|          | 1/109 [00:18<34:06, 18.95s/it]                                                 1%|          | 1/109 [00:18<34:06, 18.95s/it]  2%|▏         | 2/109 [00:20<15:43,  8.82s/it]                                                 2%|▏         | 2/109 [00:20<15:43,  8.82s/it]  3%|▎         | 3/109 [00:21<09:27,  5.36s/it]                                                 3%|▎         | 3/109 [00:21<09:27,  5.36s/it]  4%|▎         | 4/109 [00:23<06:59,  4.00s/it]                                                 4%|▎         | 4/109 [00:23<06:59,  4.00s/it]  5%|▍         | 5/109 [00:24<04:57,  2.86s/it]                                                 6%|▌         | 6/109 [00:24<04:55,  2.86s/it]                                                 6%|▌         | 6/109 [00:24<04:55,  2.86s/it]  6%|▋         | 7/109 [00:25<02:55,  1.72s/it]                                                 6%|▋         | 7/109 [00:25<02:55,  1.72s/it]  7%|▋         | 8/109 [00:26<02:35,  1.54s/it]                                                 7%|▋         | 8/109 [00:26<02:35,  1.54s/it]  8%|▊         | 9/109 [00:28<02:39,  1.59s/it]                                                 8%|▊         | 9/109 [00:28<02:39,  1.59s/it]  9%|▉         | 10/109 [00:33<03:54,  2.36s/it]                                                  9%|▉         | 10/109 [00:33<03:54,  2.36s/it] 10%|█         | 11/109 [00:37<04:48,  2.94s/it]                                                 10%|█         | 11/109 [00:37<04:48,  2.94s/it] 11%|█         | 12/109 [00:41<05:07,  3.17s/it]                                                 11%|█         | 12/109 [00:41<05:07,  3.17s/it] 12%|█▏        | 13/109 [00:45<05:36,  3.51s/it]                                                 12%|█▏        | 13/109 [00:45<05:36,  3.51s/it] 13%|█▎        | 14/109 [00:49<05:58,  3.77s/it]                                                 13%|█▎        | 14/109 [00:49<05:58,  3.77s/it] 14%|█▍        | 15/109 [00:51<04:50,  3.09s/it]                                                 14%|█▍        | 15/109 [00:51<04:50,  3.09s/it] 15%|█▍        | 16/109 [00:52<03:46,  2.44s/it]                                                 15%|█▍        | 16/109 [00:52<03:46,  2.44s/it] 16%|█▌        | 17/109 [00:52<02:51,  1.86s/it]                                                 16%|█▌        | 17/109 [00:52<02:51,  1.86s/it] 17%|█▋        | 18/109 [00:56<03:29,  2.30s/it]                                                 17%|█▋        | 18/109 [00:56<03:29,  2.30s/it] 17%|█▋        | 19/109 [00:56<02:41,  1.79s/it] 18%|█▊        | 20/109 [00:56<01:39,  1.11s/it]                                                 18%|█▊        | 20/109 [00:57<01:39,  1.11s/it]                                                 18%|█▊        | 20/109 [00:58<01:39,  1.11s/it] 19%|█▉        | 21/109 [01:01<02:47,  1.91s/it]                                                 19%|█▉        | 21/109 [01:01<02:47,  1.91s/it] 20%|██        | 22/109 [01:09<05:06,  3.52s/it]                                                 20%|██        | 22/109 [01:09<05:06,  3.52s/it] 21%|██        | 23/109 [01:10<04:10,  2.91s/it]                                                 21%|██        | 23/109 [01:10<04:10,  2.91s/it] 22%|██▏       | 24/109 [01:12<03:53,  2.75s/it]                                                 22%|██▏       | 24/109 [01:12<03:53,  2.75s/it] 23%|██▎       | 25/109 [01:13<03:02,  2.17s/it]                                                 23%|██▎       | 25/109 [01:13<03:02,  2.17s/it] 24%|██▍       | 26/109 [01:17<03:37,  2.62s/it]                                                 24%|██▍       | 26/109 [01:17<03:37,  2.62s/it] 25%|██▍       | 27/109 [01:18<03:05,  2.26s/it]                                                 25%|██▍       | 27/109 [01:18<03:05,  2.26s/it] 26%|██▌       | 28/109 [01:18<02:14,  1.66s/it]                                                 26%|██▌       | 28/109 [01:18<02:14,  1.66s/it] 27%|██▋       | 29/109 [01:20<02:24,  1.80s/it]                                                 27%|██▋       | 29/109 [01:20<02:24,  1.80s/it] 28%|██▊       | 30/109 [01:26<03:44,  2.84s/it]                                                 28%|██▊       | 30/109 [01:26<03:44,  2.84s/it] 28%|██▊       | 31/109 [01:28<03:19,  2.56s/it]                                                 28%|██▊       | 31/109 [01:28<03:19,  2.56s/it] 29%|██▉       | 32/109 [01:29<02:52,  2.24s/it]                                                 29%|██▉       | 32/109 [01:29<02:52,  2.24s/it] 30%|███       | 33/109 [01:33<03:32,  2.80s/it]                                                 30%|███       | 33/109 [01:33<03:32,  2.80s/it] 31%|███       | 34/109 [01:38<04:16,  3.42s/it]                                                 31%|███       | 34/109 [01:38<04:16,  3.42s/it] 32%|███▏      | 35/109 [01:38<03:05,  2.50s/it]                                                 32%|███▏      | 35/109 [01:38<03:05,  2.50s/it] 33%|███▎      | 36/109 [01:42<03:36,  2.96s/it]                                                 33%|███▎      | 36/109 [01:42<03:36,  2.96s/it] 34%|███▍      | 37/109 [01:43<02:43,  2.27s/it]                                                 34%|███▍      | 37/109 [01:43<02:43,  2.27s/it] 35%|███▍      | 38/109 [01:47<03:23,  2.87s/it] 36%|███▌      | 39/109 [01:48<02:57,  2.53s/it]                                                 36%|███▌      | 39/109 [01:48<02:57,  2.53s/it]                                                 36%|███▌      | 39/109 [01:48<02:57,  2.53s/it] 37%|███▋      | 40/109 [01:49<02:37,  2.29s/it]                                                 37%|███▋      | 40/109 [01:49<02:37,  2.29s/it] 38%|███▊      | 41/109 [01:53<03:00,  2.65s/it]                                                 38%|███▊      | 41/109 [01:53<03:00,  2.65s/it] 39%|███▊      | 42/109 [01:56<03:11,  2.86s/it]                                                 39%|███▊      | 42/109 [01:56<03:11,  2.86s/it] 39%|███▉      | 43/109 [02:00<03:25,  3.11s/it]                                                 39%|███▉      | 43/109 [02:00<03:25,  3.11s/it] 40%|████      | 44/109 [02:03<03:19,  3.07s/it]                                                 40%|████      | 44/109 [02:03<03:19,  3.07s/it] 41%|████▏     | 45/109 [02:07<03:34,  3.35s/it]                                                 41%|████▏     | 45/109 [02:07<03:34,  3.35s/it] 42%|████▏     | 46/109 [02:08<02:44,  2.61s/it]                                                 42%|████▏     | 46/109 [02:08<02:44,  2.61s/it] 43%|████▎     | 47/109 [02:09<02:14,  2.17s/it]                                                 43%|████▎     | 47/109 [02:09<02:14,  2.17s/it] 44%|████▍     | 48/109 [02:10<01:50,  1.81s/it]                                                 44%|████▍     | 48/109 [02:10<01:50,  1.81s/it] 45%|████▍     | 49/109 [02:14<02:30,  2.51s/it]                                                 45%|████▍     | 49/109 [02:14<02:30,  2.51s/it] 46%|████▌     | 50/109 [02:15<02:09,  2.20s/it]                                                 46%|████▌     | 50/109 [02:15<02:09,  2.20s/it] 47%|████▋     | 51/109 [02:17<01:50,  1.91s/it]                                                 47%|████▋     | 51/109 [02:17<01:50,  1.91s/it] 48%|████▊     | 52/109 [02:23<03:07,  3.28s/it]                                                 48%|████▊     | 52/109 [02:23<03:07,  3.28s/it] 49%|████▊     | 53/109 [02:23<02:13,  2.38s/it]                                                 49%|████▊     | 53/109 [02:23<02:13,  2.38s/it] 50%|████▉     | 54/109 [02:25<01:56,  2.11s/it] 50%|█████     | 55/109 [02:25<01:19,  1.48s/it]                                                 50%|█████     | 55/109 [02:25<01:19,  1.48s/it]                                                 50%|█████     | 55/109 [02:25<01:19,  1.48s/it] 51%|█████▏    | 56/109 [02:25<01:02,  1.18s/it]                                                 51%|█████▏    | 56/109 [02:25<01:02,  1.18s/it] 52%|█████▏    | 57/109 [02:28<01:31,  1.76s/it]                                                 52%|█████▏    | 57/109 [02:28<01:31,  1.76s/it] 53%|█████▎    | 58/109 [02:29<01:11,  1.39s/it]                                                 53%|█████▎    | 58/109 [02:29<01:11,  1.39s/it] 54%|█████▍    | 59/109 [02:29<00:56,  1.13s/it]                                                 54%|█████▍    | 59/109 [02:29<00:56,  1.13s/it] 55%|█████▌    | 60/109 [02:36<02:08,  2.63s/it]                                                 55%|█████▌    | 60/109 [02:36<02:08,  2.63s/it] 56%|█████▌    | 61/109 [02:36<01:32,  1.92s/it]                                                 56%|█████▌    | 61/109 [02:36<01:32,  1.92s/it] 57%|█████▋    | 62/109 [02:42<02:23,  3.05s/it]                                                 57%|█████▋    | 62/109 [02:42<02:23,  3.05s/it] 58%|█████▊    | 63/109 [02:43<01:51,  2.42s/it]                                                 58%|█████▊    | 63/109 [02:43<01:51,  2.42s/it] 59%|█████▊    | 64/109 [02:43<01:22,  1.82s/it]                                                 59%|█████▊    | 64/109 [02:43<01:22,  1.82s/it] 60%|█████▉    | 65/109 [02:44<01:11,  1.64s/it]                                                 60%|█████▉    | 65/109 [02:44<01:11,  1.64s/it] 61%|██████    | 66/109 [02:45<01:00,  1.41s/it]                                                 61%|██████    | 66/109 [02:45<01:00,  1.41s/it] 61%|██████▏   | 67/109 [02:45<00:43,  1.03s/it]                                                 61%|██████▏   | 67/109 [02:45<00:43,  1.03s/it] 62%|██████▏   | 68/109 [02:47<00:54,  1.32s/it]                                                 62%|██████▏   | 68/109 [02:47<00:54,  1.32s/it] 63%|██████▎   | 69/109 [02:47<00:38,  1.03it/s]                                                 63%|██████▎   | 69/109 [02:47<00:38,  1.03it/s] 64%|██████▍   | 70/109 [02:53<01:33,  2.41s/it]                                                 64%|██████▍   | 70/109 [02:53<01:33,  2.41s/it] 65%|██████▌   | 71/109 [02:59<02:07,  3.35s/it]                                                 65%|██████▌   | 71/109 [02:59<02:07,  3.35s/it] 66%|██████▌   | 72/109 [02:59<01:30,  2.44s/it]                                                 66%|██████▌   | 72/109 [02:59<01:30,  2.44s/it] 67%|██████▋   | 73/109 [02:59<01:06,  1.86s/it]                                                 67%|██████▋   | 73/109 [02:59<01:06,  1.86s/it] 68%|██████▊   | 74/109 [03:03<01:19,  2.27s/it]                                                 68%|██████▊   | 74/109 [03:03<01:19,  2.27s/it] 69%|██████▉   | 75/109 [03:03<01:00,  1.79s/it] 71%|███████   | 77/109 [03:03<00:21,  1.48it/s] 71%|███████   | 77/109 [03:04<00:21,  1.48it/s]                                                 71%|███████   | 77/109 [03:04<00:21,  1.48it/s]                                                 71%|███████   | 77/109 [03:04<00:21,  1.48it/s]                                                 71%|███████   | 77/109 [03:04<00:21,  1.48it/s] 72%|███████▏  | 78/109 [03:04<00:21,  1.44it/s]                                                 72%|███████▏  | 78/109 [03:04<00:21,  1.44it/s] 72%|███████▏  | 79/109 [03:11<00:57,  1.92s/it]                                                 72%|███████▏  | 79/109 [03:11<00:57,  1.92s/it] 73%|███████▎  | 80/109 [03:11<00:47,  1.64s/it]                                                 73%|███████▎  | 80/109 [03:11<00:47,  1.64s/it] 74%|███████▍  | 81/109 [03:13<00:47,  1.70s/it]                                                 74%|███████▍  | 81/109 [03:13<00:47,  1.70s/it] 75%|███████▌  | 82/109 [03:18<01:09,  2.59s/it]                                                 75%|███████▌  | 82/109 [03:18<01:09,  2.59s/it] 76%|███████▌  | 83/109 [03:19<00:54,  2.08s/it]                                                 76%|███████▌  | 83/109 [03:19<00:54,  2.08s/it] 77%|███████▋  | 84/109 [03:21<00:48,  1.96s/it]                                                 77%|███████▋  | 84/109 [03:21<00:48,  1.96s/it] 78%|███████▊  | 85/109 [03:22<00:41,  1.71s/it]                                                 78%|███████▊  | 85/109 [03:22<00:41,  1.71s/it]                                                 79%|███████▉  | 86/109 [03:22<00:39,  1.71s/it] 80%|███████▉  | 87/109 [03:24<00:31,  1.41s/it]                                                 80%|███████▉  | 87/109 [03:24<00:31,  1.41s/it] 81%|████████  | 88/109 [03:24<00:25,  1.21s/it]                                                 81%|████████  | 88/109 [03:24<00:25,  1.21s/it]launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-computer_network] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-operating_system] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-computer_architecture] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-college_programming] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-college_physics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-college_chemistry] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-advanced_mathematics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-probability_and_statistics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-discrete_mathematics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-electrical_engineer] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-metrology_engineer] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_mathematics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_physics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_chemistry] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_biology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_mathematics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_biology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_physics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_chemistry] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-veterinary_medicine] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-college_economics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-business_administration] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-marxism] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-mao_zedong_thought] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-education_science] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-teacher_qualification] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_politics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_geography] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_politics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_geography] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-modern_chinese_history] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-ideological_and_moral_cultivation] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-logic] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-law] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-chinese_language_and_literature] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-art_studies] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-professional_tour_guide] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-legal_professional] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_chinese] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-high_school_history] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-middle_school_history] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-civil_servant] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-sports_science] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-plant_protection] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-basic_medicine] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-clinical_medicine] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-urban_and_rural_planner] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-accountant] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-fire_engineer] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-environmental_impact_assessment_engineer] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-tax_accountant] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/ceval-physician] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_biology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_chemistry] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_computer_science] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_mathematics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_physics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_electrical_engineering] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_astronomy] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_anatomy] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_abstract_algebra] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_machine_learning] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_clinical_knowledge] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_global_facts] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_management] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_nutrition] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_marketing] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_accounting] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_geography] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_international_law] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_moral_scenarios] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_computer_security] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_microeconomics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_law] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_medical_genetics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_psychology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_jurisprudence] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_world_religions] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_philosophy] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_virology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_chemistry] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_public_relations] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_macroeconomics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_human_sexuality] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_elementary_mathematics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_physics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_computer_science] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_european_history] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_business_ethics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_moral_disputes] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_statistics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_miscellaneous] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_formal_logic] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_government_and_politics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_prehistory] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_security_studies] on CPU  82%|████████▏ | 89/109 [03:25<00:21,  1.08s/it]                                                 82%|████████▏ | 89/109 [03:26<00:21,  1.08s/it] 83%|████████▎ | 90/109 [03:29<00:34,  1.79s/it]                                                 83%|████████▎ | 90/109 [03:29<00:34,  1.79s/it] 83%|████████▎ | 91/109 [03:31<00:34,  1.91s/it]                                                 83%|████████▎ | 91/109 [03:31<00:34,  1.91s/it] 84%|████████▍ | 92/109 [03:36<00:44,  2.64s/it]                                                 84%|████████▍ | 92/109 [03:36<00:44,  2.64s/it] 85%|████████▌ | 93/109 [03:36<00:32,  2.00s/it]                                                 85%|████████▌ | 93/109 [03:36<00:32,  2.00s/it] 86%|████████▌ | 94/109 [03:38<00:31,  2.08s/it]                                                 86%|████████▌ | 94/109 [03:38<00:31,  2.08s/it] 87%|████████▋ | 95/109 [03:40<00:27,  1.95s/it]                                                 87%|████████▋ | 95/109 [03:40<00:27,  1.95s/it] 88%|████████▊ | 96/109 [03:41<00:21,  1.64s/it]                                                 88%|████████▊ | 96/109 [03:41<00:21,  1.64s/it] 89%|████████▉ | 97/109 [03:41<00:15,  1.27s/it]                                                 89%|████████▉ | 97/109 [03:41<00:15,  1.27s/it] 90%|████████▉ | 98/109 [03:42<00:13,  1.27s/it]                                                 90%|████████▉ | 98/109 [03:42<00:13,  1.27s/it] 91%|█████████ | 99/109 [03:43<00:09,  1.08it/s]                                                 91%|█████████ | 99/109 [03:43<00:09,  1.08it/s] 92%|█████████▏| 100/109 [03:46<00:16,  1.80s/it]                                                  92%|█████████▏| 100/109 [03:46<00:16,  1.80s/it] 93%|█████████▎| 101/109 [03:47<00:11,  1.50s/it]                                                  93%|█████████▎| 101/109 [03:47<00:11,  1.50s/it] 94%|█████████▎| 102/109 [03:49<00:11,  1.69s/it] 94%|█████████▍| 103/109 [03:55<00:17,  2.93s/it] 95%|█████████▌| 104/109 [03:56<00:11,  2.32s/it] 96%|█████████▋| 105/109 [03:57<00:07,  1.97s/it] 97%|█████████▋| 106/109 [03:58<00:04,  1.51s/it] 98%|█████████▊| 107/109 [03:58<00:02,  1.30s/it] 99%|█████████▉| 108/109 [03:59<00:01,  1.15s/it]100%|██████████| 109/109 [04:00<00:00,  1.10it/s]100%|██████████| 109/109 [04:00<00:00,  2.20s/it]
+
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_biology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_logical_fallacies] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_world_history] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_professional_medicine] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_mathematics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_college_medicine] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_us_history] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_sociology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_econometrics] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_high_school_psychology] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_human_aging] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_us_foreign_policy] on CPU 
+launch OpenICLEval[DeepSeek-R1-Distill-Qwen-14B/lukaemon_mmlu_conceptual_physics] on CPU 
+dataset                                            version    metric    mode      DeepSeek-R1-Distill-Qwen-14B
+-------------------------------------------------  ---------  --------  ------  ------------------------------
+ceval-computer_network                             db9ce2     accuracy  gen                               0.00
+ceval-operating_system                             1c2571     accuracy  gen                              10.00
+ceval-computer_architecture                        a74dad     accuracy  gen                              10.00
+ceval-college_programming                          4ca32a     accuracy  gen                              20.00
+ceval-college_physics                              963fa8     accuracy  gen                              10.00
+ceval-college_chemistry                            e78857     accuracy  gen                               0.00
+ceval-advanced_mathematics                         ce03e2     accuracy  gen                              30.00
+ceval-probability_and_statistics                   65e812     accuracy  gen                               0.00
+ceval-discrete_mathematics                         e894ae     accuracy  gen                              10.00
+ceval-electrical_engineer                          ae42b9     accuracy  gen                              30.00
+ceval-metrology_engineer                           ee34ea     accuracy  gen                               0.00
+ceval-high_school_mathematics                      1dc5bf     accuracy  gen                              30.00
+ceval-high_school_physics                          adf25f     accuracy  gen                              30.00
+ceval-high_school_chemistry                        2ed27f     accuracy  gen                              10.00
+ceval-high_school_biology                          8e2b9a     accuracy  gen                              30.00
+ceval-middle_school_mathematics                    bee8d5     accuracy  gen                              20.00
+ceval-middle_school_biology                        86817c     accuracy  gen                              20.00
+ceval-middle_school_physics                        8accf6     accuracy  gen                              20.00
+ceval-middle_school_chemistry                      167a15     accuracy  gen                              20.00
+ceval-veterinary_medicine                          b4e08d     accuracy  gen                              20.00
+ceval-college_economics                            f3f4e6     accuracy  gen                              20.00
+ceval-business_administration                      c1614e     accuracy  gen                              50.00
+ceval-marxism                                      cf874c     accuracy  gen                              20.00
+ceval-mao_zedong_thought                           51c7a4     accuracy  gen                              50.00
+ceval-education_science                            591fee     accuracy  gen                              30.00
+ceval-teacher_qualification                        4e4ced     accuracy  gen                              70.00
+ceval-high_school_politics                         5c0de2     accuracy  gen                              60.00
+ceval-high_school_geography                        865461     accuracy  gen                              40.00
+ceval-middle_school_politics                       5be3e7     accuracy  gen                              30.00
+ceval-middle_school_geography                      8a63be     accuracy  gen                               0.00
+ceval-modern_chinese_history                       fc01af     accuracy  gen                              30.00
+ceval-ideological_and_moral_cultivation            a2aa4a     accuracy  gen                              20.00
+ceval-logic                                        f5b022     accuracy  gen                              30.00
+ceval-law                                          a110a1     accuracy  gen                              40.00
+ceval-chinese_language_and_literature              0f8b68     accuracy  gen                              30.00
+ceval-art_studies                                  2a1300     accuracy  gen                              70.00
+ceval-professional_tour_guide                      4e673e     accuracy  gen                              60.00
+ceval-legal_professional                           ce8787     accuracy  gen                               0.00
+ceval-high_school_chinese                          315705     accuracy  gen                              30.00
+ceval-high_school_history                          7eb30a     accuracy  gen                              50.00
+ceval-middle_school_history                        48ab4a     accuracy  gen                              10.00
+ceval-civil_servant                                87d061     accuracy  gen                              50.00
+ceval-sports_science                               70f27b     accuracy  gen                              10.00
+ceval-plant_protection                             8941f9     accuracy  gen                              40.00
+ceval-basic_medicine                               c409d6     accuracy  gen                              10.00
+ceval-clinical_medicine                            49e82d     accuracy  gen                              10.00
+ceval-urban_and_rural_planner                      95b885     accuracy  gen                              40.00
+ceval-accountant                                   002837     accuracy  gen                              20.00
+ceval-fire_engineer                                bc23f5     accuracy  gen                              20.00
+ceval-environmental_impact_assessment_engineer     c64e2d     accuracy  gen                              10.00
+ceval-tax_accountant                               3a5e3c     accuracy  gen                              10.00
+ceval-physician                                    6e277d     accuracy  gen                              20.00
+lukaemon_mmlu_college_biology                      caec7d     accuracy  gen                              90.00
+lukaemon_mmlu_college_chemistry                    520aa6     accuracy  gen                              50.00
+lukaemon_mmlu_college_computer_science             99c216     accuracy  gen                              80.00
+lukaemon_mmlu_college_mathematics                  678751     accuracy  gen                              90.00
+lukaemon_mmlu_college_physics                      4f382c     accuracy  gen                              90.00
+lukaemon_mmlu_electrical_engineering               770ce3     accuracy  gen                              90.00
+lukaemon_mmlu_astronomy                            d3ee01     accuracy  gen                              80.00
+lukaemon_mmlu_anatomy                              72183b     accuracy  gen                              80.00
+lukaemon_mmlu_abstract_algebra                     2db373     accuracy  gen                              90.00
+lukaemon_mmlu_machine_learning                     0283bb     accuracy  gen                              70.00
+lukaemon_mmlu_clinical_knowledge                   cb3218     accuracy  gen                              60.00
+lukaemon_mmlu_global_facts                         ab07b6     accuracy  gen                              80.00
+lukaemon_mmlu_management                           80876d     accuracy  gen                              90.00
+lukaemon_mmlu_nutrition                            4543bd     accuracy  gen                              80.00
+lukaemon_mmlu_marketing                            7394e3     accuracy  gen                             100.00
+lukaemon_mmlu_professional_accounting              444b7f     accuracy  gen                              90.00
+lukaemon_mmlu_high_school_geography                0780e6     accuracy  gen                             100.00
+lukaemon_mmlu_international_law                    cf3179     accuracy  gen                              60.00
+lukaemon_mmlu_moral_scenarios                      f6dbe2     accuracy  gen                              60.00
+lukaemon_mmlu_computer_security                    ce7550     accuracy  gen                              90.00
+lukaemon_mmlu_high_school_microeconomics           04d21a     accuracy  gen                             100.00
+lukaemon_mmlu_professional_law                     5f7e6c     accuracy  gen                              90.00
+lukaemon_mmlu_medical_genetics                     881ef5     accuracy  gen                              90.00
+lukaemon_mmlu_professional_psychology              221a16     accuracy  gen                              90.00
+lukaemon_mmlu_jurisprudence                        001f24     accuracy  gen                             100.00
+lukaemon_mmlu_world_religions                      232c09     accuracy  gen                             100.00
+lukaemon_mmlu_philosophy                           08042b     accuracy  gen                              90.00
+lukaemon_mmlu_virology                             12e270     accuracy  gen                              40.00
+lukaemon_mmlu_high_school_chemistry                ae8820     accuracy  gen                              80.00
+lukaemon_mmlu_public_relations                     e7d39b     accuracy  gen                              80.00
+lukaemon_mmlu_high_school_macroeconomics           a01685     accuracy  gen                              90.00
+lukaemon_mmlu_human_sexuality                      42407c     accuracy  gen                              90.00
+lukaemon_mmlu_elementary_mathematics               269926     accuracy  gen                             100.00
+lukaemon_mmlu_high_school_physics                  93278f     accuracy  gen                              90.00
+lukaemon_mmlu_high_school_computer_science         9965a5     accuracy  gen                             100.00
+lukaemon_mmlu_high_school_european_history         eefc90     accuracy  gen                              80.00
+lukaemon_mmlu_business_ethics                      1dec08     accuracy  gen                              80.00
+lukaemon_mmlu_moral_disputes                       a2173e     accuracy  gen                              60.00
+lukaemon_mmlu_high_school_statistics               8f3f3a     accuracy  gen                             100.00
+lukaemon_mmlu_miscellaneous                        935647     accuracy  gen                             100.00
+lukaemon_mmlu_formal_logic                         cfcb0c     accuracy  gen                              90.00
+lukaemon_mmlu_high_school_government_and_politics  3c52f9     accuracy  gen                              90.00
+lukaemon_mmlu_prehistory                           bbb197     accuracy  gen                             100.00
+lukaemon_mmlu_security_studies                     9b1743     accuracy  gen                             100.00
+lukaemon_mmlu_high_school_biology                  37b125     accuracy  gen                              90.00
+lukaemon_mmlu_logical_fallacies                    9cebb0     accuracy  gen                              80.00
+lukaemon_mmlu_high_school_world_history            048e7e     accuracy  gen                             100.00
+lukaemon_mmlu_professional_medicine                857144     accuracy  gen                             100.00
+lukaemon_mmlu_high_school_mathematics              ed4dc0     accuracy  gen                              40.00
+lukaemon_mmlu_college_medicine                     38709e     accuracy  gen                              70.00
+lukaemon_mmlu_high_school_us_history               8932df     accuracy  gen                              90.00
+lukaemon_mmlu_sociology                            c266a2     accuracy  gen                              80.00
+lukaemon_mmlu_econometrics                         d1134d     accuracy  gen                              70.00
+lukaemon_mmlu_high_school_psychology               7db114     accuracy  gen                             100.00
+lukaemon_mmlu_human_aging                          82a410     accuracy  gen                              80.00
+lukaemon_mmlu_us_foreign_policy                    528cfe     accuracy  gen                             100.00
+lukaemon_mmlu_conceptual_physics                   63588e     accuracy  gen                              80.00
+03/12 14:35:03 - OpenCompass - INFO - write summary to /outputs/llama2_eval_result/20260312_130426/summary/summary_20260312_130426.txt
+03/12 14:35:03 - OpenCompass - INFO - write csv to /outputs/llama2_eval_result/20260312_130426/summary/summary_20260312_130426.csv
+
+
+The markdown format results is as below:
+
+| dataset | version | metric | mode | DeepSeek-R1-Distill-Qwen-14B |
+|----- | ----- | ----- | ----- | -----|
+| ceval-computer_network | db9ce2 | accuracy | gen | 0.00 |
+| ceval-operating_system | 1c2571 | accuracy | gen | 10.00 |
+| ceval-computer_architecture | a74dad | accuracy | gen | 10.00 |
+| ceval-college_programming | 4ca32a | accuracy | gen | 20.00 |
+| ceval-college_physics | 963fa8 | accuracy | gen | 10.00 |
+| ceval-college_chemistry | e78857 | accuracy | gen | 0.00 |
+| ceval-advanced_mathematics | ce03e2 | accuracy | gen | 30.00 |
+| ceval-probability_and_statistics | 65e812 | accuracy | gen | 0.00 |
+| ceval-discrete_mathematics | e894ae | accuracy | gen | 10.00 |
+| ceval-electrical_engineer | ae42b9 | accuracy | gen | 30.00 |
+| ceval-metrology_engineer | ee34ea | accuracy | gen | 0.00 |
+| ceval-high_school_mathematics | 1dc5bf | accuracy | gen | 30.00 |
+| ceval-high_school_physics | adf25f | accuracy | gen | 30.00 |
+| ceval-high_school_chemistry | 2ed27f | accuracy | gen | 10.00 |
+| ceval-high_school_biology | 8e2b9a | accuracy | gen | 30.00 |
+| ceval-middle_school_mathematics | bee8d5 | accuracy | gen | 20.00 |
+| ceval-middle_school_biology | 86817c | accuracy | gen | 20.00 |
+| ceval-middle_school_physics | 8accf6 | accuracy | gen | 20.00 |
+| ceval-middle_school_chemistry | 167a15 | accuracy | gen | 20.00 |
+| ceval-veterinary_medicine | b4e08d | accuracy | gen | 20.00 |
+| ceval-college_economics | f3f4e6 | accuracy | gen | 20.00 |
+| ceval-business_administration | c1614e | accuracy | gen | 50.00 |
+| ceval-marxism | cf874c | accuracy | gen | 20.00 |
+| ceval-mao_zedong_thought | 51c7a4 | accuracy | gen | 50.00 |
+| ceval-education_science | 591fee | accuracy | gen | 30.00 |
+| ceval-teacher_qualification | 4e4ced | accuracy | gen | 70.00 |
+| ceval-high_school_politics | 5c0de2 | accuracy | gen | 60.00 |
+| ceval-high_school_geography | 865461 | accuracy | gen | 40.00 |
+| ceval-middle_school_politics | 5be3e7 | accuracy | gen | 30.00 |
+| ceval-middle_school_geography | 8a63be | accuracy | gen | 0.00 |
+| ceval-modern_chinese_history | fc01af | accuracy | gen | 30.00 |
+| ceval-ideological_and_moral_cultivation | a2aa4a | accuracy | gen | 20.00 |
+| ceval-logic | f5b022 | accuracy | gen | 30.00 |
+| ceval-law | a110a1 | accuracy | gen | 40.00 |
+| ceval-chinese_language_and_literature | 0f8b68 | accuracy | gen | 30.00 |
+| ceval-art_studies | 2a1300 | accuracy | gen | 70.00 |
+| ceval-professional_tour_guide | 4e673e | accuracy | gen | 60.00 |
+| ceval-legal_professional | ce8787 | accuracy | gen | 0.00 |
+| ceval-high_school_chinese | 315705 | accuracy | gen | 30.00 |
+| ceval-high_school_history | 7eb30a | accuracy | gen | 50.00 |
+| ceval-middle_school_history | 48ab4a | accuracy | gen | 10.00 |
+| ceval-civil_servant | 87d061 | accuracy | gen | 50.00 |
+| ceval-sports_science | 70f27b | accuracy | gen | 10.00 |
+| ceval-plant_protection | 8941f9 | accuracy | gen | 40.00 |
+| ceval-basic_medicine | c409d6 | accuracy | gen | 10.00 |
+| ceval-clinical_medicine | 49e82d | accuracy | gen | 10.00 |
+| ceval-urban_and_rural_planner | 95b885 | accuracy | gen | 40.00 |
+| ceval-accountant | 002837 | accuracy | gen | 20.00 |
+| ceval-fire_engineer | bc23f5 | accuracy | gen | 20.00 |
+| ceval-environmental_impact_assessment_engineer | c64e2d | accuracy | gen | 10.00 |
+| ceval-tax_accountant | 3a5e3c | accuracy | gen | 10.00 |
+| ceval-physician | 6e277d | accuracy | gen | 20.00 |
+| lukaemon_mmlu_college_biology | caec7d | accuracy | gen | 90.00 |
+| lukaemon_mmlu_college_chemistry | 520aa6 | accuracy | gen | 50.00 |
+| lukaemon_mmlu_college_computer_science | 99c216 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_college_mathematics | 678751 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_college_physics | 4f382c | accuracy | gen | 90.00 |
+| lukaemon_mmlu_electrical_engineering | 770ce3 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_astronomy | d3ee01 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_anatomy | 72183b | accuracy | gen | 80.00 |
+| lukaemon_mmlu_abstract_algebra | 2db373 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_machine_learning | 0283bb | accuracy | gen | 70.00 |
+| lukaemon_mmlu_clinical_knowledge | cb3218 | accuracy | gen | 60.00 |
+| lukaemon_mmlu_global_facts | ab07b6 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_management | 80876d | accuracy | gen | 90.00 |
+| lukaemon_mmlu_nutrition | 4543bd | accuracy | gen | 80.00 |
+| lukaemon_mmlu_marketing | 7394e3 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_professional_accounting | 444b7f | accuracy | gen | 90.00 |
+| lukaemon_mmlu_high_school_geography | 0780e6 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_international_law | cf3179 | accuracy | gen | 60.00 |
+| lukaemon_mmlu_moral_scenarios | f6dbe2 | accuracy | gen | 60.00 |
+| lukaemon_mmlu_computer_security | ce7550 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_high_school_microeconomics | 04d21a | accuracy | gen | 100.00 |
+| lukaemon_mmlu_professional_law | 5f7e6c | accuracy | gen | 90.00 |
+| lukaemon_mmlu_medical_genetics | 881ef5 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_professional_psychology | 221a16 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_jurisprudence | 001f24 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_world_religions | 232c09 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_philosophy | 08042b | accuracy | gen | 90.00 |
+| lukaemon_mmlu_virology | 12e270 | accuracy | gen | 40.00 |
+| lukaemon_mmlu_high_school_chemistry | ae8820 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_public_relations | e7d39b | accuracy | gen | 80.00 |
+| lukaemon_mmlu_high_school_macroeconomics | a01685 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_human_sexuality | 42407c | accuracy | gen | 90.00 |
+| lukaemon_mmlu_elementary_mathematics | 269926 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_high_school_physics | 93278f | accuracy | gen | 90.00 |
+| lukaemon_mmlu_high_school_computer_science | 9965a5 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_high_school_european_history | eefc90 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_business_ethics | 1dec08 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_moral_disputes | a2173e | accuracy | gen | 60.00 |
+| lukaemon_mmlu_high_school_statistics | 8f3f3a | accuracy | gen | 100.00 |
+| lukaemon_mmlu_miscellaneous | 935647 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_formal_logic | cfcb0c | accuracy | gen | 90.00 |
+| lukaemon_mmlu_high_school_government_and_politics | 3c52f9 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_prehistory | bbb197 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_security_studies | 9b1743 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_high_school_biology | 37b125 | accuracy | gen | 90.00 |
+| lukaemon_mmlu_logical_fallacies | 9cebb0 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_high_school_world_history | 048e7e | accuracy | gen | 100.00 |
+| lukaemon_mmlu_professional_medicine | 857144 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_high_school_mathematics | ed4dc0 | accuracy | gen | 40.00 |
+| lukaemon_mmlu_college_medicine | 38709e | accuracy | gen | 70.00 |
+| lukaemon_mmlu_high_school_us_history | 8932df | accuracy | gen | 90.00 |
+| lukaemon_mmlu_sociology | c266a2 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_econometrics | d1134d | accuracy | gen | 70.00 |
+| lukaemon_mmlu_high_school_psychology | 7db114 | accuracy | gen | 100.00 |
+| lukaemon_mmlu_human_aging | 82a410 | accuracy | gen | 80.00 |
+| lukaemon_mmlu_us_foreign_policy | 528cfe | accuracy | gen | 100.00 |
+| lukaemon_mmlu_conceptual_physics | 63588e | accuracy | gen | 80.00 |
+
+03/12 14:35:03 - OpenCompass - INFO - write markdown summary to /outputs/llama2_eval_result/20260312_130426/summary/summary_20260312_130426.md
+2026-03-12 14:35:03,637 - evalscope - INFO - Args: Task config is provided with dictionary type.
+2026-03-12 14:35:03,637 - evalscope - INFO - **Loading task cfg for summarizer: {
+    "model": "DummyCustomModel",
+    "model_id": "dummy-model",
+    "model_args": {},
+    "model_task": "text_generation",
+    "template_type": null,
+    "chat_template": null,
+    "datasets": [],
+    "dataset_args": {},
+    "dataset_dir": "/root/.cache/modelscope/hub/datasets",
+    "dataset_hub": "modelscope",
+    "generation_config": {},
+    "eval_type": "custom",
+    "eval_backend": "OpenCompass",
+    "eval_config": {
+        "datasets": [
+            "mmlu",
+            "ceval"
+        ],
+        "models": [
+            {
+                "path": "DeepSeek-R1-Distill-Qwen-14B",
+                "openai_api_base": "http://10.9.1.86:20000/v1/chat/completions",
+                "is_chat": true,
+                "batch_size": 10,
+                "abbr": "DeepSeek-R1-Distill-Qwen-14B"
+            }
+        ],
+        "work_dir": "outputs/llama2_eval_result",
+        "limit": 10,
+        "time_str": "20260312_130426"
+    },
+    "stage": "all",
+    "limit": null,
+    "eval_batch_size": 1,
+    "mem_cache": false,
+    "use_cache": null,
+    "work_dir": "./outputs",
+    "outputs": null,
+    "ignore_errors": false,
+    "debug": false,
+    "dry_run": false,
+    "seed": 42,
+    "api_url": null,
+    "api_key": "EMPTY",
+    "timeout": null,
+    "stream": false,
+    "judge_strategy": "auto",
+    "judge_worker_num": 1,
+    "judge_model_args": {},
+    "analysis_report": false
+}
+>> Start to get the report with summarizer ...
+
+>> The report list: [{'dataset': 'ceval-computer_network', 'version': 'db9ce2', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '0.00'}, {'dataset': 'ceval-operating_system', 'version': '1c2571', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-computer_architecture', 'version': 'a74dad', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-college_programming', 'version': '4ca32a', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-college_physics', 'version': '963fa8', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-college_chemistry', 'version': 'e78857', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '0.00'}, {'dataset': 'ceval-advanced_mathematics', 'version': 'ce03e2', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-probability_and_statistics', 'version': '65e812', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '0.00'}, {'dataset': 'ceval-discrete_mathematics', 'version': 'e894ae', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-electrical_engineer', 'version': 'ae42b9', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-metrology_engineer', 'version': 'ee34ea', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '0.00'}, {'dataset': 'ceval-high_school_mathematics', 'version': '1dc5bf', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-high_school_physics', 'version': 'adf25f', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-high_school_chemistry', 'version': '2ed27f', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-high_school_biology', 'version': '8e2b9a', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-middle_school_mathematics', 'version': 'bee8d5', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-middle_school_biology', 'version': '86817c', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-middle_school_physics', 'version': '8accf6', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-middle_school_chemistry', 'version': '167a15', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-veterinary_medicine', 'version': 'b4e08d', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-college_economics', 'version': 'f3f4e6', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-business_administration', 'version': 'c1614e', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '50.00'}, {'dataset': 'ceval-marxism', 'version': 'cf874c', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-mao_zedong_thought', 'version': '51c7a4', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '50.00'}, {'dataset': 'ceval-education_science', 'version': '591fee', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-teacher_qualification', 'version': '4e4ced', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '70.00'}, {'dataset': 'ceval-high_school_politics', 'version': '5c0de2', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '60.00'}, {'dataset': 'ceval-high_school_geography', 'version': '865461', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '40.00'}, {'dataset': 'ceval-middle_school_politics', 'version': '5be3e7', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-middle_school_geography', 'version': '8a63be', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '0.00'}, {'dataset': 'ceval-modern_chinese_history', 'version': 'fc01af', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-ideological_and_moral_cultivation', 'version': 'a2aa4a', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-logic', 'version': 'f5b022', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-law', 'version': 'a110a1', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '40.00'}, {'dataset': 'ceval-chinese_language_and_literature', 'version': '0f8b68', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-art_studies', 'version': '2a1300', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '70.00'}, {'dataset': 'ceval-professional_tour_guide', 'version': '4e673e', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '60.00'}, {'dataset': 'ceval-legal_professional', 'version': 'ce8787', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '0.00'}, {'dataset': 'ceval-high_school_chinese', 'version': '315705', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '30.00'}, {'dataset': 'ceval-high_school_history', 'version': '7eb30a', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '50.00'}, {'dataset': 'ceval-middle_school_history', 'version': '48ab4a', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-civil_servant', 'version': '87d061', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '50.00'}, {'dataset': 'ceval-sports_science', 'version': '70f27b', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-plant_protection', 'version': '8941f9', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '40.00'}, {'dataset': 'ceval-basic_medicine', 'version': 'c409d6', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-clinical_medicine', 'version': '49e82d', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-urban_and_rural_planner', 'version': '95b885', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '40.00'}, {'dataset': 'ceval-accountant', 'version': '002837', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-fire_engineer', 'version': 'bc23f5', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'ceval-environmental_impact_assessment_engineer', 'version': 'c64e2d', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-tax_accountant', 'version': '3a5e3c', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '10.00'}, {'dataset': 'ceval-physician', 'version': '6e277d', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '20.00'}, {'dataset': 'lukaemon_mmlu_college_biology', 'version': 'caec7d', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_college_chemistry', 'version': '520aa6', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '50.00'}, {'dataset': 'lukaemon_mmlu_college_computer_science', 'version': '99c216', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_college_mathematics', 'version': '678751', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_college_physics', 'version': '4f382c', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_electrical_engineering', 'version': '770ce3', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_astronomy', 'version': 'd3ee01', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_anatomy', 'version': '72183b', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_abstract_algebra', 'version': '2db373', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_machine_learning', 'version': '0283bb', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '70.00'}, {'dataset': 'lukaemon_mmlu_clinical_knowledge', 'version': 'cb3218', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '60.00'}, {'dataset': 'lukaemon_mmlu_global_facts', 'version': 'ab07b6', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_management', 'version': '80876d', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_nutrition', 'version': '4543bd', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_marketing', 'version': '7394e3', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_professional_accounting', 'version': '444b7f', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_high_school_geography', 'version': '0780e6', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_international_law', 'version': 'cf3179', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '60.00'}, {'dataset': 'lukaemon_mmlu_moral_scenarios', 'version': 'f6dbe2', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '60.00'}, {'dataset': 'lukaemon_mmlu_computer_security', 'version': 'ce7550', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_high_school_microeconomics', 'version': '04d21a', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_professional_law', 'version': '5f7e6c', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_medical_genetics', 'version': '881ef5', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_professional_psychology', 'version': '221a16', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_jurisprudence', 'version': '001f24', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_world_religions', 'version': '232c09', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_philosophy', 'version': '08042b', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_virology', 'version': '12e270', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '40.00'}, {'dataset': 'lukaemon_mmlu_high_school_chemistry', 'version': 'ae8820', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_public_relations', 'version': 'e7d39b', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_high_school_macroeconomics', 'version': 'a01685', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_human_sexuality', 'version': '42407c', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_elementary_mathematics', 'version': '269926', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_high_school_physics', 'version': '93278f', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_high_school_computer_science', 'version': '9965a5', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_high_school_european_history', 'version': 'eefc90', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_business_ethics', 'version': '1dec08', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_moral_disputes', 'version': 'a2173e', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '60.00'}, {'dataset': 'lukaemon_mmlu_high_school_statistics', 'version': '8f3f3a', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_miscellaneous', 'version': '935647', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_formal_logic', 'version': 'cfcb0c', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_high_school_government_and_politics', 'version': '3c52f9', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_prehistory', 'version': 'bbb197', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_security_studies', 'version': '9b1743', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_high_school_biology', 'version': '37b125', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_logical_fallacies', 'version': '9cebb0', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_high_school_world_history', 'version': '048e7e', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_professional_medicine', 'version': '857144', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_high_school_mathematics', 'version': 'ed4dc0', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '40.00'}, {'dataset': 'lukaemon_mmlu_college_medicine', 'version': '38709e', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '70.00'}, {'dataset': 'lukaemon_mmlu_high_school_us_history', 'version': '8932df', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '90.00'}, {'dataset': 'lukaemon_mmlu_sociology', 'version': 'c266a2', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_econometrics', 'version': 'd1134d', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '70.00'}, {'dataset': 'lukaemon_mmlu_high_school_psychology', 'version': '7db114', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_human_aging', 'version': '82a410', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}, {'dataset': 'lukaemon_mmlu_us_foreign_policy', 'version': '528cfe', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '100.00'}, {'dataset': 'lukaemon_mmlu_conceptual_physics', 'version': '63588e', 'metric': 'accuracy', 'mode': 'gen', 'DeepSeek-R1-Distill-Qwen-14B': '80.00'}]
+{'mmlu': 84.737, 'failed': [], 'ceval': 25.0}

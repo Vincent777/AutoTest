@@ -419,6 +419,9 @@ for option in "${schedule_policies[@]}"; do
                                 elif [ $ENGINE_TYPE == "MindIE" ]; then
                                     ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop mindie_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                                     ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm mindie_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
+                                elif [ $ENGINE_TYPE == "SGLang" ]; then
+                                    ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
+                                    ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                                 fi
                             done
                             
@@ -461,6 +464,9 @@ for option in "${schedule_policies[@]}"; do
                     elif [ $ENGINE_TYPE == "MindIE" ]; then
                         ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop mindie_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                         ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm mindie_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
+                    elif [ $ENGINE_TYPE == "SGLang" ]; then
+                        ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
+                        ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                     fi
                     continue
                 fi
@@ -529,6 +535,9 @@ for option in "${schedule_policies[@]}"; do
                     elif [ $ENGINE_TYPE == "MindIE" ]; then
                         engine_type="mindie"
                         benchmark_cmd="vllm bench serve"
+                    elif [ $ENGINE_TYPE == "SGLang" ]; then
+                        engine_type="sglang"
+                        benchmark_cmd="python3 -m sglang.benchmark.serving"
                     fi
                     
                     # 开始执行测试
@@ -567,28 +576,49 @@ for option in "${schedule_policies[@]}"; do
                                     echo \\\"========================================================\\\"
 
                                     for concurrency in ${concurrency_list[@]}; do
+                                        # Avoid obvious over-context random cases that only generate warnings/noisy logs.
+                                        if [ ${engine_type} == \\\"sglang\\\" ] && [ \\\$input_len -gt 16000 ]; then
+                                            echo \\\"Skip input_len=\\\$input_len for sglang random (over safe context budget)\\\"
+                                            break
+                                        fi
                                         if [ \\\$input_len -ge 30000 ] && [ \\\$concurrency -gt 5 ]; then
                                             break
                                         fi
                                         
                                         prompts=\\\$((concurrency * ${multiplier}))
                                         echo \\\"Testing concurrency=\\\$concurrency, prompts=\\\$prompts\\\"
-                                        echo \\\"${benchmark_cmd} --backend openai --port ${server_port} --host ${local_master_ip} --model ${model} --tokenizer ${data_path}/${model}/ --endpoint /v1/completions --dataset-name random --random-input-len \\\$input_len --random-output-len \\\$output_len --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency --ignore-eos\\\"
-
-                                        ${benchmark_cmd} \
-                                        --backend openai \
-                                        --port ${server_port} \
-                                        --host ${local_master_ip} \
-                                        --model ${model} \
-                                        --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
-                                        --endpoint /v1/completions \
-                                        --dataset-name random \
-                                        --random-input-len \\\$input_len \
-                                        --random-output-len \\\$output_len \
-                                        --num-prompts \\\$prompts \
-                                        --request-rate inf \
-                                        --max-concurrency \\\$concurrency \
-                                        --ignore-eos
+                                        if [ ${engine_type} == \\\"sglang\\\" ]; then
+                                            echo \\\"python3 -m sglang.benchmark.serving --backend sglang --host ${local_master_ip} --port ${server_port} --model ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len \\\$input_len --random-output-len \\\$output_len --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency\\\"
+                                            python3 -m sglang.benchmark.serving \
+                                            --backend sglang \
+                                            --host ${local_master_ip} \
+                                            --port ${server_port} \
+                                            --model ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
+                                            --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
+                                            --dataset-name random \
+                                            --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json \
+                                            --random-input-len \\\$input_len \
+                                            --random-output-len \\\$output_len \
+                                            --num-prompts \\\$prompts \
+                                            --request-rate inf \
+                                            --max-concurrency \\\$concurrency
+                                        else
+                                            echo \\\"${benchmark_cmd} --backend openai --port ${server_port} --host ${local_master_ip} --model ${model} --tokenizer ${data_path}/${model}/ --endpoint /v1/completions --dataset-name random --random-input-len \\\$input_len --random-output-len \\\$output_len --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency --ignore-eos\\\"
+                                            ${benchmark_cmd} \
+                                            --backend openai \
+                                            --port ${server_port} \
+                                            --host ${local_master_ip} \
+                                            --model ${model} \
+                                            --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
+                                            --endpoint /v1/completions \
+                                            --dataset-name random \
+                                            --random-input-len \\\$input_len \
+                                            --random-output-len \\\$output_len \
+                                            --num-prompts \\\$prompts \
+                                            --request-rate inf \
+                                            --max-concurrency \\\$concurrency \
+                                            --ignore-eos
+                                        fi
                                     done
                                 done
                             \"
@@ -610,20 +640,34 @@ for option in "${schedule_policies[@]}"; do
                                 for concurrency in ${concurrency_list[@]}; do
                                     prompts=\\\$((concurrency * 4))
                                     echo \\\"Testing concurrency=\\\$concurrency, prompts=\\\$prompts\\\"
-                                    echo \\\"${benchmark_cmd} --backend openai --port ${server_port} --host ${local_master_ip} --model ${model} --tokenizer ${data_path}/${model}/ --endpoint /v1/completions --dataset-name sharegpt --dataset-path /home/weight/ShareGPT_V3_unfiltered_cleaned_split.json --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency\\\"
-
-                                    ${benchmark_cmd} \
-                                    --backend openai \
-                                    --port ${server_port} \
-                                    --host ${local_master_ip} \
-                                    --model ${model} \
-                                    --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
-                                    --endpoint /v1/completions \
-                                    --dataset-name sharegpt \
-                                    --dataset-path /home/weight/ShareGPT_V3_unfiltered_cleaned_split.json \
-                                    --num-prompts \\\$prompts \
-                                    --request-rate inf \
-                                    --max-concurrency \\\$concurrency
+                                    if [ ${engine_type} == \\\"sglang\\\" ]; then
+                                        echo \\\"python3 -m sglang.benchmark.serving --backend sglang --host ${local_master_ip} --port ${server_port} --model ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --dataset-name sharegpt --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency\\\"
+                                        python3 -m sglang.benchmark.serving \
+                                        --backend sglang \
+                                        --host ${local_master_ip} \
+                                        --port ${server_port} \
+                                        --model ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
+                                        --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
+                                        --dataset-name sharegpt \
+                                        --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json \
+                                        --num-prompts \\\$prompts \
+                                        --request-rate inf \
+                                        --max-concurrency \\\$concurrency
+                                    else
+                                        echo \\\"${benchmark_cmd} --backend openai --port ${server_port} --host ${local_master_ip} --model ${model} --tokenizer ${data_path}/${model}/ --endpoint /v1/completions --dataset-name sharegpt --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency\\\"
+                                        ${benchmark_cmd} \
+                                        --backend openai \
+                                        --port ${server_port} \
+                                        --host ${local_master_ip} \
+                                        --model ${model} \
+                                        --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ \
+                                        --endpoint /v1/completions \
+                                        --dataset-name sharegpt \
+                                        --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json \
+                                        --num-prompts \\\$prompts \
+                                        --request-rate inf \
+                                        --max-concurrency \\\$concurrency
+                                    fi
                                 done
                             \"
                         " > "$curr_dir/logs/performance/$session_id/$filename"
@@ -646,16 +690,20 @@ for option in "${schedule_policies[@]}"; do
                     pid2=$!
                     pid_map[$pid2]="$container_name_2"
                     DOCKER_CONTAINER_NAMES+=("$container_name_2")
-                    
-                    # 容器3: SGLang mmlu,gsm8k
-                    container_name_3="SGLang_mmlu_gsm8k_$$"
-                    docker run -i --rm --name "$container_name_3" --privileged=true --cap-add=ALL --pid=host --gpus=all --network=host  -v /home/weight/:/home/weight/ --entrypoint /sglang.sh  evalscope:0624 -M $model --port ${server_port} --host ${server_list[0]} > "$curr_dir/logs/accuracy/$session_id/${filename}_SGLang_3.log" 2>&1 &
-                    pid3=$!
-                    pid_map[$pid3]="$container_name_3"
-                    DOCKER_CONTAINER_NAMES+=("$container_name_3")
+
+                    if [ $ENGINE_TYPE == "SGLang" ]; then
+                        remaining=2
+                    else
+                        # 容器3: SGLang mmlu,gsm8k（对比 SigInfer/vLLM/MindIE 服务端）
+                        container_name_3="SGLang_mmlu_gsm8k_$$"
+                        docker run -i --rm --name "$container_name_3" --privileged=true --cap-add=ALL --pid=host --gpus=all --network=host  -v /home/weight/:/home/weight/ --entrypoint /sglang.sh  evalscope:0624 -M $model --port ${server_port} --host ${server_list[0]} > "$curr_dir/logs/accuracy/$session_id/${filename}_SGLang_3.log" 2>&1 &
+                        pid3=$!
+                        pid_map[$pid3]="$container_name_3"
+                        DOCKER_CONTAINER_NAMES+=("$container_name_3")
+                        remaining=3
+                    fi
                     
                     # 等待所有后台测试任务结束
-                    remaining=3
                     while (( remaining > 0 )); do
                         wait -n -p done_pid
                         err=$?
@@ -677,7 +725,11 @@ for option in "${schedule_policies[@]}"; do
 
                     eval_res_1=$(tail -n 1 "$curr_dir/logs/accuracy/$session_id/${filename}_evalscope_1.log")
                     eval_res_2=$(tail -n 1 "$curr_dir/logs/accuracy/$session_id/${filename}_evalscope_2.log")
-                    sglang_res_3=$(tail -n 5 "$curr_dir/logs/accuracy/$session_id/${filename}_SGLang_3.log")
+                    if [ $ENGINE_TYPE == "SGLang" ]; then
+                        sglang_res_3="$eval_res_2"
+                    else
+                        sglang_res_3=$(tail -n 5 "$curr_dir/logs/accuracy/$session_id/${filename}_SGLang_3.log")
+                    fi
                     
                     if [ $use_prefix_cache_flag -eq 1 ]; then
                         if [ $swap_space -eq 0 ]; then
@@ -731,6 +783,9 @@ for option in "${schedule_policies[@]}"; do
                     elif [ $ENGINE_TYPE == "MindIE" ]; then
                         ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop mindie_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                         ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm mindie_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
+                    elif [ $ENGINE_TYPE == "SGLang" ]; then
+                        ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
+                        ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                     fi
                 done
                 
@@ -752,11 +807,13 @@ for option in "${schedule_policies[@]}"; do
                             test_cmd=`cat "$curr_dir/logs/performance/$session_id/$filename" | grep "benchmark_serving.py" | head -n 1 | sed -E 's/--(random-input-len|random-output-len|num-prompts|max-concurrency)\s+[0-9]+/--\1 xxx/g'`
                         elif [ $ENGINE_TYPE == "vLLM" ] || [ $ENGINE_TYPE == "MindIE" ]; then
                             test_cmd=`cat "$curr_dir/logs/performance/$session_id/$filename" | grep "vllm bench serve" | head -n 1 | sed -E 's/--(random-input-len|random-output-len|num-prompts|max-concurrency)\s+[0-9]+/--\1 xxx/g'`
+                        elif [ $ENGINE_TYPE == "SGLang" ]; then
+                            test_cmd=`cat "$curr_dir/logs/performance/$session_id/$filename" | grep "sglang.bench_serving" | head -n 1 | sed -E 's/--(random-input-len|random-output-len|num-prompts|max-concurrency)\s+[0-9]+/--\1 xxx/g'`
                         fi
                         # 生成本次测试的Excel报告，并比较上一次Excel报告
                         if [ $use_prefix_cache_flag -eq 1 ]; then
                             if [ $swap_space -eq 0 ]; then
-                                python3 $curr_dir/WriteReportToExcel.py "$TEST_PARAM" "${model}_${option}_Use-prefix-cache" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
+                                python3 $curr_dir/WriteReportToExcel.py "$ENGINE_TYPE" "$TEST_PARAM" "${model}_${option}_Use-prefix-cache" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
                                 last_date=$(date -d "$TASK_START_TIME -1 day" +"%Y%m%d")
                                 if [ -f $curr_dir/report_${last_date}/$session_id/version.txt ]; then
                                     last_version=$(cat $curr_dir/report_${last_date}/$session_id/version.txt)
@@ -767,7 +824,7 @@ for option in "${schedule_policies[@]}"; do
                                     python3 $curr_dir/compare_excel_data.py "${model}_${option}_Use-prefix-cache" "$latest_tag" "$curr_dir/report_${log_name_suffix}/$session_id/${model}_${option}_Use-prefix-cache.xlsx" "$last_version" "$curr_dir/report_${last_date}/$session_id/${model}_${option}_Use-prefix-cache.xlsx"
                                 fi
                             else
-                                python3 $curr_dir/WriteReportToExcel.py "$TEST_PARAM" "${model}_${option}_Use-prefix-cache_Swap-space" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
+                                python3 $curr_dir/WriteReportToExcel.py "$ENGINE_TYPE" "$TEST_PARAM" "${model}_${option}_Use-prefix-cache_Swap-space" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
                                 last_date=$(date -d "$TASK_START_TIME -1 day" +"%Y%m%d")
                                 if [ -f $curr_dir/report_${last_date}/$session_id/version.txt ]; then
                                     last_version=$(cat $curr_dir/report_${last_date}/$session_id/version.txt)
@@ -780,7 +837,7 @@ for option in "${schedule_policies[@]}"; do
                             fi
                         else
                             if [ $swap_space -eq 0 ]; then
-                                python3 $curr_dir/WriteReportToExcel.py "$TEST_PARAM" "${model}_${option}" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
+                                python3 $curr_dir/WriteReportToExcel.py "$ENGINE_TYPE" "$TEST_PARAM" "${model}_${option}" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
                                 last_date=$(date -d "$TASK_START_TIME -1 day" +"%Y%m%d")
                                 if [ -f $curr_dir/report_${last_date}/$session_id/version.txt ]; then
                                     last_version=$(cat $curr_dir/report_${last_date}/$session_id/version.txt)
@@ -791,7 +848,7 @@ for option in "${schedule_policies[@]}"; do
                                     python3 $curr_dir/compare_excel_data.py "${model}_${option}" "$latest_tag" "$curr_dir/report_${log_name_suffix}/$session_id/${model}_${option}.xlsx" "$last_version" "$curr_dir/report_${last_date}/$session_id/${model}_${option}.xlsx"
                                 fi
                             else
-                                python3 $curr_dir/WriteReportToExcel.py "$TEST_PARAM" "${model}_${option}_Swap-space" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
+                                python3 $curr_dir/WriteReportToExcel.py "$ENGINE_TYPE" "$TEST_PARAM" "${model}_${option}_Swap-space" "$session_id" "$exec_cmd" "$test_cmd" "$curr_dir/logs/performance/$session_id/$filename"
                                 last_date=$(date -d "$TASK_START_TIME -1 day" +"%Y%m%d")
                                 if [ -f $curr_dir/report_${last_date}/$session_id/version.txt ]; then
                                     last_version=$(cat $curr_dir/report_${last_date}/$session_id/version.txt)

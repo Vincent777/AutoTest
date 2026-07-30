@@ -38,8 +38,18 @@ with open(input_file, "r", encoding="utf-8") as file:
                 "VLLM_opencompass": columns[1],
                 "VLLM_SGLang": columns[2]
             }
+        elif engine == "SGLang":
+            data_dict[columns[0]] = {
+                "SGLang_opencompass": columns[1],
+                "SGLang_gsm8k": columns[2]
+            }
+        elif engine == "MindIE":
+            data_dict[columns[0]] = {
+                "MindIE_opencompass": columns[1],
+                "MindIE_gsm8k": columns[2]
+            }
         else:
-            raise ValueError(f"不支持的引擎类型: {engine}，支持的值为: SigInfer, VLLM")
+            raise ValueError(f"不支持的引擎类型: {engine}，支持的值为: SigInfer, vLLM, SGLang, MindIE")
 
 generate_model_comparison_excel(output_file, engine)
 fill_model_comparison_data(output_file, data_dict, engine)

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LLM Perf Dashboard (Ascend)</title>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css?v=20260730h" />
+</head>
+<body>
+  <header>
+    <h1>LLM Perf Dashboard</h1>
+    <p>Ascend · vLLM / SGLang · release tags only</p>
+  </header>
+
+  <section class="controls">
+    <label>Model
+      <select id="model"></select>
+    </label>
+    <label>Workload
+      <select id="workload"></select>
+    </label>
+    <label>Concurrency
+      <select id="concurrency"></select>
+    </label>
+  </section>
+
+  <section class="trend-panel">
+    <h2>Trend</h2>
+    <div id="metric-tabs" class="tabs"></div>
+    <div id="chart" style="height:560px;"></div>
+  </section>
+
+  <script src="/static/app.js?v=20260730i"></script>
+</body>
+</html>

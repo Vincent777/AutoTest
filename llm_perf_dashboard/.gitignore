@@ -1,0 +1,8 @@
+.venv/
+venv/
+artifacts/
+results/
+storage/*.db
+__pycache__/
+*.pyc
+artifacts/api.log
