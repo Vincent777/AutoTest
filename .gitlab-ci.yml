@@ -1,14 +1,13 @@
 # llm_perf_dashboard — Ascend 上跑 vLLM / SGLang 性能
 # 流程：
-#   1) 并发 vLLM_Perf / SGLang_Perf → resolve_release → 触发测试
-#   2) 从共享目录取 Excel，作为 artifacts 上传（供 CI 页面下载）
+#   1) 并发 vLLM_Perf / SGLang_Perf → SSH 到 106 resolve + daemon
+#   2) 从共享目录取 Excel，作为 artifacts 上传
 #      /home/s_limingge/.npu_locks/artifacts/CI_ascend_test/${CI_JOB_ID}/performance
 #   3) IngestPerfResults：SSH 到 106，把共享目录 Excel 写入正式长期 db
 #
-# 注意：Docker executor 的 Runner 需挂载共享目录，例如 config.toml:
+# 与 SmokeTest 一致：image 用 docker:stable（自带 ssh，无需 apt/pip）。
+# Runner 需挂载共享目录，例如 config.toml:
 #   volumes = ["/home/s_limingge/.npu_locks/artifacts:/home/s_limingge/.npu_locks/artifacts:ro"]
-# 内网常无法访问 deb.debian.org / pypi.org，before_script 已切国内镜像；
-# 长期建议用已含 openssh-client+pyyaml 的私有镜像，去掉运行时 apt/pip。
 
 stages:
   - test
@@ -17,45 +16,29 @@ stages:
 variables:
   LLM_PERF_DIR: ${CI_PROJECT_DIR}/llm_perf_dashboard
   SHARED_PERF_ARTIFACTS: /home/s_limingge/.npu_locks/artifacts/CI_ascend_test
-  # 协调机：发起 daemon（实际 Performance 在 Ascend 集群空闲节点上跑）
   TEST_HOST: ci_test@192.168.100.106
-  # 正式 dashboard（仅 IngestPerfResults 使用）
   DASHBOARD_HOST: s_limingge@192.168.100.106
   DASHBOARD_DIR: /home/s_limingge/ci_autotest/llm_perf_dashboard
   DASHBOARD_DB: /home/s_limingge/ci_autotest/llm_perf_dashboard/storage/perf.db
-  PIP_INDEX_URL: https://mirrors.aliyun.com/pypi/simple/
-  PIP_TRUSTED_HOST: mirrors.aliyun.com
 
-.setup_ssh: &setup_ssh |
-  set -e
-  # python:*-slim (Debian) 默认源在内网经常不通，先切国内镜像再装 ssh
-  if [ -f /etc/apt/sources.list.d/debian.sources ]; then
-    sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' \
-      /etc/apt/sources.list.d/debian.sources
-  fi
-  if [ -f /etc/apt/sources.list ]; then
-    sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' \
-      /etc/apt/sources.list
-  fi
-  apt-get update -qq
-  apt-get install -y -qq openssh-client >/dev/null
-  command -v ssh >/dev/null
-  mkdir -p ~/.ssh
-  cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
-  chmod 600 ~/.ssh/id_rsa
+# 与 SmokeTest-aarch64-ascend 相同写法
+.setup_ssh: &setup_ssh
+  before_script:
+    - mkdir -p ~/.ssh
+    - |
+      if [ -z "${TESTSERVER_SSH_KEY}" ]; then
+        echo "ERROR: TESTSERVER_SSH_KEY is empty (cp would get '')."
+        echo "Settings → CI/CD → Variables: add File variable TESTSERVER_SSH_KEY"
+        echo "(uncheck Protected if this branch/tag is not protected)."
+        exit 1
+      fi
+    - cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
 
 .perf_job_template: &perf_job_template
+  <<: *setup_ssh
   stage: test
-  image: python:3.11-slim
-  before_script:
-    - *setup_ssh
-    - pip install -q pyyaml
-    # 共享目录必须对 job 容器可见（依赖 Runner volumes 挂载）
-    - |
-      if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
-        echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible in job container."
-        echo "Mount it in gitlab-runner config.toml volumes."
-      fi
+  image: docker:stable
   timeout: 5 hour
 
 vLLM_Perf-aarch64-ascend:
@@ -69,26 +52,27 @@ vLLM_Perf-aarch64-ascend:
     - echo "MODEL_LIST = $MODEL_LIST"
     - |
       set -e
+      if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
+        echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible in job container."
+        echo "Mount it in gitlab-runner config.toml volumes."
+      fi
       ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
-      RESOLVER="${LLM_PERF_DIR}/runners/common/resolve_release.py"
-      RESOLVED="$(python3 "$RESOLVER" --engine "$ENGINE_KEY" --json)"
-      IMAGE="$(printf '%s' "$RESOLVED" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["image"])')"
-      ENGINE_VERSION="$(printf '%s' "$RESOLVED" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["tag"])')"
       echo "ENGINE_KEY = $ENGINE_KEY"
-      echo "Resolved IMAGE = $IMAGE"
-      echo "Resolved ENGINE_VERSION (daemon version arg) = $ENGINE_VERSION"
+      # resolve + daemon 都在 106 上跑（docker:stable 无 python，与 SmokeTest 一样只做 SSH）
       ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${TEST_HOST}" "
-        set -m
+        set -em
         cd /home/ci_test
-        if [ ! -d Ascend_910_Test ];then
-          mkdir -p Ascend_910_Test
-        fi
+        mkdir -p Ascend_910_Test
         cd Ascend_910_Test
         mkdir ${CI_JOB_ID}
         cd ${CI_JOB_ID}
         git init
         git remote add origin http://git.xcoresigma.com/xcore-sigma/autotest.git
         git fetch --depth=1 origin main
+        git show origin/main:llm_perf_dashboard/runners/common/resolve_release.py > resolve_release.py
+        git show origin/main:llm_perf_dashboard/configs/engines.yaml > engines.yaml
+        ENGINE_VERSION=\$(python3 resolve_release.py --engine ${ENGINE_KEY} --config engines.yaml --field tag)
+        echo \"Resolved ENGINE_VERSION = \$ENGINE_VERSION\"
         git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
         chmod a+x daemon.sh
         ./daemon.sh \
@@ -97,11 +81,10 @@ vLLM_Perf-aarch64-ascend:
           ${MODEL_LIST} \
           ${CI_JOB_ID} \
           Random \
-          ${ENGINE_VERSION}
+          \$ENGINE_VERSION
       "
-      # 从共享目录取 Excel（不再 scp 106）
       export ENGINE_KEY
-      bash "${LLM_PERF_DIR}/runners/fetch_ci_reports.sh"
+      sh "${LLM_PERF_DIR}/runners/fetch_ci_reports.sh"
   artifacts:
     when: always
     paths:
@@ -121,26 +104,26 @@ SGLang_Perf-aarch64-ascend:
     - echo "MODEL_LIST = $MODEL_LIST"
     - |
       set -e
+      if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
+        echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible in job container."
+        echo "Mount it in gitlab-runner config.toml volumes."
+      fi
       ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
-      RESOLVER="${LLM_PERF_DIR}/runners/common/resolve_release.py"
-      RESOLVED="$(python3 "$RESOLVER" --engine "$ENGINE_KEY" --json)"
-      IMAGE="$(printf '%s' "$RESOLVED" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["image"])')"
-      ENGINE_VERSION="$(printf '%s' "$RESOLVED" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["tag"])')"
       echo "ENGINE_KEY = $ENGINE_KEY"
-      echo "Resolved IMAGE = $IMAGE"
-      echo "Resolved ENGINE_VERSION (daemon version arg) = $ENGINE_VERSION"
       ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${TEST_HOST}" "
-        set -m
+        set -em
         cd /home/ci_test
-        if [ ! -d Ascend_910_Test ];then
-          mkdir -p Ascend_910_Test
-        fi
+        mkdir -p Ascend_910_Test
         cd Ascend_910_Test
         mkdir ${CI_JOB_ID}
         cd ${CI_JOB_ID}
         git init
         git remote add origin http://git.xcoresigma.com/xcore-sigma/autotest.git
         git fetch --depth=1 origin main
+        git show origin/main:llm_perf_dashboard/runners/common/resolve_release.py > resolve_release.py
+        git show origin/main:llm_perf_dashboard/configs/engines.yaml > engines.yaml
+        ENGINE_VERSION=\$(python3 resolve_release.py --engine ${ENGINE_KEY} --config engines.yaml --field tag)
+        echo \"Resolved ENGINE_VERSION = \$ENGINE_VERSION\"
         git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
         chmod a+x daemon.sh
         ./daemon.sh \
@@ -149,10 +132,10 @@ SGLang_Perf-aarch64-ascend:
           ${MODEL_LIST} \
           ${CI_JOB_ID} \
           Random \
-          ${ENGINE_VERSION}
+          \$ENGINE_VERSION
       "
       export ENGINE_KEY
-      bash "${LLM_PERF_DIR}/runners/fetch_ci_reports.sh"
+      sh "${LLM_PERF_DIR}/runners/fetch_ci_reports.sh"
   artifacts:
     when: always
     paths:
@@ -161,24 +144,21 @@ SGLang_Perf-aarch64-ascend:
   tags:
     - "910_ascend_for_sglang_perf"
 
-# 仅本 step 调整：无 GitLab artifacts；SSH 到 106 从共享目录入库正式 db
 IngestPerfResults:
+  <<: *setup_ssh
   stage: ingest
-  image: python:3.11-slim
+  image: docker:stable
   needs:
     - job: vLLM_Perf-aarch64-ascend
       artifacts: true
     - job: SGLang_Perf-aarch64-ascend
       artifacts: true
-  before_script:
-    - *setup_ssh
   script:
     - |
       set -e
       echo "Ingest shared-dir Excel into formal dashboard db on 106"
-      # 从上一步 artifacts 目录名解析各自 CI_JOB_ID（不改动上方 job）
-      VLLM_JOB_ID="$(find "${LLM_PERF_DIR}/ci_reports/vllm" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | head -n 1)"
-      SGLANG_JOB_ID="$(find "${LLM_PERF_DIR}/ci_reports/sglang" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | head -n 1)"
+      VLLM_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/vllm" 2>/dev/null | head -n 1)"
+      SGLANG_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/sglang" 2>/dev/null | head -n 1)"
       echo "VLLM_JOB_ID=${VLLM_JOB_ID}"
       echo "SGLANG_JOB_ID=${SGLANG_JOB_ID}"
       echo "SHARED=${SHARED_PERF_ARTIFACTS}"

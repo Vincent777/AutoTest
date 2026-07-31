@@ -1,20 +1,20 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # 从共享目录收集本次 CI_JOB_ID 的 Performance Excel，拷到 workspace 供 artifacts 上传。
 #
 # 共享目录（Ascend 集群节点可见）:
 #   /home/s_limingge/.npu_locks/artifacts/CI_ascend_test/${CI_JOB_ID}/performance
 #
 # 用法:
-#   ENGINE_KEY=vllm CI_JOB_ID=12345 bash runners/fetch_ci_reports.sh
+#   ENGINE_KEY=vllm CI_JOB_ID=12345 sh runners/fetch_ci_reports.sh
 #
 # 环境变量:
 #   SHARED_PERF_ARTIFACTS  默认 /home/s_limingge/.npu_locks/artifacts/CI_ascend_test
 #   OUT_DIR                默认 $LLM_PERF_DIR/ci_reports/$ENGINE_KEY
 #   FETCH_TIMEOUT_SEC      等待报告出现的超时（默认 600）
 #   FETCH_POLL_SEC         轮询间隔（默认 10）
-set -euo pipefail
+set -eu
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LLM_PERF_DIR="${LLM_PERF_DIR:-$ROOT}"
 ENGINE_KEY="${ENGINE_KEY:?ENGINE_KEY required (vllm|sglang)}"
 JOB_ID="${CI_JOB_ID:?CI_JOB_ID required}"
@@ -31,10 +31,11 @@ echo "[fetch_ci_reports] out dir    = ${OUT_DIR}"
 
 deadline=$(( $(date +%s) + TIMEOUT_SEC ))
 while true; do
-  if [[ -d "$SRC_DIR" ]] && find "$SRC_DIR" -type f -name '*.xlsx' 2>/dev/null | grep -q .; then
+  if [ -d "$SRC_DIR" ] && find "$SRC_DIR" -type f -name '*.xlsx' 2>/dev/null | grep -q .; then
     break
   fi
-  if (( $(date +%s) >= deadline )); then
+  now=$(date +%s)
+  if [ "$now" -ge "$deadline" ]; then
     echo "[fetch_ci_reports] ERROR: timeout waiting for *.xlsx under ${SRC_DIR}" >&2
     echo "[fetch_ci_reports] hint: ensure Runner mounts shared path into job container:" >&2
     echo "  /home/s_limingge/.npu_locks/artifacts:/home/s_limingge/.npu_locks/artifacts:ro" >&2
