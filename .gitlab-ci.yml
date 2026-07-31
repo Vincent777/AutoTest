@@ -7,6 +7,8 @@
 #
 # 注意：Docker executor 的 Runner 需挂载共享目录，例如 config.toml:
 #   volumes = ["/home/s_limingge/.npu_locks/artifacts:/home/s_limingge/.npu_locks/artifacts:ro"]
+# 内网常无法访问 deb.debian.org / pypi.org，before_script 已切国内镜像；
+# 长期建议用已含 openssh-client+pyyaml 的私有镜像，去掉运行时 apt/pip。
 
 stages:
   - test
@@ -21,16 +23,33 @@ variables:
   DASHBOARD_HOST: s_limingge@192.168.100.106
   DASHBOARD_DIR: /home/s_limingge/ci_autotest/llm_perf_dashboard
   DASHBOARD_DB: /home/s_limingge/ci_autotest/llm_perf_dashboard/storage/perf.db
+  PIP_INDEX_URL: https://mirrors.aliyun.com/pypi/simple/
+  PIP_TRUSTED_HOST: mirrors.aliyun.com
+
+.setup_ssh: &setup_ssh |
+  set -e
+  # python:*-slim (Debian) 默认源在内网经常不通，先切国内镜像再装 ssh
+  if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+    sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' \
+      /etc/apt/sources.list.d/debian.sources
+  fi
+  if [ -f /etc/apt/sources.list ]; then
+    sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' \
+      /etc/apt/sources.list
+  fi
+  apt-get update -qq
+  apt-get install -y -qq openssh-client >/dev/null
+  command -v ssh >/dev/null
+  mkdir -p ~/.ssh
+  cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
+  chmod 600 ~/.ssh/id_rsa
 
 .perf_job_template: &perf_job_template
   stage: test
   image: python:3.11-slim
   before_script:
-    - apt-get update -qq && apt-get install -y -qq openssh-client >/dev/null
+    - *setup_ssh
     - pip install -q pyyaml
-    - mkdir -p ~/.ssh
-    - cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
     # 共享目录必须对 job 容器可见（依赖 Runner volumes 挂载）
     - |
       if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
@@ -152,10 +171,7 @@ IngestPerfResults:
     - job: SGLang_Perf-aarch64-ascend
       artifacts: true
   before_script:
-    - apt-get update -qq && apt-get install -y -qq openssh-client >/dev/null
-    - mkdir -p ~/.ssh
-    - cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
+    - *setup_ssh
   script:
     - |
       set -e
