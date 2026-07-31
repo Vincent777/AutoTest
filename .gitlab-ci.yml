@@ -5,8 +5,8 @@
 #      /home/s_limingge/.npu_locks/artifacts/CI_ascend_test/${CI_JOB_ID}/performance
 #   3) IngestPerfResults：SSH 到 106，把共享目录 Excel 写入正式长期 db
 #
-# 注意：现网 Runner 为 shell executor（image 会被忽略），不要 apt-get；
-# 共享目录需在 Runner 宿主机/容器启动时已挂载可见。
+# 注意：Docker executor 的 Runner 需挂载共享目录，例如 config.toml:
+#   volumes = ["/home/s_limingge/.npu_locks/artifacts:/home/s_limingge/.npu_locks/artifacts:ro"]
 
 stages:
   - test
@@ -24,18 +24,18 @@ variables:
 
 .perf_job_template: &perf_job_template
   stage: test
+  image: python:3.11-slim
   before_script:
+    - apt-get update -qq && apt-get install -y -qq openssh-client >/dev/null
+    - pip install -q pyyaml
+    - mkdir -p ~/.ssh
+    - cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    # 共享目录必须对 job 容器可见（依赖 Runner volumes 挂载）
     - |
-      set -e
-      command -v ssh >/dev/null || { echo "ERROR: ssh not found on shell runner"; exit 1; }
-      command -v python3 >/dev/null || { echo "ERROR: python3 not found on shell runner"; exit 1; }
-      python3 -c "import yaml" 2>/dev/null || python3 -m pip install --user -q pyyaml
-      mkdir -p ~/.ssh
-      cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
       if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
-        echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible on this runner."
-        echo "Mount shared artifacts into the gitlab-runner environment."
+        echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible in job container."
+        echo "Mount it in gitlab-runner config.toml volumes."
       fi
   timeout: 5 hour
 
@@ -145,18 +145,17 @@ SGLang_Perf-aarch64-ascend:
 # 仅本 step 调整：无 GitLab artifacts；SSH 到 106 从共享目录入库正式 db
 IngestPerfResults:
   stage: ingest
+  image: python:3.11-slim
   needs:
     - job: vLLM_Perf-aarch64-ascend
       artifacts: true
     - job: SGLang_Perf-aarch64-ascend
       artifacts: true
   before_script:
-    - |
-      set -e
-      command -v ssh >/dev/null || { echo "ERROR: ssh not found on shell runner"; exit 1; }
-      mkdir -p ~/.ssh
-      cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
+    - apt-get update -qq && apt-get install -y -qq openssh-client >/dev/null
+    - mkdir -p ~/.ssh
+    - cp "$TESTSERVER_SSH_KEY" ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
   script:
     - |
       set -e
