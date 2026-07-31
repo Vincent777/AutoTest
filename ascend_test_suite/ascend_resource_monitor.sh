@@ -59,7 +59,7 @@ if [ $ENGINE_TYPE == "SigInfer" ]; then
         # ["aicc005"]="10.9.1.98"
         # ["aicc006"]="10.9.1.110"
         ["aicc007"]="10.9.1.86"
-        # ["aicc008"]="10.9.1.94"
+        ["aicc008"]="10.9.1.94"
         # ["aicc009"]="10.9.1.82"
         # ["aicc010"]="10.9.1.102"
     )
@@ -76,7 +76,7 @@ elif [ $ENGINE_TYPE == "vLLM" ]; then
         # ["aicc005"]="10.9.1.98"
         # ["aicc006"]="10.9.1.110"
         ["aicc007"]="10.9.1.86"
-        # ["aicc008"]="10.9.1.94"
+        ["aicc008"]="10.9.1.94"
         # ["aicc009"]="10.9.1.82"
         # ["aicc010"]="10.9.1.102"
     )
@@ -93,7 +93,7 @@ elif [ $ENGINE_TYPE == "MindIE" ]; then
         # ["aicc005"]="10.9.1.98"
         # ["aicc006"]="10.9.1.110"
         ["aicc007"]="10.9.1.86"
-        # ["aicc008"]="10.9.1.94"
+        ["aicc008"]="10.9.1.94"
         # ["aicc009"]="10.9.1.82"
         # ["aicc010"]="10.9.1.102"
     )
@@ -110,7 +110,7 @@ elif [ $ENGINE_TYPE == "SGLang" ]; then
         # ["aicc005"]="10.9.1.98"
         # ["aicc006"]="10.9.1.110"
         ["aicc007"]="10.9.1.86"
-        # ["aicc008"]="10.9.1.94"
+        ["aicc008"]="10.9.1.94"
         # ["aicc009"]="10.9.1.82"
         # ["aicc010"]="10.9.1.102"
     )
@@ -320,28 +320,28 @@ for item in "${full_model_list[@]}"; do
     for option in 'DynamicSplitFuseV2'; do
         use_prefix_cache_flag=-1
         for ((i=1; i<=${num_of_prefix_cache_options}; i=i+1)); do
-            swap_space=40
+            swap_space=0
             for ((j=1; j<=1; j=j+1)); do
                 # 模型已经测试过了，检查下一个
                 if [ $use_prefix_cache_flag -gt 0 ]; then
                     if [ $swap_space -eq 0 ]; then
                         if [ ! -z `cat ${processed_models} | grep -w ${model}_${option}_use-prefix-cache` ]; then
+                            swap_space=40
                             continue
                         fi
                     else
                         if [ ! -z `cat ${processed_models} | grep -w ${model}_${option}_use-prefix-cache_swap-space` ]; then
-                            swap_space=0
                             continue
                         fi
                     fi
                 else
                     if [ $swap_space -eq 0 ]; then
                         if [ ! -z `cat ${processed_models} | grep -w ${model}_${option}` ]; then
+                            swap_space=40
                             continue
                         fi
                     else
                         if [ ! -z `cat ${processed_models} | grep -w ${model}_${option}_swap-space` ]; then
-                            swap_space=0
                             continue
                         fi
                     fi

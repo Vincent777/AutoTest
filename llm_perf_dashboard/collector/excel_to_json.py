@@ -239,10 +239,26 @@ def excel_to_records(
     col_req = col_by_alias(headers, "Request throughput")
     col_out = col_by_alias(headers, "Output token throughput") or 5
     col_total = col_by_alias(headers, "Total Token throughput", "Total token throughput")
+    col_ttft_mean = col_by_alias(headers, "Mean TTFT")
     col_ttft_p50 = col_by_alias(headers, "Median TTFT")
     col_ttft_p99 = col_by_alias(headers, "P99 TTFT")
+    col_tpot_mean = col_by_alias(headers, "Mean TPOT")
     col_tpot_p50 = col_by_alias(headers, "Median TPOT")
     col_tpot_p99 = col_by_alias(headers, "P99 TPOT")
+    col_itl_mean = col_by_alias(headers, "Mean ITL")
+    col_itl_p50 = col_by_alias(headers, "Median ITL")
+    col_itl_p99 = col_by_alias(headers, "P99 ITL")
+
+    def cell_float(r: int, col: int | None) -> float | None:
+        if not col:
+            return None
+        val = ws.cell(r, col).value
+        if val is None:
+            return None
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return None
 
     records: list[dict[str, Any]] = []
     current_context = None
@@ -257,18 +273,23 @@ def excel_to_records(
         if concurrency is None:
             continue
 
-        successful = ws.cell(row, col_success).value if col_success else None
-        out_tps = ws.cell(row, col_out).value if col_out else None
-        req_tps = ws.cell(row, col_req).value if col_req else None
+        successful = cell_float(row, col_success)
+        out_tps = cell_float(row, col_out)
+        req_tps = cell_float(row, col_req)
         if successful is None and out_tps is None and req_tps is None:
             continue
 
         input_len, output_len, workload = parse_context_cell(current_context)
-        median_ttft = ws.cell(row, col_ttft_p50).value if col_ttft_p50 else None
-        p99_ttft = ws.cell(row, col_ttft_p99).value if col_ttft_p99 else None
-        median_tpot = ws.cell(row, col_tpot_p50).value if col_tpot_p50 else None
-        p99_tpot = ws.cell(row, col_tpot_p99).value if col_tpot_p99 else None
-        total_tps = ws.cell(row, col_total).value if col_total else None
+        mean_ttft = cell_float(row, col_ttft_mean)
+        median_ttft = cell_float(row, col_ttft_p50)
+        p99_ttft = cell_float(row, col_ttft_p99)
+        mean_tpot = cell_float(row, col_tpot_mean)
+        median_tpot = cell_float(row, col_tpot_p50)
+        p99_tpot = cell_float(row, col_tpot_p99)
+        mean_itl = cell_float(row, col_itl_mean)
+        median_itl = cell_float(row, col_itl_p50)
+        p99_itl = cell_float(row, col_itl_p99)
+        total_tps = cell_float(row, col_total)
 
         # Fallback: pull Request throughput from raw log
         if req_tps is None and current_context is not None and log_metrics:
@@ -296,15 +317,20 @@ def excel_to_records(
                 "output_len": output_len,
                 "num_prompts": num_prompts,
                 "metrics": {
-                    "request_throughput": float(req_tps) if req_tps is not None else None,
-                    "output_token_throughput": float(out_tps) if out_tps is not None else None,
-                    "total_token_throughput": float(total_tps) if total_tps is not None else None,
-                    "ttft_p50_ms": float(median_ttft) if median_ttft is not None else None,
-                    "ttft_p99_ms": float(p99_ttft) if p99_ttft is not None else None,
-                    "tpot_p50_ms": float(median_tpot) if median_tpot is not None else None,
-                    "tpot_p99_ms": float(p99_tpot) if p99_tpot is not None else None,
+                    "successful_requests": successful,
+                    "request_throughput": req_tps,
+                    "output_token_throughput": out_tps,
+                    "total_token_throughput": total_tps,
+                    "ttft_mean_ms": mean_ttft,
+                    "ttft_p50_ms": median_ttft,
+                    "ttft_p99_ms": p99_ttft,
+                    "tpot_mean_ms": mean_tpot,
+                    "tpot_p50_ms": median_tpot,
+                    "tpot_p99_ms": p99_tpot,
+                    "itl_mean_ms": mean_itl,
+                    "itl_p50_ms": median_itl,
+                    "itl_p99_ms": p99_itl,
                     "success_rate": success_rate,
-                    "successful_requests": float(successful) if successful is not None else None,
                 },
                 "started_at": started_at,
                 "finished_at": None,
@@ -336,9 +362,15 @@ def main() -> int:
     parser.add_argument("--engine", default="", help="Force engine name (vllm/sglang)")
     parser.add_argument("--engine-version", default="", help="Force engine version tag")
     parser.add_argument("--ingest", action="store_true", help="Also ingest into storage/perf.db")
+    parser.add_argument(
+        "--db",
+        default=str(ROOT / "storage" / "perf.db"),
+        help="SQLite db path used with --ingest",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
+    db_path = Path(args.db)
     all_records: list[dict[str, Any]] = []
 
     for excel in args.excel_files:
@@ -363,10 +395,10 @@ def main() -> int:
         if args.ingest and records:
             from ingest import connect, ingest_file  # type: ignore
 
-            tmp = out_path
-            conn = connect(ROOT / "storage" / "perf.db")
-            n = ingest_file(conn, tmp)
-            print(f"ingested {n} into {ROOT / 'storage' / 'perf.db'}")
+            conn = connect(db_path)
+            n = ingest_file(conn, out_path)
+            print(f"ingested {n} into {db_path}")
+            conn.close()
 
     if args.merged:
         merged_path = Path(args.merged)

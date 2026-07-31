@@ -71,12 +71,20 @@ def pick_latest(engine_key: str, cfg: dict[str, Any], known_tags: set[str] | Non
     if not candidates:
         raise RuntimeError(f"No release tag found for {engine_key}")
 
+    release_tag = candidates[0]
+    image_tag = release_tag
+    suffix = (eng.get("image_tag_suffix") or "").strip()
+    # SGLang 等：GitHub release tag 需加 CANN/硬件后缀才对应可 pull 的镜像
+    if suffix and not any(x in release_tag for x in ("cann", "910b", "a3")):
+        image_tag = f"{release_tag}-{suffix}"
+
     return {
         "engine": engine_key,
         "name": eng["name"],
         "image_repo": eng["image_repo"],
-        "tag": candidates[0],
-        "image": f"{eng['image_repo']}:{candidates[0]}",
+        "tag": release_tag,
+        "image_tag": image_tag,
+        "image": f"{eng['image_repo']}:{image_tag}",
         "candidates": candidates,
     }
 
@@ -95,6 +103,12 @@ def main() -> int:
         help="Optional SQLite path; skip tags already present in runs table",
     )
     parser.add_argument("--json", action="store_true", help="Print JSON")
+    parser.add_argument(
+        "--field",
+        choices=["image", "tag", "image_tag", "image_repo"],
+        default="",
+        help="Print a single field for the first resolved engine (shell-friendly)",
+    )
     args = parser.parse_args()
 
     cfg = load_engines(Path(args.config))
@@ -117,6 +131,13 @@ def main() -> int:
             out.append(pick_latest(key, cfg, known_tags=known if args.known_db else None))
         except Exception as exc:  # noqa: BLE001
             out.append({"engine": key, "error": str(exc)})
+
+    if args.field:
+        if len(out) != 1 or "error" in out[0]:
+            print(out[0].get("error", "resolve failed"), file=sys.stderr)
+            return 1
+        print(out[0][args.field])
+        return 0
 
     if args.json:
         print(json.dumps(out, indent=2, ensure_ascii=False))

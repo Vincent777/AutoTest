@@ -20,6 +20,23 @@ if str(ROOT) not in sys.path:
 DB_PATH = ROOT / "storage" / "perf.db"
 WEB_DIR = ROOT / "web"
 
+ALLOWED_METRICS = {
+    "successful_requests",
+    "request_throughput",
+    "output_token_throughput",
+    "total_token_throughput",
+    "ttft_mean_ms",
+    "ttft_p50_ms",
+    "ttft_p99_ms",
+    "tpot_mean_ms",
+    "tpot_p50_ms",
+    "tpot_p99_ms",
+    "itl_mean_ms",
+    "itl_p50_ms",
+    "itl_p99_ms",
+    "success_rate",
+}
+
 
 def load_local() -> dict[str, Any]:
     path = ROOT / "configs" / "local.yaml"
@@ -29,14 +46,9 @@ def load_local() -> dict[str, Any]:
 
 
 def get_conn() -> sqlite3.Connection:
-    if not DB_PATH.exists():
-        # create empty schema so API can start before first run
-        from collector.ingest import connect  # type: ignore
+    from collector.ingest import connect  # type: ignore
 
-        return connect(DB_PATH)
-    conn = sqlite3.connect(str(DB_PATH))
-    conn.row_factory = sqlite3.Row
-    return conn
+    return connect(DB_PATH)
 
 
 app = FastAPI(title="LLM Perf Dashboard", version="0.1.0")
@@ -147,17 +159,8 @@ def trends(
     metric: str = "request_throughput",
 ) -> list[dict[str, Any]]:
     conc = _require_filters(model, workload, concurrency)
-    allowed = {
-        "request_throughput",
-        "output_token_throughput",
-        "ttft_p50_ms",
-        "ttft_p99_ms",
-        "tpot_p50_ms",
-        "tpot_p99_ms",
-        "success_rate",
-    }
-    if metric not in allowed:
-        raise HTTPException(status_code=400, detail=f"metric must be one of {sorted(allowed)}")
+    if metric not in ALLOWED_METRICS:
+        raise HTTPException(status_code=400, detail=f"metric must be one of {sorted(ALLOWED_METRICS)}")
     sql = f"""
     SELECT engine_version, created_at, {metric} AS value
     FROM runs
@@ -177,17 +180,8 @@ def trends_all(
     concurrency: Optional[str] = Query(None),
 ) -> dict[str, Any]:
     """Historical points for one metric, optionally filtered, grouped by engine."""
-    allowed = {
-        "request_throughput",
-        "output_token_throughput",
-        "ttft_p50_ms",
-        "ttft_p99_ms",
-        "tpot_p50_ms",
-        "tpot_p99_ms",
-        "success_rate",
-    }
-    if metric not in allowed:
-        raise HTTPException(status_code=400, detail=f"metric must be one of {sorted(allowed)}")
+    if metric not in ALLOWED_METRICS:
+        raise HTTPException(status_code=400, detail=f"metric must be one of {sorted(ALLOWED_METRICS)}")
 
     sql = f"""
     SELECT engine, engine_version, model, workload, concurrency, created_at, {metric} AS value

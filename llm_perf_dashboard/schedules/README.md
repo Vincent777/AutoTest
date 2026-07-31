@@ -1,9 +1,13 @@
-# 示例：如何在仓库根目录 include 本目录 CI（按需合并进项目现有 .gitlab-ci.yml）
-# include:
-#   - local: llm_perf_dashboard/.gitlab-ci.yml
-
 # GitLab → CI/CD → Schedules 建议：
-# - 每周一 02:00、每周四 02:00（UTC+8）跑 WeeklyPerf-ascend
-# - Cron: 0 18 * * 1,4   （GitLab cron 多为 UTC：北京时间 02:00 = UTC 18:00 前一天）
+# - 每周一 / 周四跑 vLLM_Perf-aarch64-ascend、SGLang_Perf-aarch64-ascend
+# - Cron 示例（UTC）：0 18 * * 1,4  （对应北京时间次日 02:00）
 # - Target branch: main
 # - Active: yes
+#
+# Runner tags:
+# - 910_ascend_for_vllm_perf
+# - 910_ascend_for_sglang_perf
+#
+# 根目录 include:
+# include:
+#   - local: llm_perf_dashboard/.gitlab-ci.yml

@@ -190,22 +190,38 @@ def fill_benchmark_results(excel_file, benchmark_data, context_lengths, batch_si
     wb = openpyxl.load_workbook(excel_file)
     ws = wb.active
 
-    # 数据列映射 (列索引 -> 数据键)；兼容日志字段名
+    # 数据列映射 (列索引 -> 日志键别名)；vLLM / SGLang 键名大小写可能不同
+    # e.g. vLLM: "Total Token throughput (tok/s)"
+    #      SGLang: "Total token throughput (tok/s)"
     data_columns = {
-        4: 'Successful requests',
-        5: 'Request throughput (req/s)',
-        6: 'Output token throughput (tok/s)',
-        7: 'Total Token throughput (tok/s)',
-        8: 'Mean TTFT (ms)',
-        9: 'Median TTFT (ms)',
-        10: 'P99 TTFT (ms)',
-        11: 'Mean TPOT (ms)',
-        12: 'Median TPOT (ms)',
-        13: 'P99 TPOT (ms)',
-        14: 'Mean ITL (ms)',
-        15: 'Median ITL (ms)',
-        16: 'P99 ITL (ms)'
+        4: ('Successful requests',),
+        5: ('Request throughput (req/s)',),
+        6: ('Output token throughput (tok/s)',),
+        7: (
+            'Total Token throughput (tok/s)',  # vLLM
+            'Total token throughput (tok/s)',  # SGLang
+        ),
+        8: ('Mean TTFT (ms)',),
+        9: ('Median TTFT (ms)',),
+        10: ('P99 TTFT (ms)',),
+        11: ('Mean TPOT (ms)',),
+        12: ('Median TPOT (ms)',),
+        13: ('P99 TPOT (ms)',),
+        14: ('Mean ITL (ms)',),
+        15: ('Median ITL (ms)',),
+        16: ('P99 ITL (ms)',),
     }
+
+    def lookup_metric(data, aliases):
+        """Match log metric key case-insensitively against aliases."""
+        lower_map = {str(k).strip().lower(): v for k, v in data.items()}
+        for alias in aliases:
+            if alias in data:
+                return data[alias]
+            val = lower_map.get(alias.lower())
+            if val is not None:
+                return val
+        return None
 
     row_index = 6  # 数据从第6行开始
 
@@ -215,11 +231,11 @@ def fill_benchmark_results(excel_file, benchmark_data, context_lengths, batch_si
             key = (context, batch)
             if key in benchmark_data:
                 data = benchmark_data[key]
-                # 填充数据列 (第4-14列)
-                for col, data_key in data_columns.items():
-                    if data_key in data:
-                        cell = ws.cell(row=row_index, column=col,
-                                       value=data[data_key])
+                # 填充数据列 (第4-16列)
+                for col, aliases in data_columns.items():
+                    value = lookup_metric(data, aliases)
+                    if value is not None:
+                        cell = ws.cell(row=row_index, column=col, value=value)
                         cell.number_format = "0.00"
             row_index += 1
 

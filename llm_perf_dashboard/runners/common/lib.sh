@@ -1,42 +1,59 @@
 #!/usr/bin/env bash
-# 公共工具：加载配置路径、等待 OpenAI 服务就绪、清理容器
+# 公共工具：与 GitLab CI 对齐的 daemon.sh 拉起方式
 set -euo pipefail
-
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-export LLM_PERF_ROOT="${LLM_PERF_ROOT:-$ROOT}"
 
 log() { echo "[$(date '+%F %T')] $*"; }
 
-wait_openai_ready() {
-  local host="$1" port="$2" timeout_sec="${3:-1800}" interval="${4:-10}"
-  local deadline=$(( $(date +%s) + timeout_sec ))
-  while (( $(date +%s) < deadline )); do
-    if curl -fsS "http://${host}:${port}/v1/models" >/dev/null 2>&1; then
-      log "service ready on ${host}:${port}"
-      return 0
-    fi
-    sleep "$interval"
-  done
-  log "ERROR: service not ready within ${timeout_sec}s on ${host}:${port}"
-  return 1
+: "${REMOTE_BASE:=${HOME}/Ascend_910_Test}"
+: "${GIT_REMOTE:=http://git.xcoresigma.com/xcore-sigma/autotest.git}"
+: "${GIT_REF:=main}"
+: "${TEST_TYPE:=Smoke}"
+
+prepare_job_dir() {
+  local job_id="$1"
+  local dir="${REMOTE_BASE}/${job_id}"
+  mkdir -p "$dir"
+  echo "$dir"
 }
 
-stop_container() {
-  local name="$1"
-  if docker ps -a --format '{{.Names}}' | grep -qx "$name"; then
-    docker stop "$name" >/dev/null 2>&1 || true
-    docker rm "$name" >/dev/null 2>&1 || true
-  fi
+# 在目标目录取出 ascend_test_suite/daemon.sh（与 CI 相同）
+fetch_daemon() {
+  local work_dir="$1"
+  (
+    cd "$work_dir"
+    if [[ ! -d .git ]]; then
+      git init
+    fi
+    git remote remove origin 2>/dev/null || true
+    git remote add origin "$GIT_REMOTE"
+    git fetch --depth=1 origin "$GIT_REF"
+    git show "origin/${GIT_REF}:ascend_test_suite/daemon.sh" > daemon.sh
+    chmod a+x daemon.sh
+  )
 }
 
-get_free_port() {
-  local start="${1:-20000}" end="${2:-20999}"
-  local port
-  for port in $(seq "$start" "$end"); do
-    if ! ss -ltn | awk '{print $4}' | grep -E ":${port}$" >/dev/null 2>&1; then
-      echo "$port"
-      return 0
-    fi
-  done
-  return 1
+# 调用 daemon.sh（参数顺序与 .gitlab-ci.yml 一致）:
+#   ./daemon.sh <TEST_TYPE> <ENGINE> <MODEL_LIST> <JOB_ID> <VERSION>
+run_daemon() {
+  local test_type="$1"
+  local engine="$2"
+  local model_list="$3"
+  local job_id="$4"
+  local version="$5"
+
+  local work_dir
+  work_dir="$(prepare_job_dir "$job_id")"
+  log "work_dir=$work_dir test_type=$test_type engine=$engine models=$model_list version=$version"
+
+  fetch_daemon "$work_dir"
+  (
+    cd "$work_dir"
+    set -m
+    ./daemon.sh \
+      "$test_type" \
+      "$engine" \
+      "$model_list" \
+      "$job_id" \
+      "$version"
+  )
 }

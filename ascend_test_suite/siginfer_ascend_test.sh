@@ -254,7 +254,7 @@ ret_code=0
 for option in "${schedule_policies[@]}"; do
     use_prefix_cache_flag=-1
     for ((i=1; i<=${num_of_prefix_cache_options}; i=i+1)); do
-        swap_space=40
+        swap_space=0
         for ((j=1; j<=1; j=j+1)); do
             for item in "${model_list[@]}"; do
                 model=`echo "$item" | awk -F : '{print $1}'`
@@ -547,13 +547,13 @@ for option in "${schedule_policies[@]}"; do
                         length_pairs=(
                             "128:128"
                             "128:1024"
-                            "128:2048"
-                            "1024:1024"
-                            "2048:2048"
-                            "4096:1024"
-                            "1024:4096"
-                            "30000:2048"
-                            "126000:2048"
+                            # "128:2048"
+                            # "1024:1024"
+                            # "2048:2048"
+                            # "4096:1024"
+                            # "1024:4096"
+                            # "30000:2048"
+                            # "126000:2048"
                         )
                         # Random
                         ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${server_list[0]} "
@@ -878,7 +878,7 @@ for option in "${schedule_policies[@]}"; do
                     fi
                 fi
             done
-            swap_space=0
+            swap_space=40
         done
         use_prefix_cache_flag=$((-use_prefix_cache_flag))
     done

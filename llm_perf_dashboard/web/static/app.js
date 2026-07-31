@@ -4,18 +4,31 @@ async function fetchJSON(url) {
   return res.json();
 }
 
+// Match Excel report columns (Serving / TTFT / TPOT / ITL)
 const METRICS = [
-  "request_throughput",
-  "output_token_throughput",
-  "ttft_p50_ms",
-  "ttft_p99_ms",
-  "tpot_p50_ms",
-  "tpot_p99_ms",
-  "success_rate",
+  { id: "successful_requests", label: "Successful requests" },
+  { id: "request_throughput", label: "Request throughput" },
+  { id: "output_token_throughput", label: "Output token throughput" },
+  { id: "total_token_throughput", label: "Total Token throughput" },
+  { id: "ttft_mean_ms", label: "Mean TTFT" },
+  { id: "ttft_p50_ms", label: "Median TTFT" },
+  { id: "ttft_p99_ms", label: "P99 TTFT" },
+  { id: "tpot_mean_ms", label: "Mean TPOT" },
+  { id: "tpot_p50_ms", label: "Median TPOT" },
+  { id: "tpot_p99_ms", label: "P99 TPOT" },
+  { id: "itl_mean_ms", label: "Mean ITL" },
+  { id: "itl_p50_ms", label: "Median ITL" },
+  { id: "itl_p99_ms", label: "P99 ITL" },
+  { id: "success_rate", label: "success_rate" },
 ];
 
 let activeMetric = "request_throughput";
 const chart = echarts.init(document.getElementById("chart"));
+
+function metricLabel(id) {
+  const found = METRICS.find((m) => m.id === id);
+  return found ? found.label : id;
+}
 
 function fillSelect(sel, values, preferred) {
   const prev = preferred !== undefined ? preferred : sel.value;
@@ -137,7 +150,7 @@ function renderChart(metric, payload) {
     },
     yAxis: {
       type: "value",
-      name: metric,
+      name: metricLabel(metric),
       axisLabel: { color: "#8b9bb4" },
       splitLine: { lineStyle: { color: "#2a3548" } },
     },
@@ -171,10 +184,10 @@ function renderTabs() {
   container.innerHTML = "";
   METRICS.forEach((metric) => {
     const btn = document.createElement("button");
-    btn.className = `tab-btn${metric === activeMetric ? " active" : ""}`;
-    btn.textContent = metric;
+    btn.className = `tab-btn${metric.id === activeMetric ? " active" : ""}`;
+    btn.textContent = metric.label;
     btn.addEventListener("click", async () => {
-      activeMetric = metric;
+      activeMetric = metric.id;
       renderTabs();
       await refresh();
     });
