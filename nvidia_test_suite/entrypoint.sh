@@ -45,13 +45,13 @@ fi
 if [ $platform == "Ascend" ]; then
     cd ascend_test_suite
     mkdir -p $version
-    cp latest/model_list.xlsx $version
+    cp latest/${engine}_model_list.xlsx $version
     ./ascend_resource_monitor.sh $test_type $engine $model_list $CI_job_id $version &
     CHILD_PID=$!
 elif [ $platform == "Nvidia" ]; then
     cd nvidia_test_suite
     mkdir -p $version
-    cp latest/model_list.xlsx $version
+    cp latest/${engine}_model_list.xlsx $version
     ./nvidia_resource_monitor.sh $test_type $engine $model_list $CI_job_id $version &
     CHILD_PID=$!
 fi

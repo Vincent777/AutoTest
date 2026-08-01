@@ -21,7 +21,7 @@ def main():
     curr_dir = os.getcwd()
 
     # 加载 Excel 文件
-    file_path = f'{curr_dir}/{version}/model_list.xlsx'  # 替换为你的 Excel 文件路径
+    file_path = f'{curr_dir}/{version}/SigInfer_model_list.xlsx'  # 替换为你的 Excel 文件路径
     workbook = load_workbook(file_path)
 
     # 选择工作表

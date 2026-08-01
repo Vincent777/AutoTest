@@ -33,17 +33,17 @@ LOCK_FILE="server_config.lock"
 
 if true; then
     if [ -z $version ]; then
-        model_list_for_A800=($(python3 $curr_dir/parse_model_list.py A800 $curr_dir/latest/model_list.xlsx))
-        model_list_for_H100=($(python3 $curr_dir/parse_model_list.py H100 $curr_dir/latest/model_list.xlsx))
-        model_list_for_H20=($(python3 $curr_dir/parse_model_list.py H20 $curr_dir/latest/model_list.xlsx))
-        model_list_for_H800=($(python3 $curr_dir/parse_model_list.py H800 $curr_dir/latest/model_list.xlsx))
-        model_list_for_L20=($(python3 $curr_dir/parse_model_list.py L20 $curr_dir/latest/model_list.xlsx))
+        model_list_for_A800=($(python3 $curr_dir/parse_model_list.py A800 $curr_dir/latest/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_H100=($(python3 $curr_dir/parse_model_list.py H100 $curr_dir/latest/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_H20=($(python3 $curr_dir/parse_model_list.py H20 $curr_dir/latest/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_H800=($(python3 $curr_dir/parse_model_list.py H800 $curr_dir/latest/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_L20=($(python3 $curr_dir/parse_model_list.py L20 $curr_dir/latest/${ENGINE_TYPE}_model_list.xlsx))
     else
-        model_list_for_A800=($(python3 $curr_dir/parse_model_list.py A800 $curr_dir/$version/model_list.xlsx))
-        model_list_for_H100=($(python3 $curr_dir/parse_model_list.py H100 $curr_dir/$version/model_list.xlsx))
-        model_list_for_H20=($(python3 $curr_dir/parse_model_list.py H20 $curr_dir/$version/model_list.xlsx))
-        model_list_for_H800=($(python3 $curr_dir/parse_model_list.py H800 $curr_dir/$version/model_list.xlsx))
-        model_list_for_L20=($(python3 $curr_dir/parse_model_list.py L20 $curr_dir/$version/model_list.xlsx))
+        model_list_for_A800=($(python3 $curr_dir/parse_model_list.py A800 $curr_dir/$version/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_H100=($(python3 $curr_dir/parse_model_list.py H100 $curr_dir/$version/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_H20=($(python3 $curr_dir/parse_model_list.py H20 $curr_dir/$version/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_H800=($(python3 $curr_dir/parse_model_list.py H800 $curr_dir/$version/${ENGINE_TYPE}_model_list.xlsx))
+        model_list_for_L20=($(python3 $curr_dir/parse_model_list.py L20 $curr_dir/$version/${ENGINE_TYPE}_model_list.xlsx))
     fi
 else
     model_list_for_A800=(DeepSeek-R1-Distill-Qwen-32B:2:A800 DeepSeek-R1-Distill-Llama-70B:4:A800 Meta-Llama-3.1-70B-Instruct:4:A800 Qwen2.5-32B-Instruct:2:A800 QwQ-32B:2:A800 Qwen2.5-32B-Instruct-AWQ:1:A800 QwQ-32B-AWQ:1:A800)

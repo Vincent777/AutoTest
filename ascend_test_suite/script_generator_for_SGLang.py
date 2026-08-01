@@ -105,7 +105,7 @@ def main():
     test_type = sys.argv[1]
     version = sys.argv[2]
     curr_dir = os.getcwd()
-    file_path = f"{curr_dir}/{version}/model_list.xlsx"
+    file_path = f"{curr_dir}/{version}/SGLang_model_list.xlsx"
     workbook = load_workbook(file_path)
     
     sheet = workbook["Ascend"]
