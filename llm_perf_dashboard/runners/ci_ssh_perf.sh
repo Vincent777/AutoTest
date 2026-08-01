@@ -17,6 +17,20 @@ VERSION="${CI_COMMIT_BRANCH:?CI_COMMIT_BRANCH required}-${COMMIT_SHORT_SHA}"
 
 echo "SSH perf: host=$TEST_HOST engine=$ENGINE models=$MODEL_LIST version=$VERSION"
 
+SSH_PID=""
+cleanup_remote() {
+  echo "Stopping remote CI_test_job_${JOB_ID}..."
+  ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    -o ConnectTimeout=15 "$TEST_HOST" \
+    "docker stop --time 60 CI_test_job_${JOB_ID} 2>/dev/null || docker stop --timeout 60 CI_test_job_${JOB_ID} 2>/dev/null || true" \
+    || true
+  if [ -n "${SSH_PID}" ] && kill -0 "${SSH_PID}" 2>/dev/null; then
+    kill "${SSH_PID}" 2>/dev/null || true
+    wait "${SSH_PID}" 2>/dev/null || true
+  fi
+}
+trap cleanup_remote TERM INT
+
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$TEST_HOST" "
   set -m
   cd /home/ci_test
@@ -37,4 +51,11 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$TEST_HOST" "
     ${MODEL_LIST} \
     ${JOB_ID} \
     ${VERSION}
-"
+" &
+SSH_PID=$!
+set +e
+wait "${SSH_PID}"
+EXIT_CODE=$?
+set -e
+trap - TERM INT
+exit "${EXIT_CODE}"
