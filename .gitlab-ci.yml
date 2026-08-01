@@ -76,6 +76,7 @@ vLLM_Perf-aarch64-ascend:
         git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
         chmod a+x daemon.sh
         ./daemon.sh \
+          Ascend \
           Performance \
           ${ENGINE_NAME} \
           ${MODEL_LIST} \
@@ -127,6 +128,7 @@ SGLang_Perf-aarch64-ascend:
         git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
         chmod a+x daemon.sh
         ./daemon.sh \
+          Ascend \
           Performance \
           ${ENGINE_NAME} \
           ${MODEL_LIST} \
