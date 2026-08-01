@@ -260,8 +260,8 @@ EXEC_COMMAND="docker run --name=vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_
   quay.io/ascend/vllm-ascend:$LATEST_TAG"
 
 if [ $MODEL == "DeepSeek-R1-Distill-Qwen-32B" ]; then
-    echo "vllm serve /home/weight/DeepSeek-R1-Distill-Qwen-32B --served-model-name DeepSeek-R1-Distill-Qwen-32B --port $PORT -tp 2 --max-model-len 18432 --no-enable-prefix-caching"
-    EXEC_COMMAND+=" vllm serve /home/weight/DeepSeek-R1-Distill-Qwen-32B --served-model-name DeepSeek-R1-Distill-Qwen-32B --port $PORT -tp 2 --max-model-len 18432 --no-enable-prefix-caching > $LOG_NAME 2>&1 &"
+    echo "vllm serve /home/weight/DeepSeek-R1-Distill-Qwen-32B --served-model-name DeepSeek-R1-Distill-Qwen-32B --port $PORT -tp 2 --max-model-len 18432 --no-enable-prefix-caching --enforce-eager"
+    EXEC_COMMAND+=" vllm serve /home/weight/DeepSeek-R1-Distill-Qwen-32B --served-model-name DeepSeek-R1-Distill-Qwen-32B --port $PORT -tp 2 --max-model-len 18432 --no-enable-prefix-caching --enforce-eager > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "DeepSeek-R1-Distill-Llama-8B" ]; then
     echo "vllm serve /home/weight/DeepSeek-R1-Distill-Llama-8B --served-model-name DeepSeek-R1-Distill-Llama-8B --port $PORT -tp 1 --no-enable-prefix-caching"
     EXEC_COMMAND+=" vllm serve /home/weight/DeepSeek-R1-Distill-Llama-8B --served-model-name DeepSeek-R1-Distill-Llama-8B --port $PORT -tp 1 --no-enable-prefix-caching > $LOG_NAME 2>&1 &"
