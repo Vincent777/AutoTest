@@ -1,24 +1,14 @@
 #!/usr/bin/env bash
 set -m
 
-# Remember parent at start. If SSH session dies without delivering a signal,
-# this shell is reparented to init (PPID=1) and we must stop the container ourselves.
-INITIAL_PPID=$PPID
-CLEANED=0
-
 cleanup() {
-    if [ "$CLEANED" = 1 ]; then
-        return
-    fi
-    CLEANED=1
     trap - SIGINT SIGTERM SIGHUP SIGPIPE
-    echo "Stopping CI test job CI_test_job_${CI_job_id}..."
-    docker stop --time 60 "CI_test_job_${CI_job_id}" 2>/dev/null \
-        || docker stop --timeout 60 "CI_test_job_${CI_job_id}" 2>/dev/null \
-        || true
-    # if [ -n "${CHILD_PID:-}" ] && kill -0 "$CHILD_PID" 2>/dev/null; then
-    #     kill -TERM "$CHILD_PID" 2>/dev/null || true
-    # fi
+    echo "Stopping CI test job..."
+    docker stop --time 60 CI_test_job_${CI_job_id}
+    docker stop --timeout 60 CI_test_job_${CI_job_id}
+    # docker kill --signal=SIGTERM CI_test_job_${CI_job_id}
+    # docker kill -s TERM CI_test_job_${CI_job_id}
+    # rm -rf $curr_dir
     exit 130
 }
 
@@ -39,12 +29,7 @@ CHILD_PID=$!
 
 echo -n "Running"
 while kill -0 $CHILD_PID 2>/dev/null; do
-    # GitLab Cancel kills the SSH client; remote may become orphaned without trap signals.
-    if [ "$INITIAL_PPID" -ne 1 ] && [ "$PPID" -eq 1 ]; then
-        echo ""
-        echo "Parent SSH session lost (orphaned); triggering cleanup..."
-        cleanup
-    fi
+    # echo -ne "\r\033[KRunning..."
     echo -n "."
     sleep 1
 done

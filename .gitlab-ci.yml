@@ -40,75 +40,6 @@ variables:
   stage: test
   image: docker:stable
   timeout: 5 hour
-  # Cancel 时 script 可能被 SIGKILL；after_script 仍会再尝试停远端容器
-  after_script:
-    - |
-      echo "after_script: stop remote CI_test_job_${CI_JOB_ID} if still running"
-      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o ConnectTimeout=15 "${TEST_HOST}" \
-        "docker stop --time 60 CI_test_job_${CI_JOB_ID} 2>/dev/null || docker stop --timeout 60 CI_test_job_${CI_JOB_ID} 2>/dev/null || true" \
-        || true
-
-# Runner 侧：后台 SSH + trap，Cancel 时主动 docker stop 远端容器
-# 注意：anchor 必须是 scalar（|），不能是 "- |"，否则 script 会嵌套成列表
-.run_remote_perf: &run_remote_perf |
-  set -e
-  if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
-    echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible in job container."
-    echo "Mount it in gitlab-runner config.toml volumes."
-  fi
-  ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
-  echo "ENGINE_KEY = $ENGINE_KEY"
-  SSH_PID=""
-  cleanup_remote() {
-    echo "Runner trap: stopping remote CI_test_job_${CI_JOB_ID}..."
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-      -o ConnectTimeout=15 "${TEST_HOST}" \
-      "docker stop --time 60 CI_test_job_${CI_JOB_ID} 2>/dev/null || docker stop --timeout 60 CI_test_job_${CI_JOB_ID} 2>/dev/null || true" \
-      || true
-    if [ -n "${SSH_PID}" ] && kill -0 "${SSH_PID}" 2>/dev/null; then
-      kill "${SSH_PID}" 2>/dev/null || true
-      wait "${SSH_PID}" 2>/dev/null || true
-    fi
-  }
-  trap cleanup_remote TERM INT
-  # resolve + daemon 都在 106 上跑（docker:stable 无 python，与 SmokeTest 一样只做 SSH）
-  ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${TEST_HOST}" "
-    set -m
-    cd /home/ci_test
-    mkdir -p Ascend_910_Test
-    cd Ascend_910_Test
-    mkdir ${CI_JOB_ID}
-    cd ${CI_JOB_ID}
-    git init
-    git remote add origin http://git.xcoresigma.com/xcore-sigma/autotest.git
-    git fetch --depth=1 origin main
-    git show origin/main:llm_perf_dashboard/runners/common/resolve_release.py > resolve_release.py
-    git show origin/main:llm_perf_dashboard/configs/engines.yaml > engines.yaml
-    ENGINE_VERSION=\$(python3 resolve_release.py --engine ${ENGINE_KEY} --config engines.yaml --field tag)
-    echo \"Resolved ENGINE_VERSION = \$ENGINE_VERSION\"
-    git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
-    chmod a+x daemon.sh
-    ./daemon.sh \
-      Ascend \
-      Performance \
-      ${ENGINE_NAME} \
-      ${MODEL_LIST} \
-      ${CI_JOB_ID} \
-      Random \
-      \$ENGINE_VERSION
-  " &
-  SSH_PID=$!
-  set +e
-  wait "${SSH_PID}"
-  EXIT_CODE=$?
-  set -e
-  trap - TERM INT
-  if [ "${EXIT_CODE}" -ne 0 ]; then
-    exit "${EXIT_CODE}"
-  fi
-  export ENGINE_KEY
-  sh "${LLM_PERF_DIR}/runners/fetch_ci_reports.sh"
 
 vLLM_Perf-aarch64-ascend:
   <<: *perf_job_template
@@ -119,7 +50,40 @@ vLLM_Perf-aarch64-ascend:
   script:
     - echo "vLLM Performance Test starting..."
     - echo "MODEL_LIST = $MODEL_LIST"
-    - *run_remote_perf
+    - |
+      if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
+        echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible in job container."
+        echo "Mount it in gitlab-runner config.toml volumes."
+      fi
+      ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
+      echo "ENGINE_KEY = $ENGINE_KEY"
+      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${TEST_HOST}" "
+        set -m
+        cd /home/ci_test
+        mkdir -p Ascend_910_Test
+        cd Ascend_910_Test
+        mkdir ${CI_JOB_ID}
+        cd ${CI_JOB_ID}
+        git init
+        git remote add origin http://git.xcoresigma.com/xcore-sigma/autotest.git
+        git fetch --depth=1 origin main
+        git show origin/main:llm_perf_dashboard/runners/common/resolve_release.py > resolve_release.py
+        git show origin/main:llm_perf_dashboard/configs/engines.yaml > engines.yaml
+        ENGINE_VERSION=\$(python3 resolve_release.py --engine ${ENGINE_KEY} --config engines.yaml --field tag)
+        echo \"Resolved ENGINE_VERSION = \$ENGINE_VERSION\"
+        git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
+        chmod a+x daemon.sh
+        ./daemon.sh \
+          Ascend \
+          Performance \
+          ${ENGINE_NAME} \
+          ${MODEL_LIST} \
+          ${CI_JOB_ID} \
+          Random \
+          \$ENGINE_VERSION
+      "
+      export ENGINE_KEY
+      sh "${LLM_PERF_DIR}/runners/fetch_ci_reports.sh"
   artifacts:
     when: always
     paths:
@@ -137,7 +101,40 @@ SGLang_Perf-aarch64-ascend:
   script:
     - echo "SGLang Performance Test starting..."
     - echo "MODEL_LIST = $MODEL_LIST"
-    - *run_remote_perf
+    - |
+      if [ ! -d "${SHARED_PERF_ARTIFACTS}" ]; then
+        echo "WARN: ${SHARED_PERF_ARTIFACTS} not visible in job container."
+        echo "Mount it in gitlab-runner config.toml volumes."
+      fi
+      ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
+      echo "ENGINE_KEY = $ENGINE_KEY"
+      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${TEST_HOST}" "
+        set -m
+        cd /home/ci_test
+        mkdir -p Ascend_910_Test
+        cd Ascend_910_Test
+        mkdir ${CI_JOB_ID}
+        cd ${CI_JOB_ID}
+        git init
+        git remote add origin http://git.xcoresigma.com/xcore-sigma/autotest.git
+        git fetch --depth=1 origin main
+        git show origin/main:llm_perf_dashboard/runners/common/resolve_release.py > resolve_release.py
+        git show origin/main:llm_perf_dashboard/configs/engines.yaml > engines.yaml
+        ENGINE_VERSION=\$(python3 resolve_release.py --engine ${ENGINE_KEY} --config engines.yaml --field tag)
+        echo \"Resolved ENGINE_VERSION = \$ENGINE_VERSION\"
+        git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
+        chmod a+x daemon.sh
+        ./daemon.sh \
+          Ascend \
+          Performance \
+          ${ENGINE_NAME} \
+          ${MODEL_LIST} \
+          ${CI_JOB_ID} \
+          Random \
+          \$ENGINE_VERSION
+      "
+      export ENGINE_KEY
+      sh "${LLM_PERF_DIR}/runners/fetch_ci_reports.sh"
   artifacts:
     when: always
     paths:
@@ -157,7 +154,6 @@ IngestPerfResults:
       artifacts: true
   script:
     - |
-      set -e
       echo "Ingest shared-dir Excel into formal dashboard db on 106"
       VLLM_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/vllm" 2>/dev/null | head -n 1)"
       SGLANG_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/sglang" 2>/dev/null | head -n 1)"
