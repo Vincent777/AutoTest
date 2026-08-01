@@ -45,8 +45,6 @@ def main():
         GPU = row[1]
         args = row[2]
         args = args.split('\n')[0]
-        
-        print(args)
 
         result = re.sub(r"^.*docker\.xcoresigma\.com/docker/vllm/vllm-openai\:\S+", "", args)
         result = re.sub(r"--model\s+", "", result)
@@ -68,7 +66,7 @@ def main():
         
     src_code += "fi\n"
 
-    print(src_code)
+    # print(src_code)
 
     template_file = "job_executor_template_for_vLLM.sh"
 
