@@ -57,7 +57,7 @@ vLLM_Perf-aarch64-ascend:
       fi
       ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
       echo "ENGINE_KEY = $ENGINE_KEY"
-      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${TEST_HOST}" "
+      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ci_test@192.168.100.106 "
         set -m
         cd /home/ci_test
         mkdir -p Ascend_910_Test
@@ -90,7 +90,7 @@ vLLM_Perf-aarch64-ascend:
       - llm_perf_dashboard/ci_reports/vllm/
     expire_in: 14 days
   tags:
-    - "910_ascend"
+    - "910_ascend_for_vllm_perf"
 
 SGLang_Perf-aarch64-ascend:
   <<: *perf_job_template
@@ -108,7 +108,7 @@ SGLang_Perf-aarch64-ascend:
       fi
       ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
       echo "ENGINE_KEY = $ENGINE_KEY"
-      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${TEST_HOST}" "
+      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ci_test@192.168.100.106 "
         set -m
         cd /home/ci_test
         mkdir -p Ascend_910_Test
@@ -141,7 +141,7 @@ SGLang_Perf-aarch64-ascend:
       - llm_perf_dashboard/ci_reports/sglang/
     expire_in: 14 days
   tags:
-    - "910_ascend"
+    - "910_ascend_for_sglang_perf"
 
 IngestPerfResults:
   <<: *setup_ssh
