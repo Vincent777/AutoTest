@@ -542,12 +542,12 @@ for option in "${schedule_policies[@]}"; do
                     
                     # 开始执行测试
                     if [ $TEST_PARAM == "Random" ]; then
-                        multiplier=4
+                        multiplier=1
                         # concurrency_list=(1 5 10 20 50 100 150 200)
-                        concurrency_list=(1 5)
+                        concurrency_list=(1)
                         length_pairs=(
                             "128:128"
-                            "128:1024"
+                            # "128:1024"
                             # "128:2048"
                             # "1024:1024"
                             # "2048:2048"
