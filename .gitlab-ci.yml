@@ -9,6 +9,12 @@
 # Runner 需挂载共享目录，例如 config.toml:
 #   volumes = ["/home/s_limingge/.npu_locks/artifacts:/home/s_limingge/.npu_locks/artifacts:ro"]
 
+# 仅在定时调度（Pipeline Schedules）或网页手动触发时运行，push 不再触发
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
 stages:
   - test
   - ingest
