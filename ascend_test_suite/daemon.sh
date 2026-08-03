@@ -2,6 +2,7 @@
 
 cleanup() {
     trap - SIGINT SIGTERM SIGHUP SIGPIPE
+    touch test
     echo "Stopping CI test job..."
     docker stop --time 60 CI_test_job_${CI_job_id}
     docker stop --timeout 60 CI_test_job_${CI_job_id}
