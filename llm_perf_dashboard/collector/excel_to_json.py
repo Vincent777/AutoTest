@@ -149,6 +149,22 @@ def report_date_from_path(path: Path) -> str | None:
     return None
 
 
+def job_id_from_path(path: Path) -> str | None:
+    """Extract CI/session id so the same engine_version can keep multiple historical runs.
+
+    Typical layouts:
+      .../CI_ascend_test/<job_id>/performance/*.xlsx
+      .../report_YYYYMMDD/<session_id>/*.xlsx
+    """
+    parts = list(path.resolve().parts)
+    for i, part in enumerate(parts):
+        if part == "performance" and i > 0:
+            return parts[i - 1]
+        if re.match(r"report_\d{8}", part) and i + 1 < len(parts):
+            return parts[i + 1]
+    return None
+
+
 def parse_perf_log_request_throughput(text: str) -> dict[tuple[str, int], dict[str, float]]:
     """Parse Serving Benchmark Result blocks keyed by (context, concurrency)."""
     results: dict[tuple[str, int], dict[str, float]] = {}
@@ -303,7 +319,15 @@ def excel_to_records(
             except (TypeError, ValueError, ZeroDivisionError):
                 success_rate = None
 
-        run_id = f"{eng}_{ver}_{model}_{workload}_c{concurrency}_{report_date or 'na'}"
+        # Include job/session id so re-runs of the same engine_version are not
+        # overwritten by INSERT OR REPLACE (same version history must accumulate).
+        job_id = job_id_from_path(excel_path)
+        if not job_id:
+            job_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        run_id = (
+            f"{eng}_{ver}_{model}_{workload}_c{concurrency}_"
+            f"{report_date or 'na'}_{job_id}"
+        )
         records.append(
             {
                 "run_id": run_id,

@@ -179,7 +179,11 @@ def trends_all(
     workload: Optional[str] = None,
     concurrency: Optional[str] = Query(None),
 ) -> dict[str, Any]:
-    """Historical points for one metric, optionally filtered, grouped by engine."""
+    """Historical points for one metric, optionally filtered, grouped by engine.
+
+    Returns every matching run (not latest-only). Same engine_version keeps all
+    historical points as long as ingest used distinct run_id (job/session suffix).
+    """
     if metric not in ALLOWED_METRICS:
         raise HTTPException(status_code=400, detail=f"metric must be one of {sorted(ALLOWED_METRICS)}")
 

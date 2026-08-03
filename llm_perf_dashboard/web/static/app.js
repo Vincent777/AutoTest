@@ -110,11 +110,13 @@ function makeLabel(point) {
 }
 
 function renderChart(metric, payload) {
+  // One line per engine; all historical runs (any engine_version) are points on that line.
   const series = ["vllm", "sglang"].map((engine) => ({
     name: engine,
     type: "line",
     showSymbol: true,
     symbolSize: 6,
+    connectNulls: false,
     data: (payload.series[engine] || []).map((p) => ({
       value: [p.created_at, p.value],
       extra: makeLabel(p),
@@ -129,7 +131,9 @@ function renderChart(metric, payload) {
         if (!params || !params.length) return "";
         const lines = [params[0].axisValueLabel];
         params.forEach((item) => {
-          lines.push(`${item.seriesName}: ${item.data.value[1]} (${item.data.extra})`);
+          const val = item.data && item.data.value ? item.data.value[1] : item.value;
+          const extra = item.data && item.data.extra ? ` (${item.data.extra})` : "";
+          lines.push(`${item.seriesName}: ${val}${extra}`);
         });
         return lines.join("<br/>");
       },

@@ -92,10 +92,34 @@ else
     echo "The specified version : $LATEST_TAG"
 fi
 
-docker pull quay.io/ascend/vllm-ascend:$LATEST_TAG
-if [ $? -ne 0 ]; then
-    exit 1;
-fi
+# quay.io 等外网 registry 偶发 TLS timeout，拉取失败时重试
+docker_pull_with_retry() {
+    local image="$1"
+    local max_retries="${DOCKER_PULL_MAX_RETRIES:-5}"
+    local delay="${DOCKER_PULL_RETRY_DELAY:-30}"
+    local attempt=1
+    while [ "$attempt" -le "$max_retries" ]; do
+        echo "docker pull ${image} (attempt ${attempt}/${max_retries})"
+        if docker pull "${image}"; then
+            echo "docker pull succeeded: ${image}"
+            return 0
+        fi
+        if [ "$attempt" -ge "$max_retries" ]; then
+            echo "ERROR: docker pull failed after ${max_retries} attempts: ${image}"
+            return 1
+        fi
+        echo "docker pull failed, retry in ${delay}s..."
+        sleep "${delay}"
+        attempt=$((attempt + 1))
+        delay=$((delay * 2))
+        if [ "$delay" -gt 300 ]; then
+            delay=300
+        fi
+    done
+    return 1
+}
+
+docker_pull_with_retry "quay.io/ascend/vllm-ascend:$LATEST_TAG" || exit 1
 
 ret=`docker ps -a | grep vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}`
 if [ $? -eq 0 ]; then
