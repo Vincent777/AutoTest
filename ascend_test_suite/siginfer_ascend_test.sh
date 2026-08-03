@@ -542,17 +542,16 @@ for option in "${schedule_policies[@]}"; do
                     
                     # 开始执行测试
                     if [ $TEST_PARAM == "Random" ]; then
-                        multiplier=1
-                        # concurrency_list=(1 5 10 20 50 100 150 200)
-                        concurrency_list=(1)
+                        multiplier=4
+                        concurrency_list=(1 5 10 20 50 100 150 200)
                         length_pairs=(
                             "128:128"
-                            # "128:1024"
-                            # "128:2048"
-                            # "1024:1024"
-                            # "2048:2048"
-                            # "4096:1024"
-                            # "1024:4096"
+                            "128:1024"
+                            "128:2048"
+                            "1024:1024"
+                            "2048:2048"
+                            "4096:1024"
+                            "1024:4096"
                             # "30000:2048"
                             # "126000:2048"
                         )
@@ -809,7 +808,7 @@ for option in "${schedule_policies[@]}"; do
                         elif [ $ENGINE_TYPE == "vLLM" ] || [ $ENGINE_TYPE == "MindIE" ]; then
                             test_cmd=`cat "$curr_dir/logs/performance/$session_id/$filename" | grep "vllm bench serve" | head -n 1 | sed -E 's/--(random-input-len|random-output-len|num-prompts|max-concurrency)\s+[0-9]+/--\1 xxx/g'`
                         elif [ $ENGINE_TYPE == "SGLang" ]; then
-                            test_cmd=`cat "$curr_dir/logs/performance/$session_id/$filename" | grep "sglang.bench_serving" | head -n 1 | sed -E 's/--(random-input-len|random-output-len|num-prompts|max-concurrency)\s+[0-9]+/--\1 xxx/g'`
+                            test_cmd=`cat "$curr_dir/logs/performance/$session_id/$filename" | grep "sglang.benchmark.serving" | head -n 1 | sed -E 's/--(random-input-len|random-output-len|num-prompts|max-concurrency)\s+[0-9]+/--\1 xxx/g'`
                         fi
                         # 生成本次测试的Excel报告，并比较上一次Excel报告
                         if [ $use_prefix_cache_flag -eq 1 ]; then
