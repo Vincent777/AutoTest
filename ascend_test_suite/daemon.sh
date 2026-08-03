@@ -2,7 +2,6 @@
 
 cleanup() {
     trap - SIGINT SIGTERM SIGHUP SIGPIPE
-    touch test
     echo "Stopping CI test job..."
     docker stop --time 60 CI_test_job_${CI_job_id}
     docker stop --timeout 60 CI_test_job_${CI_job_id}
@@ -24,27 +23,18 @@ version=$7
 
 curr_dir=$(pwd)
 
-# docker run --rm --name="CI_test_job_${CI_job_id}" --privileged -v /home/s_limingge/.npu_locks:/home/s_limingge/.npu_locks -v /CI_Workspace:/CI_Workspace -v /var/run/docker.sock:/var/run/docker.sock auto-test:latest $platform $test_type $engine $model_list $CI_job_id $test_param $version &
-# CHILD_PID=$!
-
-# echo -n "Running"
-# while kill -0 $CHILD_PID 2>/dev/null; do
-#     # echo -ne "\r\033[KRunning..."
-#     echo -n "."
-#     sleep 1
-# done
-
-# wait $CHILD_PID
-# EXIT_CODE=$?
+docker run --rm --name="CI_test_job_${CI_job_id}" --privileged -v /home/s_limingge/.npu_locks:/home/s_limingge/.npu_locks -v /CI_Workspace:/CI_Workspace -v /var/run/docker.sock:/var/run/docker.sock auto-test:latest $platform $test_type $engine $model_list $CI_job_id $test_param $version &
+CHILD_PID=$!
 
 echo -n "Running"
-while true; do
+while kill -0 $CHILD_PID 2>/dev/null; do
     # echo -ne "\r\033[KRunning..."
     echo -n "."
     sleep 1
 done
 
-EXIT_CODE=0
+wait $CHILD_PID
+EXIT_CODE=$?
 
 # rm -rf $curr_dir
 
