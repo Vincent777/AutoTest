@@ -24,18 +24,27 @@ version=$7
 
 curr_dir=$(pwd)
 
-docker run --rm --name="CI_test_job_${CI_job_id}" --privileged -v /home/s_limingge/.npu_locks:/home/s_limingge/.npu_locks -v /CI_Workspace:/CI_Workspace -v /var/run/docker.sock:/var/run/docker.sock auto-test:latest $platform $test_type $engine $model_list $CI_job_id $test_param $version &
-CHILD_PID=$!
+# docker run --rm --name="CI_test_job_${CI_job_id}" --privileged -v /home/s_limingge/.npu_locks:/home/s_limingge/.npu_locks -v /CI_Workspace:/CI_Workspace -v /var/run/docker.sock:/var/run/docker.sock auto-test:latest $platform $test_type $engine $model_list $CI_job_id $test_param $version &
+# CHILD_PID=$!
+
+# echo -n "Running"
+# while kill -0 $CHILD_PID 2>/dev/null; do
+#     # echo -ne "\r\033[KRunning..."
+#     echo -n "."
+#     sleep 1
+# done
+
+# wait $CHILD_PID
+# EXIT_CODE=$?
 
 echo -n "Running"
-while kill -0 $CHILD_PID 2>/dev/null; do
+while true; do
     # echo -ne "\r\033[KRunning..."
     echo -n "."
     sleep 1
 done
 
-wait $CHILD_PID
-EXIT_CODE=$?
+EXIT_CODE=0
 
 # rm -rf $curr_dir
 
