@@ -861,7 +861,8 @@ for option in "${schedule_policies[@]}"; do
                                 # fi
                             fi
                         fi
-                        cp $curr_dir/report_${log_name_suffix}/${session_id}/* /home/s_limingge/.npu_locks/artifacts/CI_ascend_test/${session_id}/performance
+                        mkdir -p ${LOCK_DIR}/artifacts/CI_ascend_test/${session_id}/performance
+                        cp $curr_dir/report_${log_name_suffix}/${session_id}/* ${LOCK_DIR}/artifacts/CI_ascend_test/${session_id}/performance
                     fi
                 fi
                 
