@@ -58,7 +58,6 @@ vLLM_Perf-aarch64-ascend:
       ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
       echo "ENGINE_KEY = $ENGINE_KEY"
       ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ci_test@192.168.100.106 "
-        set -m
         cd /home/ci_test
         mkdir -p Ascend_910_Test
         cd Ascend_910_Test
@@ -109,7 +108,6 @@ SGLang_Perf-aarch64-ascend:
       ENGINE_KEY="$(echo "${ENGINE_NAME}" | tr '[:upper:]' '[:lower:]')"
       echo "ENGINE_KEY = $ENGINE_KEY"
       ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ci_test@192.168.100.106 "
-        set -m
         cd /home/ci_test
         mkdir -p Ascend_910_Test
         cd Ascend_910_Test
