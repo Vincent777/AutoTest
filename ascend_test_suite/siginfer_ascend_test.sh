@@ -544,7 +544,7 @@ for option in "${schedule_policies[@]}"; do
                     if [ $TEST_PARAM == "Random" ]; then
                         multiplier=4
                         # concurrency_list=(1 5 10 20 50 100 150 200)
-                        concurrency_list=(1 5 10)
+                        concurrency_list=(1 5)
                         length_pairs=(
                             "128:128"
                             "128:1024"
