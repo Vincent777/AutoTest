@@ -3,10 +3,9 @@
 cleanup() {
     # Ignore further signals: resetting to default would let a second SIGPIPE
     # kill us when we write to the already-broken SSH stdout pipe.
-    trap '' SIGINT SIGTERM SIGHUP SIGPIPE
+    trap - SIGINT SIGTERM SIGHUP SIGPIPE
     exec >> "${curr_dir}/cleanup.log" 2>&1
     echo "$(date '+%F %T') Stopping CI test job CI_test_job_${CI_job_id}..."
-    docker stop --time 60 "CI_test_job_${CI_job_id}" || true
     docker stop --timeout 60 "CI_test_job_${CI_job_id}" || true
     # rm -rf $curr_dir
     exit 130
