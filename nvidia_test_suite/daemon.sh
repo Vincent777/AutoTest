@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -m
 
 cleanup() {
     trap - SIGINT SIGTERM SIGHUP SIGPIPE
