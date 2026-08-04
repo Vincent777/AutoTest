@@ -37,6 +37,13 @@ done
 wait $CHILD_PID
 EXIT_CODE=$?
 
+# If the docker-run client died (e.g. EPIPE on the broken SSH pipe after a
+# cancel/timeout) the container may still be running: treat it as an abort.
+# On normal completion the container has already exited and been removed.
+if [ "$(docker inspect -f '{{.State.Running}}' "CI_test_job_${CI_job_id}" 2>/dev/null)" = "true" ]; then
+    cleanup
+fi
+
 # rm -rf $curr_dir
 
 exit $EXIT_CODE
