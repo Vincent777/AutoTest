@@ -241,38 +241,61 @@ RECORD_COLUMNS = [
 RECORD_DATE_EXPR = "date(COALESCE(started_at, created_at))"
 
 
+def _distinct(conn: sqlite3.Connection, expr: str, order: str,
+              conds: list[str], params: list[Any]) -> list[Any]:
+    sql = f"SELECT DISTINCT {expr} AS v FROM runs WHERE v IS NOT NULL"
+    for cond in conds:
+        sql += f" AND {cond}"
+    sql += f" ORDER BY {order}"
+    return [r[0] for r in conn.execute(sql, params).fetchall()]
+
+
 @app.get("/api/records/meta")
-def records_meta() -> dict[str, Any]:
-    """Distinct filter values for the records list."""
+def records_meta(
+    model: Optional[str] = None,
+    engine: Optional[str] = None,
+    engine_version: Optional[str] = None,
+) -> dict[str, Any]:
+    """Cascading filter values for the records list (model → engine → version → date)."""
     with get_conn() as conn:
         try:
-            models = [r[0] for r in conn.execute(
-                "SELECT DISTINCT model FROM runs WHERE model IS NOT NULL ORDER BY model"
-            ).fetchall()]
-            engine_versions = [r[0] for r in conn.execute(
-                "SELECT DISTINCT engine_version FROM runs WHERE engine_version IS NOT NULL ORDER BY engine_version"
-            ).fetchall()]
-            dates = [r[0] for r in conn.execute(
-                f"SELECT DISTINCT {RECORD_DATE_EXPR} AS d FROM runs WHERE d IS NOT NULL ORDER BY d DESC"
-            ).fetchall()]
+            models = _distinct(conn, "model", "v", [], [])
+            conds: list[str] = []
+            params: list[Any] = []
+            if model:
+                conds.append("model = ?")
+                params.append(model)
+            engines = _distinct(conn, "engine", "v", conds, params)
+            if engine:
+                conds.append("engine = ?")
+                params.append(engine)
+            engine_versions = _distinct(conn, "engine_version", "v", conds, params)
+            if engine_version:
+                conds.append("engine_version = ?")
+                params.append(engine_version)
+            dates = _distinct(conn, RECORD_DATE_EXPR, "v DESC", conds, params)
         except sqlite3.OperationalError as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
-    return {"models": models, "engine_versions": engine_versions, "dates": dates}
+    return {"models": models, "engines": engines, "engine_versions": engine_versions, "dates": dates}
 
 
 @app.get("/api/records")
 def records(
     model: Optional[str] = None,
+    engine: Optional[str] = None,
     engine_version: Optional[str] = None,
     date: Optional[str] = None,
     limit: int = Query(500, ge=1, le=2000),
 ) -> dict[str, Any]:
-    """Filtered raw records for the list view (model / engine_version / date)."""
+    """Filtered raw records for the list view (model / engine / engine_version / date)."""
     sql = f"SELECT {', '.join(RECORD_COLUMNS)}, {RECORD_DATE_EXPR} AS run_date FROM runs WHERE 1=1"
     params: list[Any] = []
     if model:
         sql += " AND model = ?"
         params.append(model)
+    if engine:
+        sql += " AND engine = ?"
+        params.append(engine)
     if engine_version:
         sql += " AND engine_version = ?"
         params.append(engine_version)
@@ -298,33 +321,26 @@ def concurrency_meta(
 ) -> dict[str, Any]:
     """Cascading filter values for the concurrency bar-chart page."""
     with get_conn() as conn:
-        def distinct(expr: str, order: str, conds: list[str], params: list[Any]) -> list[Any]:
-            sql = f"SELECT DISTINCT {expr} AS v FROM runs WHERE v IS NOT NULL"
-            for cond in conds:
-                sql += f" AND {cond}"
-            sql += f" ORDER BY {order}"
-            return [r[0] for r in conn.execute(sql, params).fetchall()]
-
         try:
-            models = distinct("model", "v", [], [])
+            models = _distinct(conn, "model", "v", [], [])
             conds: list[str] = []
             params: list[Any] = []
             if model:
                 conds.append("model = ?")
                 params.append(model)
-            engines = distinct("engine", "v", conds, params)
+            engines = _distinct(conn, "engine", "v", conds, params)
             if engine:
                 conds.append("engine = ?")
                 params.append(engine)
-            engine_versions = distinct("engine_version", "v", conds, params)
+            engine_versions = _distinct(conn, "engine_version", "v", conds, params)
             if engine_version:
                 conds.append("engine_version = ?")
                 params.append(engine_version)
-            dates = distinct(RECORD_DATE_EXPR, "v DESC", conds, params)
+            dates = _distinct(conn, RECORD_DATE_EXPR, "v DESC", conds, params)
             if date:
                 conds.append(f"{RECORD_DATE_EXPR} = ?")
                 params.append(date)
-            workloads = distinct("workload", "v", conds, params)
+            workloads = _distinct(conn, "workload", "v", conds, params)
         except sqlite3.OperationalError as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
     return {

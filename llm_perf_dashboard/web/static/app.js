@@ -294,11 +294,13 @@ function renderRecordsTable(records) {
 
 async function refreshRecords() {
   const model = document.getElementById("rec-model").value;
+  const engine = document.getElementById("rec-engine").value;
   const engineVersion = document.getElementById("rec-engine-version").value;
   const date = document.getElementById("rec-date").value;
 
   const qs = new URLSearchParams();
   if (model) qs.set("model", model);
+  if (engine) qs.set("engine", engine);
   if (engineVersion) qs.set("engine_version", engineVersion);
   if (date) qs.set("date", date);
 
@@ -307,15 +309,40 @@ async function refreshRecords() {
   renderRecordsTable(data.records || []);
 }
 
-async function loadRecordFilters() {
-  const meta = await fetchJSON("/api/records/meta");
-  fillFilterSelect(document.getElementById("rec-model"), meta.models, "All models");
-  fillFilterSelect(document.getElementById("rec-engine-version"), meta.engine_versions, "All versions");
-  fillFilterSelect(document.getElementById("rec-date"), meta.dates, "All dates");
+function recordFilterValues() {
+  return {
+    model: document.getElementById("rec-model").value,
+    engine: document.getElementById("rec-engine").value,
+    engineVersion: document.getElementById("rec-engine-version").value,
+  };
 }
 
-["rec-model", "rec-engine-version", "rec-date"].forEach((id) => {
-  document.getElementById(id).addEventListener("change", () => refreshRecords().catch(alert));
+async function loadRecordFilters() {
+  // Cascade: options at each level are narrowed by the selections above it.
+  // Refilling may reset an invalidated selection to "All", which changes the
+  // downstream lists, so repeat until selections are stable (2 passes max).
+  for (let i = 0; i < 3; i++) {
+    const sel = recordFilterValues();
+    const qs = new URLSearchParams();
+    if (sel.model) qs.set("model", sel.model);
+    if (sel.engine) qs.set("engine", sel.engine);
+    if (sel.engineVersion) qs.set("engine_version", sel.engineVersion);
+
+    const meta = await fetchJSON(`/api/records/meta?${qs}`);
+    fillFilterSelect(document.getElementById("rec-model"), meta.models, "All models");
+    fillFilterSelect(document.getElementById("rec-engine"), meta.engines, "All engines");
+    fillFilterSelect(document.getElementById("rec-engine-version"), meta.engine_versions, "All versions");
+    fillFilterSelect(document.getElementById("rec-date"), meta.dates, "All dates");
+
+    const after = recordFilterValues();
+    if (after.model === sel.model && after.engine === sel.engine
+        && after.engineVersion === sel.engineVersion) break;
+  }
+}
+
+["rec-model", "rec-engine", "rec-engine-version", "rec-date"].forEach((id) => {
+  document.getElementById(id).addEventListener("change", () =>
+    loadRecordFilters().then(refreshRecords).catch(alert));
 });
 
 // ---------- Concurrency bar-chart page ----------
