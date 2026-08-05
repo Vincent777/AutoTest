@@ -420,6 +420,7 @@ while true; do
                     if [ $err -eq 10 ]; then  # 没有资源，等待超时
                         echo "没有资源，等待超时，加入队列，稍后重试......"
                         temp_list+=(${pid_map[$last_pid]})  # 加入队列，稍后重试
+                        continue
                     fi
                 else
                     echo "程序出错！"
