@@ -397,9 +397,63 @@ async function loadCcFilters() {
   fillSelect(workloadSel, sortWorkloads(m4.workloads || []));
 }
 
+const CC_TTFT_COLOR = "#e8a838";
+const CC_TPOT_COLOR = "#3fbf7f";
+
 function renderCcChart(metric, payload) {
   if (!ccChart) return;
   const points = payload.points || [];
+  const mainLabel = metricLabel(metric);
+  const barLabel = { show: true, position: "top", color: "#8b9bb4", fontSize: 10 };
+
+  // Main metric on the left axis; Mean TTFT / Mean TPOT on their own right axes
+  // (their scales differ by ~2 orders of magnitude, so they cannot share one).
+  const yAxes = [{
+    type: "value",
+    name: mainLabel,
+    axisLabel: { color: "#8b9bb4" },
+    nameTextStyle: { color: "#8b9bb4" },
+    splitLine: { lineStyle: { color: "#2a3548" } },
+  }];
+  const series = [{
+    name: mainLabel,
+    type: "bar",
+    data: points.map((p) => p.value),
+    barMaxWidth: 36,
+    itemStyle: { color: "#3d8bfd", borderRadius: [3, 3, 0, 0] },
+    label: barLabel,
+  }];
+
+  let rightOffset = 0;
+  const addRightSeries = (name, field, color) => {
+    if (metric === field) return; // already shown as the main metric
+    // Stagger the axis names vertically so they don't overlap each other.
+    const short = name.replace("Mean ", "");
+    yAxes.push({
+      type: "value",
+      name: `${short} (ms)`,
+      nameGap: rightOffset === 0 ? 14 : 36,
+      position: "right",
+      offset: rightOffset,
+      axisLine: { show: true, lineStyle: { color } },
+      axisLabel: { color },
+      nameTextStyle: { color },
+      splitLine: { show: false },
+    });
+    rightOffset += 68;
+    series.push({
+      name,
+      type: "bar",
+      yAxisIndex: yAxes.length - 1,
+      data: points.map((p) => (p[field] === null || p[field] === undefined ? null : p[field])),
+      barMaxWidth: 36,
+      itemStyle: { color, borderRadius: [3, 3, 0, 0] },
+      label: barLabel,
+    });
+  };
+  addRightSeries("Mean TTFT", "ttft_mean_ms", CC_TTFT_COLOR);
+  addRightSeries("Mean TPOT", "tpot_mean_ms", CC_TPOT_COLOR);
+
   ccChart.setOption({
     backgroundColor: "transparent",
     title: {
@@ -409,37 +463,35 @@ function renderCcChart(metric, payload) {
       left: "center",
       textStyle: { color: "#8b9bb4", fontSize: 13, fontWeight: "normal" },
     },
+    legend: {
+      top: 26,
+      textStyle: { color: "#8b9bb4" },
+    },
     tooltip: {
       trigger: "axis",
       axisPointer: { type: "shadow" },
       formatter(params) {
         if (!params || !params.length) return "";
-        const p = params[0];
-        return `Concurrency ${p.axisValue}<br/>${metricLabel(metric)}: ${p.value}`;
+        const lines = [`Concurrency ${params[0].axisValue}`];
+        params.forEach((item) => {
+          const val = item.value === null || item.value === undefined ? "-" : item.value;
+          lines.push(`${item.marker}${item.seriesName}: ${val}`);
+        });
+        return lines.join("<br/>");
       },
     },
-    grid: { left: 60, right: 30, top: 60, bottom: 40 },
+    grid: { left: 60, right: 40 + rightOffset, top: 100, bottom: 56 },
     xAxis: {
       type: "category",
       name: "Concurrency",
+      nameLocation: "middle",
+      nameGap: 32,
       data: points.map((p) => String(p.concurrency)),
       axisLabel: { color: "#8b9bb4" },
       nameTextStyle: { color: "#8b9bb4" },
     },
-    yAxis: {
-      type: "value",
-      name: metricLabel(metric),
-      axisLabel: { color: "#8b9bb4" },
-      nameTextStyle: { color: "#8b9bb4" },
-      splitLine: { lineStyle: { color: "#2a3548" } },
-    },
-    series: [{
-      type: "bar",
-      data: points.map((p) => p.value),
-      barMaxWidth: 48,
-      itemStyle: { color: "#3d8bfd", borderRadius: [3, 3, 0, 0] },
-      label: { show: true, position: "top", color: "#8b9bb4" },
-    }],
+    yAxis: yAxes,
+    series,
   }, true);
 }
 

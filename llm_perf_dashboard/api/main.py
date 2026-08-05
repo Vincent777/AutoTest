@@ -367,7 +367,8 @@ def concurrency_series(
     if not (model and engine and engine_version and date and workload):
         raise HTTPException(status_code=400, detail="model, engine, engine_version, date and workload are required")
     sql = f"""
-    SELECT engine, concurrency, created_at, run_id, {metric} AS value
+    SELECT engine, concurrency, created_at, run_id, {metric} AS value,
+           ttft_mean_ms, tpot_mean_ms
     FROM runs
     WHERE model = ? AND engine = ? AND engine_version = ? AND {RECORD_DATE_EXPR} = ? AND workload = ?
       AND {metric} IS NOT NULL
