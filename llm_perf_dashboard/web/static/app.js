@@ -400,14 +400,17 @@ async function loadCcFilters() {
 const CC_TTFT_COLOR = "#e8a838";
 const CC_TPOT_COLOR = "#3fbf7f";
 
+function fmtMs(v) {
+  return v === null || v === undefined ? "-" : v;
+}
+
 function renderCcChart(metric, payload) {
   if (!ccChart) return;
   const points = payload.points || [];
   const mainLabel = metricLabel(metric);
-  const barLabel = { show: true, position: "top", color: "#8b9bb4", fontSize: 10 };
 
-  // Main metric on the left axis; Mean TTFT / Mean TPOT on their own right axes
-  // (their scales differ by ~2 orders of magnitude, so they cannot share one).
+  // Main metric as bars on the left axis; Mean TTFT / Mean TPOT as smooth lines,
+  // each on its own right axis (their scales differ by ~2 orders of magnitude).
   const yAxes = [{
     type: "value",
     name: mainLabel,
@@ -419,19 +422,18 @@ function renderCcChart(metric, payload) {
     name: mainLabel,
     type: "bar",
     data: points.map((p) => p.value),
-    barMaxWidth: 36,
+    barMaxWidth: 48,
     itemStyle: { color: "#3d8bfd", borderRadius: [3, 3, 0, 0] },
-    label: barLabel,
+    label: { show: true, position: "top", color: "#e7ecf3", fontSize: 11 },
   }];
 
   let rightOffset = 0;
-  const addRightSeries = (name, field, color) => {
+  const addRightLine = (name, field, color) => {
     if (metric === field) return; // already shown as the main metric
     // Stagger the axis names vertically so they don't overlap each other.
-    const short = name.replace("Mean ", "");
     yAxes.push({
       type: "value",
-      name: `${short} (ms)`,
+      name: `${name.replace("Mean ", "")} (ms)`,
       nameGap: rightOffset === 0 ? 14 : 36,
       position: "right",
       offset: rightOffset,
@@ -443,16 +445,19 @@ function renderCcChart(metric, payload) {
     rightOffset += 68;
     series.push({
       name,
-      type: "bar",
+      type: "line",
+      smooth: true,
       yAxisIndex: yAxes.length - 1,
       data: points.map((p) => (p[field] === null || p[field] === undefined ? null : p[field])),
-      barMaxWidth: 36,
-      itemStyle: { color, borderRadius: [3, 3, 0, 0] },
-      label: barLabel,
+      symbol: "circle",
+      symbolSize: 7,
+      lineStyle: { color, width: 2 },
+      itemStyle: { color },
+      label: { show: true, position: "top", color, fontSize: 10 },
     });
   };
-  addRightSeries("Mean TTFT", "ttft_mean_ms", CC_TTFT_COLOR);
-  addRightSeries("Mean TPOT", "tpot_mean_ms", CC_TPOT_COLOR);
+  addRightLine("Mean TTFT", "ttft_mean_ms", CC_TTFT_COLOR);
+  addRightLine("Mean TPOT", "tpot_mean_ms", CC_TPOT_COLOR);
 
   ccChart.setOption({
     backgroundColor: "transparent",
@@ -474,8 +479,8 @@ function renderCcChart(metric, payload) {
         if (!params || !params.length) return "";
         const lines = [`Concurrency ${params[0].axisValue}`];
         params.forEach((item) => {
-          const val = item.value === null || item.value === undefined ? "-" : item.value;
-          lines.push(`${item.marker}${item.seriesName}: ${val}`);
+          const unit = item.seriesName.indexOf("Mean T") === 0 ? " ms" : "";
+          lines.push(`${item.marker}${item.seriesName}: ${fmtMs(item.value)}${unit}`);
         });
         return lines.join("<br/>");
       },
