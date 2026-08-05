@@ -226,6 +226,161 @@ def trends_all(
     }
 
 
+RECORD_COLUMNS = [
+    "run_id", "engine", "engine_version", "model", "hardware",
+    "workload", "concurrency",
+    "successful_requests", "request_throughput",
+    "output_token_throughput", "total_token_throughput",
+    "ttft_mean_ms", "ttft_p50_ms", "ttft_p99_ms",
+    "tpot_mean_ms", "tpot_p50_ms", "tpot_p99_ms",
+    "itl_mean_ms", "itl_p50_ms", "itl_p99_ms",
+    "success_rate", "started_at", "created_at",
+]
+
+# Test date: prefer started_at, fall back to ingest time.
+RECORD_DATE_EXPR = "date(COALESCE(started_at, created_at))"
+
+
+@app.get("/api/records/meta")
+def records_meta() -> dict[str, Any]:
+    """Distinct filter values for the records list."""
+    with get_conn() as conn:
+        try:
+            models = [r[0] for r in conn.execute(
+                "SELECT DISTINCT model FROM runs WHERE model IS NOT NULL ORDER BY model"
+            ).fetchall()]
+            engine_versions = [r[0] for r in conn.execute(
+                "SELECT DISTINCT engine_version FROM runs WHERE engine_version IS NOT NULL ORDER BY engine_version"
+            ).fetchall()]
+            dates = [r[0] for r in conn.execute(
+                f"SELECT DISTINCT {RECORD_DATE_EXPR} AS d FROM runs WHERE d IS NOT NULL ORDER BY d DESC"
+            ).fetchall()]
+        except sqlite3.OperationalError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"models": models, "engine_versions": engine_versions, "dates": dates}
+
+
+@app.get("/api/records")
+def records(
+    model: Optional[str] = None,
+    engine_version: Optional[str] = None,
+    date: Optional[str] = None,
+    limit: int = Query(500, ge=1, le=2000),
+) -> dict[str, Any]:
+    """Filtered raw records for the list view (model / engine_version / date)."""
+    sql = f"SELECT {', '.join(RECORD_COLUMNS)}, {RECORD_DATE_EXPR} AS run_date FROM runs WHERE 1=1"
+    params: list[Any] = []
+    if model:
+        sql += " AND model = ?"
+        params.append(model)
+    if engine_version:
+        sql += " AND engine_version = ?"
+        params.append(engine_version)
+    if date:
+        sql += f" AND {RECORD_DATE_EXPR} = ?"
+        params.append(date)
+    sql += " ORDER BY run_date DESC, engine ASC, workload ASC, concurrency ASC LIMIT ?"
+    params.append(limit)
+    with get_conn() as conn:
+        try:
+            rows = [dict(r) for r in conn.execute(sql, params).fetchall()]
+        except sqlite3.OperationalError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"count": len(rows), "records": rows}
+
+
+@app.get("/api/concurrency/meta")
+def concurrency_meta(
+    model: Optional[str] = None,
+    engine: Optional[str] = None,
+    engine_version: Optional[str] = None,
+    date: Optional[str] = None,
+) -> dict[str, Any]:
+    """Cascading filter values for the concurrency bar-chart page."""
+    with get_conn() as conn:
+        def distinct(expr: str, order: str, conds: list[str], params: list[Any]) -> list[Any]:
+            sql = f"SELECT DISTINCT {expr} AS v FROM runs WHERE v IS NOT NULL"
+            for cond in conds:
+                sql += f" AND {cond}"
+            sql += f" ORDER BY {order}"
+            return [r[0] for r in conn.execute(sql, params).fetchall()]
+
+        try:
+            models = distinct("model", "v", [], [])
+            conds: list[str] = []
+            params: list[Any] = []
+            if model:
+                conds.append("model = ?")
+                params.append(model)
+            engines = distinct("engine", "v", conds, params)
+            if engine:
+                conds.append("engine = ?")
+                params.append(engine)
+            engine_versions = distinct("engine_version", "v", conds, params)
+            if engine_version:
+                conds.append("engine_version = ?")
+                params.append(engine_version)
+            dates = distinct(RECORD_DATE_EXPR, "v DESC", conds, params)
+            if date:
+                conds.append(f"{RECORD_DATE_EXPR} = ?")
+                params.append(date)
+            workloads = distinct("workload", "v", conds, params)
+        except sqlite3.OperationalError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {
+        "models": models,
+        "engines": engines,
+        "engine_versions": engine_versions,
+        "dates": dates,
+        "workloads": workloads,
+    }
+
+
+@app.get("/api/concurrency")
+def concurrency_series(
+    model: str,
+    engine: str,
+    engine_version: str,
+    date: str,
+    workload: str,
+    metric: str = "request_throughput",
+) -> dict[str, Any]:
+    """One metric across all concurrencies for a given test round."""
+    if metric not in ALLOWED_METRICS:
+        raise HTTPException(status_code=400, detail=f"metric must be one of {sorted(ALLOWED_METRICS)}")
+    if not (model and engine and engine_version and date and workload):
+        raise HTTPException(status_code=400, detail="model, engine, engine_version, date and workload are required")
+    sql = f"""
+    SELECT engine, concurrency, created_at, run_id, {metric} AS value
+    FROM runs
+    WHERE model = ? AND engine = ? AND engine_version = ? AND {RECORD_DATE_EXPR} = ? AND workload = ?
+      AND {metric} IS NOT NULL
+    ORDER BY concurrency ASC, created_at DESC
+    """
+    with get_conn() as conn:
+        try:
+            rows = [dict(r) for r in conn.execute(sql, (model, engine, engine_version, date, workload)).fetchall()]
+        except sqlite3.OperationalError as exc:
+            raise HTTPException(status_code=500, detail=str(exc)) from exc
+    # Keep only the latest run per concurrency (rows are created_at DESC within each concurrency).
+    points: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    for row in rows:
+        if row["concurrency"] in seen:
+            continue
+        seen.add(row["concurrency"])
+        points.append(row)
+    return {
+        "metric": metric,
+        "model": model,
+        "engine": engine,
+        "engine_version": engine_version,
+        "date": date,
+        "workload": workload,
+        "points": points,
+    }
+
+
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(

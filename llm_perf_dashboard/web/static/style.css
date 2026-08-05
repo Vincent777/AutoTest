@@ -16,6 +16,29 @@ body {
 }
 header h1 { margin: 0 0 4px; font-size: 1.6rem; letter-spacing: 0.02em; }
 header p { margin: 0 0 20px; color: var(--muted); }
+.page-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+.page-tab {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 10px 18px;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.page-tab:hover { color: var(--text); }
+.page-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  background: transparent;
+}
+.page.hidden { display: none; }
 .controls {
   display: flex; flex-wrap: wrap; gap: 12px; align-items: end;
   margin-bottom: 24px; padding: 16px; background: var(--panel); border: 1px solid var(--line);
@@ -52,3 +75,49 @@ h2 { font-size: 1rem; color: var(--muted); font-weight: 600; }
   border-color: var(--accent);
 }
 #chart { background: var(--panel); border: 1px solid var(--line); }
+.records-panel {
+  margin-top: 24px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 16px;
+}
+.records-controls {
+  margin-bottom: 14px;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+.rec-count { align-self: center; color: var(--muted); font-size: 0.8rem; margin-left: auto; }
+.table-wrap {
+  overflow: auto;
+  max-height: 65vh;
+  border: 1px solid var(--line);
+  scrollbar-color: #3a4a66 #0f1724; /* Firefox */
+}
+.table-wrap::-webkit-scrollbar { height: 12px; width: 12px; }
+.table-wrap::-webkit-scrollbar-track { background: #0f1724; }
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #3a4a66;
+  border-radius: 6px;
+  border: 2px solid #0f1724;
+}
+.table-wrap::-webkit-scrollbar-thumb:hover { background: #4d6288; }
+#rec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+#rec-table th, #rec-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+#rec-table th {
+  position: sticky; top: 0;
+  background: #0f1724;
+  color: var(--muted);
+  font-weight: 600;
+}
+#rec-table tbody tr:hover { background: #212d42; }
+#rec-table .empty-cell { text-align: center; color: var(--muted); padding: 18px; }

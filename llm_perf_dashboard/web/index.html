@@ -5,13 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LLM Perf Dashboard (Ascend)</title>
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
-  <link rel="stylesheet" href="/static/style.css?v=20260803b" />
+  <link rel="stylesheet" href="/static/style.css?v=20260805c" />
 </head>
 <body>
   <header>
     <h1>LLM Perf Dashboard</h1>
     <p>Ascend · vLLM / SGLang · release tags only</p>
   </header>
+
+  <nav class="page-tabs">
+    <button class="page-tab active" data-page="trend">Trend &amp; Records</button>
+    <button class="page-tab" data-page="concurrency">Concurrency Compare</button>
+  </nav>
+
+  <div id="page-trend" class="page">
 
   <section class="controls">
     <label>Model
@@ -31,6 +38,56 @@
     <div id="chart" style="height:560px;"></div>
   </section>
 
-  <script src="/static/app.js?v=20260803b"></script>
+  <section class="records-panel">
+    <h2>Records</h2>
+    <div class="controls records-controls">
+      <label>Model
+        <select id="rec-model"></select>
+      </label>
+      <label>Engine Version
+        <select id="rec-engine-version"></select>
+      </label>
+      <label>Date
+        <select id="rec-date"></select>
+      </label>
+      <span id="rec-count" class="rec-count"></span>
+    </div>
+    <div class="table-wrap">
+      <table id="rec-table">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  </div><!-- /page-trend -->
+
+  <div id="page-concurrency" class="page hidden">
+    <section class="controls">
+      <label>Model
+        <select id="cc-model"></select>
+      </label>
+      <label>Engine
+        <select id="cc-engine"></select>
+      </label>
+      <label>Engine Version
+        <select id="cc-engine-version"></select>
+      </label>
+      <label>Date
+        <select id="cc-date"></select>
+      </label>
+      <label>Workload (input+output)
+        <select id="cc-workload"></select>
+      </label>
+    </section>
+
+    <section class="trend-panel">
+      <h2>Metric vs Concurrency</h2>
+      <div id="cc-metric-tabs" class="tabs"></div>
+      <div id="cc-chart" style="height:560px;"></div>
+    </section>
+  </div><!-- /page-concurrency -->
+
+  <script src="/static/app.js?v=20260805d"></script>
 </body>
 </html>

@@ -204,5 +204,288 @@ document.getElementById("workload").addEventListener("change", () => refresh().c
 document.getElementById("concurrency").addEventListener("change", () => refresh().catch(alert));
 window.addEventListener("resize", () => chart.resize());
 
+// ---------- Records list (bottom section) ----------
+
+const RECORD_COLUMNS = [
+  { id: "run_date", label: "Date" },
+  { id: "engine", label: "Engine" },
+  { id: "engine_version", label: "Version" },
+  { id: "model", label: "Model" },
+  { id: "workload", label: "Workload" },
+  { id: "concurrency", label: "Concurrency" },
+  { id: "successful_requests", label: "Successful requests" },
+  { id: "request_throughput", label: "Request throughput" },
+  { id: "output_token_throughput", label: "Output token tps" },
+  { id: "total_token_throughput", label: "Total token tps" },
+  { id: "ttft_mean_ms", label: "Mean TTFT" },
+  { id: "ttft_p50_ms", label: "Median TTFT" },
+  { id: "ttft_p99_ms", label: "P99 TTFT" },
+  { id: "tpot_mean_ms", label: "Mean TPOT" },
+  { id: "tpot_p50_ms", label: "Median TPOT" },
+  { id: "tpot_p99_ms", label: "P99 TPOT" },
+  { id: "itl_mean_ms", label: "Mean ITL" },
+  { id: "itl_p50_ms", label: "Median ITL" },
+  { id: "itl_p99_ms", label: "P99 ITL" },
+  { id: "success_rate", label: "Success rate" },
+];
+
+function fillFilterSelect(sel, values, allLabel) {
+  const prev = sel.value;
+  sel.innerHTML = "";
+  const allOpt = document.createElement("option");
+  allOpt.value = "";
+  allOpt.textContent = allLabel;
+  sel.appendChild(allOpt);
+  (values || []).forEach((v) => {
+    const opt = document.createElement("option");
+    opt.value = String(v);
+    opt.textContent = String(v);
+    sel.appendChild(opt);
+  });
+  if (prev && (values || []).map(String).includes(String(prev))) {
+    sel.value = String(prev);
+  } else {
+    sel.value = "";
+  }
+}
+
+function formatCell(value) {
+  if (value === null || value === undefined || value === "") return "-";
+  if (typeof value === "number" && !Number.isInteger(value)) {
+    return value.toFixed(2);
+  }
+  return String(value);
+}
+
+function renderRecordsTable(records) {
+  const thead = document.querySelector("#rec-table thead");
+  const tbody = document.querySelector("#rec-table tbody");
+
+  thead.innerHTML = "";
+  const headRow = document.createElement("tr");
+  RECORD_COLUMNS.forEach((col) => {
+    const th = document.createElement("th");
+    th.textContent = col.label;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+
+  tbody.innerHTML = "";
+  if (!records.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = RECORD_COLUMNS.length;
+    td.className = "empty-cell";
+    td.textContent = "No records match the current filters";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+  records.forEach((rec) => {
+    const tr = document.createElement("tr");
+    RECORD_COLUMNS.forEach((col) => {
+      const td = document.createElement("td");
+      td.textContent = formatCell(rec[col.id]);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+async function refreshRecords() {
+  const model = document.getElementById("rec-model").value;
+  const engineVersion = document.getElementById("rec-engine-version").value;
+  const date = document.getElementById("rec-date").value;
+
+  const qs = new URLSearchParams();
+  if (model) qs.set("model", model);
+  if (engineVersion) qs.set("engine_version", engineVersion);
+  if (date) qs.set("date", date);
+
+  const data = await fetchJSON(`/api/records?${qs.toString()}`);
+  document.getElementById("rec-count").textContent = `${data.count} record(s)`;
+  renderRecordsTable(data.records || []);
+}
+
+async function loadRecordFilters() {
+  const meta = await fetchJSON("/api/records/meta");
+  fillFilterSelect(document.getElementById("rec-model"), meta.models, "All models");
+  fillFilterSelect(document.getElementById("rec-engine-version"), meta.engine_versions, "All versions");
+  fillFilterSelect(document.getElementById("rec-date"), meta.dates, "All dates");
+}
+
+["rec-model", "rec-engine-version", "rec-date"].forEach((id) => {
+  document.getElementById(id).addEventListener("change", () => refreshRecords().catch(alert));
+});
+
+// ---------- Concurrency bar-chart page ----------
+
+let ccChart = null;
+let ccActiveMetric = "request_throughput";
+
+function ccSelectValues() {
+  return {
+    model: document.getElementById("cc-model").value,
+    engine: document.getElementById("cc-engine").value,
+    engineVersion: document.getElementById("cc-engine-version").value,
+    date: document.getElementById("cc-date").value,
+    workload: document.getElementById("cc-workload").value,
+  };
+}
+
+async function loadCcFilters() {
+  const modelSel = document.getElementById("cc-model");
+  const engineSel = document.getElementById("cc-engine");
+  const versionSel = document.getElementById("cc-engine-version");
+  const dateSel = document.getElementById("cc-date");
+  const workloadSel = document.getElementById("cc-workload");
+
+  // Cascade: each level only offers values that exist under the previous selections.
+  const m0 = await fetchJSON("/api/concurrency/meta");
+  fillSelect(modelSel, m0.models);
+
+  const qs1 = new URLSearchParams({ model: modelSel.value });
+  const m1 = await fetchJSON(`/api/concurrency/meta?${qs1}`);
+  fillSelect(engineSel, m1.engines);
+
+  const qs2 = new URLSearchParams({ model: modelSel.value, engine: engineSel.value });
+  const m2 = await fetchJSON(`/api/concurrency/meta?${qs2}`);
+  fillSelect(versionSel, m2.engine_versions);
+
+  const qs3 = new URLSearchParams({
+    model: modelSel.value,
+    engine: engineSel.value,
+    engine_version: versionSel.value,
+  });
+  const m3 = await fetchJSON(`/api/concurrency/meta?${qs3}`);
+  fillSelect(dateSel, m3.dates);
+
+  const qs4 = new URLSearchParams({
+    model: modelSel.value,
+    engine: engineSel.value,
+    engine_version: versionSel.value,
+    date: dateSel.value,
+  });
+  const m4 = await fetchJSON(`/api/concurrency/meta?${qs4}`);
+  fillSelect(workloadSel, sortWorkloads(m4.workloads || []));
+}
+
+function renderCcChart(metric, payload) {
+  if (!ccChart) return;
+  const points = payload.points || [];
+  ccChart.setOption({
+    backgroundColor: "transparent",
+    title: {
+      text: points.length
+        ? `${payload.model} | ${payload.engine} ${payload.engine_version} | ${payload.workload} | ${payload.date}`
+        : "No data for the current filters",
+      left: "center",
+      textStyle: { color: "#8b9bb4", fontSize: 13, fontWeight: "normal" },
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: { type: "shadow" },
+      formatter(params) {
+        if (!params || !params.length) return "";
+        const p = params[0];
+        return `Concurrency ${p.axisValue}<br/>${metricLabel(metric)}: ${p.value}`;
+      },
+    },
+    grid: { left: 60, right: 30, top: 60, bottom: 40 },
+    xAxis: {
+      type: "category",
+      name: "Concurrency",
+      data: points.map((p) => String(p.concurrency)),
+      axisLabel: { color: "#8b9bb4" },
+      nameTextStyle: { color: "#8b9bb4" },
+    },
+    yAxis: {
+      type: "value",
+      name: metricLabel(metric),
+      axisLabel: { color: "#8b9bb4" },
+      nameTextStyle: { color: "#8b9bb4" },
+      splitLine: { lineStyle: { color: "#2a3548" } },
+    },
+    series: [{
+      type: "bar",
+      data: points.map((p) => p.value),
+      barMaxWidth: 48,
+      itemStyle: { color: "#3d8bfd", borderRadius: [3, 3, 0, 0] },
+      label: { show: true, position: "top", color: "#8b9bb4" },
+    }],
+  }, true);
+}
+
+async function refreshCc() {
+  await loadCcFilters();
+  const sel = ccSelectValues();
+  if (!sel.model || !sel.engine || !sel.engineVersion || !sel.date || !sel.workload) {
+    renderCcChart(ccActiveMetric, { points: [] });
+    return;
+  }
+  const qs = new URLSearchParams({
+    model: sel.model,
+    engine: sel.engine,
+    engine_version: sel.engineVersion,
+    date: sel.date,
+    workload: sel.workload,
+    metric: ccActiveMetric,
+  });
+  const data = await fetchJSON(`/api/concurrency?${qs}`);
+  renderCcChart(ccActiveMetric, data);
+}
+
+function renderCcTabs() {
+  const container = document.getElementById("cc-metric-tabs");
+  container.innerHTML = "";
+  METRICS.forEach((metric) => {
+    const btn = document.createElement("button");
+    btn.className = `tab-btn${metric.id === ccActiveMetric ? " active" : ""}`;
+    btn.textContent = metric.label;
+    btn.addEventListener("click", async () => {
+      ccActiveMetric = metric.id;
+      renderCcTabs();
+      await refreshCc();
+    });
+    container.appendChild(btn);
+  });
+}
+
+["cc-model", "cc-engine", "cc-engine-version", "cc-date", "cc-workload"].forEach((id) => {
+  document.getElementById(id).addEventListener("change", () => refreshCc().catch(alert));
+});
+
+// ---------- Page tabs ----------
+
+let ccPageInitialized = false;
+
+function showPage(page) {
+  document.querySelectorAll(".page-tab").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.page === page);
+  });
+  document.getElementById("page-trend").classList.toggle("hidden", page !== "trend");
+  document.getElementById("page-concurrency").classList.toggle("hidden", page !== "concurrency");
+
+  if (page === "concurrency") {
+    if (!ccPageInitialized) {
+      ccPageInitialized = true;
+      // Init only when visible, otherwise echarts measures a 0-sized container.
+      ccChart = echarts.init(document.getElementById("cc-chart"));
+      window.addEventListener("resize", () => ccChart && ccChart.resize());
+      renderCcTabs();
+      refreshCc().catch(alert);
+    } else {
+      ccChart.resize();
+    }
+  } else {
+    chart.resize();
+  }
+}
+
+document.querySelectorAll(".page-tab").forEach((btn) => {
+  btn.addEventListener("click", () => showPage(btn.dataset.page));
+});
+
 renderTabs();
 refresh().catch(alert);
+loadRecordFilters().then(refreshRecords).catch(alert);
