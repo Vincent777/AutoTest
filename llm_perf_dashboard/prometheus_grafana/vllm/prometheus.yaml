@@ -8,3 +8,8 @@ scrape_configs:
     static_configs:
       - targets:
           - '10.9.1.86:20000'
+
+  - job_name: sglang
+    static_configs:
+      - targets:
+          - '10.9.1.94:20000'
