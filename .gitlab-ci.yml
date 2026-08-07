@@ -45,7 +45,7 @@ variables:
   <<: *setup_ssh
   stage: test
   image: docker:stable
-  timeout: 10 hour
+  timeout: 1 day
 
 vLLM_Perf-aarch64-ascend:
   <<: *perf_job_template
