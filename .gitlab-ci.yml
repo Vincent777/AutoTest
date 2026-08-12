@@ -28,7 +28,7 @@ variables:
   DASHBOARD_DB: /home/s_limingge/ci_autotest/llm_perf_dashboard/storage/perf.db
   # PD 分离（留空则走传统 TP/单机）；示例: 2P2D
   PD_TOPOLOGY:
-    value: ""
+    value: "2P2D"
     description: "PD disaggregation topology, e.g. 2P2D (empty = disabled)"
 
 # 与 SmokeTest-aarch64-ascend 相同写法
