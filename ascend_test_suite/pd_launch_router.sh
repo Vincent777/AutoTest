@@ -20,8 +20,16 @@ PROXY_PORT_RANGE="${PD_PROXY_PORT_RANGE:-2000}"
 ROUTER_TIMEOUT="${PD_ROUTER_STARTUP_TIMEOUT:-300}"
 SGLANG_NPU_TAG_SUFFIX="${SGLANG_NPU_TAG_SUFFIX:-cann9.0.0-910b}"
 
+# Match job executor tag rules:
+#   vLLM  → use VERSION as-is (quay.io/ascend/vllm-ascend:$VERSION)
+#   SGLang → append cann/910b suffix unless VERSION already contains it
 resolve_image_tag() {
     local ver="$1"
+    local eng="$2"
+    if [ "$eng" = "vLLM" ] || [ "$eng" = "vllm" ]; then
+        echo "$ver"
+        return 0
+    fi
     if [[ "$ver" == *cann* || "$ver" == *910b* || "$ver" == *a3* ]]; then
         echo "$ver"
     else
@@ -73,7 +81,8 @@ PY
 
 PORT_SEED=$(printf '%s' "${JOB_ID}" | cksum | awk '{print $1}')
 PROXY_PORT=$(pick_free_port "$PORT_SEED")
-TAG=$(resolve_image_tag "$VERSION")
+TAG=$(resolve_image_tag "$VERSION" "$ENGINE")
+echo ">>> PD router image tag: ENGINE=${ENGINE} VERSION=${VERSION} -> ${TAG}"
 CONTAINER="pd_router_${TEST_TYPE}Test_${SESSION_ID}_${JOB_COUNT}"
 LOG_NAME="/home/s_limingge/pd_router_${TEST_TYPE}_${SESSION_ID}_${JOB_COUNT}.log"
 LAUNCHER="/home/s_limingge/pd_router_launch_${SESSION_ID}_${JOB_COUNT}.sh"
@@ -90,10 +99,13 @@ if [ "$ENGINE" = "SGLang" ]; then
     cat > "/tmp/pd_router_launch_${SESSION_ID}_${JOB_COUNT}.sh" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
-docker pull ${IMAGE} || true
+IMAGE="${IMAGE}"
+if ! docker image inspect "\${IMAGE}" >/dev/null 2>&1; then
+  docker pull "\${IMAGE}"
+fi
 docker run -d --name=${CONTAINER} --network host --ipc=host \\
   -v /home/s_limingge:/home/s_limingge \\
-  ${IMAGE} bash -lc 'python3 -c "import json,subprocess; cmd=json.load(open(\"/home/s_limingge/pd_lb_cmd_${SESSION_ID}_${JOB_COUNT}.json\"))[\"cmd\"]; subprocess.check_call(cmd)" > ${LOG_NAME} 2>&1'
+  \${IMAGE} bash -lc 'python3 -c "import json,subprocess; cmd=json.load(open(\"/home/s_limingge/pd_lb_cmd_${SESSION_ID}_${JOB_COUNT}.json\"))[\"cmd\"]; subprocess.check_call(cmd)" > ${LOG_NAME} 2>&1'
 EOF
 elif [ "$ENGINE" = "vLLM" ]; then
     IMAGE="quay.io/ascend/vllm-ascend:${TAG}"
@@ -131,7 +143,9 @@ CONTAINER="${CONTAINER}"
 LOG_NAME="${LOG_NAME}"
 PROXY_PORT="${PROXY_PORT}"
 PROXY_JSON="/home/s_limingge/pd_vllm_proxy_${SESSION_ID}_${JOB_COUNT}.json"
-docker pull "\${IMAGE}" || true
+if ! docker image inspect "\${IMAGE}" >/dev/null 2>&1; then
+  docker pull "\${IMAGE}"
+fi
 SCRIPT=\$(docker run --rm "\${IMAGE}" bash -lc 'find / -name load_balance_proxy_server_example.py 2>/dev/null | head -n1')
 if [ -z "\${SCRIPT}" ]; then
   echo "ERROR: load_balance_proxy_server_example.py not found in image" >&2
