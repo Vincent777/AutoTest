@@ -65,11 +65,11 @@ def main():
             start = False
         else:
             src_code += f"elif [ $MODEL == \"{name}\" ]; then\n"
-        src_code += "    echo \"vllm serve"
+        src_code += "    echo \"vllm serve "
         src_code += result
         src_code += " $PD_EXTRA_ARGS\"\n"
         
-        src_code += "    EXEC_COMMAND+=\" vllm serve"
+        src_code += "    EXEC_COMMAND+=\" vllm serve "
         src_code += result
         src_code += " $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &\"\n"
         
