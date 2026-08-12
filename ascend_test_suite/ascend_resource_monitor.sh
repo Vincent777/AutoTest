@@ -359,6 +359,7 @@ search_pd_servers() {
             FREE_COUNT=\$(echo \"\${GPU_INFO[@]}\" | wc -w)
             echo \"PROBE ${key} free=\$FREE_COUNT\"
             if [ \"\$FREE_COUNT\" -lt \"\$TARGET_FREE_GPUS\" ]; then
+                echo "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
                 exit 1
             fi
             TASK_ID=\"${TEST_TYPE}Test_${MODEL}_${JOB_COUNT}\"
@@ -369,8 +370,9 @@ search_pd_servers() {
                 echo \"FREE_OK \$FREE_COUNT\"
                 exit 0
             fi
+            echo "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
             exit 1
-        " 2>/dev/null) || true
+        ") || true
 
         if echo "$probe_out" | grep -q "FREE_OK"; then
             local free_n

@@ -7,6 +7,7 @@ import argparse
 import fcntl
 import json
 import re
+import shlex
 import sys
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
@@ -234,16 +235,24 @@ def main(argv: list[str] | None = None) -> int:
 
             n_p, n_d = count_expected_pd_roles(args.topology)
             deadline = time.time() + args.timeout
+            last_err = ""
             while time.time() < deadline:
-                entries = load_entries(args.config, args.job_id)
+                try:
+                    entries = load_entries(args.config, args.job_id)
+                except ValueError as exc:
+                    last_err = str(exc)
+                    time.sleep(2)
+                    continue
                 p_cnt = len(endpoints_by_role(entries, "prefill"))
                 d_cnt = len(endpoints_by_role(entries, "decode"))
-                if p_cnt >= n_p and d_cnt >= n_d:
-                    print(f"OK prefill={p_cnt} decode={d_cnt}")
+                if p_cnt == n_p and d_cnt == n_d:
+                    print(f"OK prefill={p_cnt} decode={d_cnt} (topology={args.topology})")
                     return 0
+                last_err = f"prefill={p_cnt} decode={d_cnt}"
                 time.sleep(2)
             print(
-                f"TIMEOUT waiting PD nodes (need P>={n_p} D>={n_d})",
+                f"TIMEOUT waiting PD nodes (need P=={n_p} D=={n_d}, "
+                f"last={last_err}; topology={args.topology})",
                 file=sys.stderr,
             )
             return 1
@@ -295,7 +304,8 @@ def main(argv: list[str] | None = None) -> int:
                     parts.extend(["--prefill", f"http://{p.ip}:{p.api_port}"])
                 for d in decodes:
                     parts.extend(["--decode", f"http://{d.ip}:{d.api_port}"])
-                print("ROUTER_CMD=" + json.dumps(parts))
+                # shlex.quote so callers can safely eval the line
+                print("ROUTER_CMD=" + shlex.quote(json.dumps(parts)))
             else:
                 payload = {
                     "prefiller_hosts": [p.ip for p in prefills],
@@ -303,10 +313,10 @@ def main(argv: list[str] | None = None) -> int:
                     "decoder_hosts": [d.ip for d in decodes],
                     "decoder_ports": [d.api_port for d in decodes],
                 }
-                print("VLLM_PROXY=" + json.dumps(payload))
+                print("VLLM_PROXY=" + shlex.quote(json.dumps(payload)))
             if prefills:
-                print(f"TOPOLOGY={prefills[0].topology or ''}")
-                print(f"ENGINE={prefills[0].engine or eng}")
+                print(f"TOPOLOGY={shlex.quote(prefills[0].topology or '')}")
+                print(f"ENGINE={shlex.quote(prefills[0].engine or eng)}")
             return 0
 
     except ValueError as exc:
