@@ -170,13 +170,21 @@ scp -q "/tmp/pd_router_launch_${SESSION_ID}_${JOB_COUNT}.sh" \
     "s_limingge@${COORD_SSH_HOST}:${LAUNCHER}"
 ssh -q -o ConnectionAttempts=3 "s_limingge@${COORD_SSH_HOST}" "bash ${LAUNCHER}"
 
-echo ">>> PD router: waiting for HTTP on ${COORD_LOCAL_IP}:${PROXY_PORT}..."
+# 管理面 IP（10.9.1.x）：CI/编排机可达，用于健康检查与压测入口
+# 数据面 IP（10.0.0.x）：NPU 机间互联，仅给 proxy→P/D backend（已在 JSON 里）
+CLIENT_IP="${COORD_SSH_HOST}"
+echo ">>> PD router: waiting for HTTP on ${CLIENT_IP}:${PROXY_PORT} (ssh/mgmt; data-plane=${COORD_LOCAL_IP})..."
 deadline=$(( $(date +%s) + ROUTER_TIMEOUT ))
 ready=0
 while [ "$(date +%s)" -lt "$deadline" ]; do
-    if curl -sf --max-time 3 "http://${COORD_LOCAL_IP}:${PROXY_PORT}/v1/models" >/dev/null 2>&1 \
-        || curl -sf --max-time 3 "http://${COORD_LOCAL_IP}:${PROXY_PORT}/health" >/dev/null 2>&1 \
-        || curl -sf --max-time 3 "http://${COORD_LOCAL_IP}:${PROXY_PORT}/" >/dev/null 2>&1; then
+    # Prefer probing via management IP; fallback: curl on the coordinator itself
+    if curl -sf --max-time 3 "http://${CLIENT_IP}:${PROXY_PORT}/v1/models" >/dev/null 2>&1 \
+        || curl -sf --max-time 3 "http://${CLIENT_IP}:${PROXY_PORT}/health" >/dev/null 2>&1 \
+        || curl -sf --max-time 3 "http://${CLIENT_IP}:${PROXY_PORT}/" >/dev/null 2>&1 \
+        || ssh -q -o ConnectionAttempts=2 -o ConnectTimeout=3 "s_limingge@${COORD_SSH_HOST}" \
+            "curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/v1/models >/dev/null 2>&1 \
+             || curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/health >/dev/null 2>&1 \
+             || curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/ >/dev/null 2>&1"; then
         ready=1
         break
     fi
@@ -184,14 +192,16 @@ while [ "$(date +%s)" -lt "$deadline" ]; do
 done
 if [ "$ready" -ne 1 ]; then
     echo "WARN: proxy HTTP probe timed out; check ${LOG_NAME} on ${COORD_SSH_HOST}"
+    echo "      hint: orchestrator cannot use data-plane IP ${COORD_LOCAL_IP}; probe uses ${CLIENT_IP}"
 fi
 
 ENGINE_KEY=$(echo "$ENGINE" | tr '[:upper:]' '[:lower:]')
+# Register client-facing proxy on management IP so benchmark/CI can reach it
 python3 "${SCRIPT_DIR}/pd_router.py" register-proxy \
     --job-id "$JOB_ID" \
-    --ip "$COORD_LOCAL_IP" \
+    --ip "$CLIENT_IP" \
     --port "$PROXY_PORT" \
     --topology "$TOPOLOGY" \
     --engine "$ENGINE_KEY"
 
-echo ">>> PD router ready: http://${COORD_LOCAL_IP}:${PROXY_PORT}"
+echo ">>> PD router ready: http://${CLIENT_IP}:${PROXY_PORT} (data-plane bind host ${COORD_LOCAL_IP})"

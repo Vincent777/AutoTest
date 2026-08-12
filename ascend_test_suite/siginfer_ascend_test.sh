@@ -65,6 +65,22 @@ declare -A local_ip_map=(
     ["10.9.1.102"]="10.0.0.20"
 )
 
+# 数据面 → 管理面（CI/压测客户端可达 10.9.1.x，通常不可达 10.0.0.x）
+declare -A mgmt_ip_map=()
+for _mgmt in "${!local_ip_map[@]}"; do
+    mgmt_ip_map["${local_ip_map[$_mgmt]}"]="$_mgmt"
+done
+
+# 若传入数据面 IP，转换为管理面；已是管理面则原样返回
+to_mgmt_ip() {
+    local ip="$1"
+    if [ -n "${mgmt_ip_map[$ip]:-}" ]; then
+        echo "${mgmt_ip_map[$ip]}"
+    else
+        echo "$ip"
+    fi
+}
+
 if [ -z $send_report ]; then
     echo "Missing parameter!"
     exit 1
@@ -669,9 +685,13 @@ for option in "${schedule_policies[@]}"; do
                             server_port=`cat "${LOCK_DIR}/server_config.txt" | grep "${job_id}:" | grep "role=prefill" | awk -F ':' '{print $3}' | awk '{print $1}' | head -n 1`
                             local_master_ip=`cat "${LOCK_DIR}/server_config.txt" | grep "${job_id}:" | grep "role=prefill" | awk -F ':' '{print $1}' | head -n 1`
                         fi
+                        # 压测从编排机发起：统一走管理面 IP（10.9.1.x）
+                        local_master_ip=$(to_mgmt_ip "$local_master_ip")
                         echo "PD benchmark entry: http://${local_master_ip}:${server_port}"
                     else
                         server_port=`cat "${LOCK_DIR}/server_config.txt" | grep "${local_master_ip}:${job_id}:" | awk -F ':' '{print $3}' | awk '{print $1}' | tail -n 1`
+                        # 非 PD 历史逻辑写的是数据面；压测同样映射到管理面
+                        local_master_ip=$(to_mgmt_ip "$local_master_ip")
                     fi
                     # 锁会自动在脚本退出或文件描述符关闭时释放
                     exec 200>&-  # 关闭文件描述符
