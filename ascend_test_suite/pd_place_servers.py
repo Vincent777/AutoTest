@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Place Prefill/Decode instances onto Ascend hosts with anti-colocation.
 
-Policy (option B):
+Policy:
   - P and D must NOT share the same physical server.
-  - Default: one PD instance per host (matches current one-SSH-executor-per-host).
-  - Optional: same-role packing on one host if --allow-same-role-colocate and
-    host has enough free GPU slots (advanced; off by default).
+  - Same-role packing on one host when GPUs allow (default on).
+  - Idle hosts are reserved into P/D pools before packing so Prefill cannot
+    starve Decode (anti-starvation). Unused idle hosts stay unpinned.
 
 Examples:
   python3 pd_place_servers.py --topology 2P2D \\
@@ -81,6 +81,27 @@ def validate_no_pd_colocation(assignments: list[Placement] | list[tuple[str, str
         )
 
 
+def _slots_on_host(free_gpus: int, gpus_per_instance: int, allow_same_role_colocate: bool) -> int:
+    if free_gpus < gpus_per_instance:
+        return 0
+    slots = free_gpus // gpus_per_instance
+    if not allow_same_role_colocate:
+        slots = min(slots, 1)
+    return slots
+
+
+def _pool_capacity(
+    hosts: list[str],
+    free_left: dict[str, int],
+    gpus_per_instance: int,
+    allow_same_role_colocate: bool,
+) -> int:
+    return sum(
+        _slots_on_host(free_left.get(h, 0), gpus_per_instance, allow_same_role_colocate)
+        for h in hosts
+    )
+
+
 def place_servers(
     *,
     topology: str,
@@ -90,11 +111,12 @@ def place_servers(
     host_roles: dict[str, str] | None = None,
     allow_same_role_colocate: bool = True,
 ) -> list[Placement]:
-    """Assign hosts for P/D with cluster role affinity.
+    """Assign hosts for P/D with anti-colocation and anti-starvation.
 
-    - Prefer hosts already leased as the same role, then idle.
     - Never place Prefill on a decode host (or vice versa).
-    - Default: allow packing multiple same-role instances on one host when GPUs allow.
+    - First pin existing same-role hosts, then **reserve idle hosts into P/D
+      pools** so Prefill packing cannot consume all idle machines before Decode.
+    - Prefer dense same-role packing; leave unused idle hosts unpinned for later jobs.
     """
     n_p, n_d = parse_topology(topology)
     if gpus_per_instance < 1:
@@ -117,46 +139,75 @@ def place_servers(
         r = roles.get(h, "idle")
         return r if r in {"prefill", "decode", "idle"} else "idle"
 
-    def ordered_for(role: str) -> list[str]:
-        same = [h for h in cand if role_of(h) == role]
-        idle = [h for h in cand if role_of(h) == "idle"]
-        # opposite role excluded
-        return same + idle
-
     free_left = {h: (host_free_gpus or {}).get(h, gpus_per_instance) for h in cand}
-    # Track roles assigned in this placement pass (in addition to cluster leases)
-    local_role: dict[str, str] = {}
+
+    p_pool = [h for h in cand if role_of(h) == "prefill"]
+    d_pool = [h for h in cand if role_of(h) == "decode"]
+    idle = [h for h in cand if role_of(h) == "idle"]
+    # denser hosts first → fewer machines pinned for this job
+    idle.sort(key=lambda h: free_left.get(h, 0), reverse=True)
+
+    def need(role_pool: list[str], n_inst: int) -> int:
+        return max(0, n_inst - _pool_capacity(role_pool, free_left, gpus_per_instance, allow_same_role_colocate))
+
+    for h in idle:
+        need_p = need(p_pool, n_p)
+        need_d = need(d_pool, n_d)
+        if need_p <= 0 and need_d <= 0:
+            break  # leave remaining idle unpinned (available for future opposite role)
+        # Prefer the scarcer side; on tie prefer Decode to avoid historical P-first starvation
+        if need_p > need_d:
+            p_pool.append(h)
+        elif need_d > need_p:
+            d_pool.append(h)
+        else:
+            d_pool.append(h)
+
+    if need(p_pool, n_p) > 0 or need(d_pool, n_d) > 0:
+        role_snap = {h: role_of(h) for h in cand}
+        raise ValueError(
+            f"Cannot place {topology}: role starvation or insufficient GPU slots "
+            f"(need P={n_p} D={n_d}; "
+            f"cap P={_pool_capacity(p_pool, free_left, gpus_per_instance, allow_same_role_colocate)} "
+            f"on {p_pool}, "
+            f"cap D={_pool_capacity(d_pool, free_left, gpus_per_instance, allow_same_role_colocate)} "
+            f"on {d_pool}; "
+            f"candidate_roles={role_snap}). "
+            f"Hint: wait for an opposite-role/idle host, or prune stale leases "
+            f"(host_role_lease.py prune-stale)."
+        )
+
     placements: list[Placement] = []
 
-    def alloc(role: str, instance_id: str) -> Placement:
-        for h in ordered_for(role):
-            lr = local_role.get(h)
-            if lr and lr != role:
-                continue
-            cr = role_of(h)
-            if cr not in {"idle", role}:
-                continue
+    def alloc_from(pool: list[str], role: str, instance_id: str) -> Placement:
+        # Prefer already-pinned same-role hosts with enough free GPUs (dense pack)
+        ordered = sorted(
+            pool,
+            key=lambda h: (
+                0 if role_of(h) == role else 1,
+                -free_left.get(h, 0),
+            ),
+        )
+        for h in ordered:
             if free_left.get(h, 0) < gpus_per_instance:
                 continue
-            # Without packing: only one instance per host in this placement
-            if not allow_same_role_colocate and h in local_role:
+            used = sum(1 for p in placements if p.host == h)
+            if not allow_same_role_colocate and used >= 1:
                 continue
             free_left[h] -= gpus_per_instance
-            local_role[h] = role
-            roles[h] = role  # subsequent allocs in this call see the pin
+            roles[h] = role
             return Placement(
                 host=h, role=role, instance_id=instance_id, gpus=gpus_per_instance
             )
         raise ValueError(
-            f"Cannot place {role}/{instance_id} for {topology}: "
-            f"no compatible host (need idle or {role}; P/D anti-colocation). "
-            f"candidates={cand} roles={ {h: role_of(h) for h in cand} }"
+            f"Cannot place {role}/{instance_id} for {topology} onto pool={pool} "
+            f"(internal error after reservation)"
         )
 
     for i in range(n_p):
-        placements.append(alloc("prefill", f"p{i}"))
+        placements.append(alloc_from(p_pool, "prefill", f"p{i}"))
     for i in range(n_d):
-        placements.append(alloc("decode", f"d{i}"))
+        placements.append(alloc_from(d_pool, "decode", f"d{i}"))
 
     validate_no_pd_colocation(placements)
     return placements

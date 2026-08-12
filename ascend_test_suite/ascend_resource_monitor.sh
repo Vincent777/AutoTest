@@ -54,8 +54,15 @@ fi
 # PD 分离（可选）：PD_TOPOLOGY=2P2D 时按「同角色可共机、P/D 不可混部」选机
 # 默认允许同角色堆叠（跨 CI job 通过 host_role_lease 共享主机角色）
 PD_TOPOLOGY="${PD_TOPOLOGY:-}"
-PD_ALLOW_SAME_ROLE_COLOCATE="${PD_ALLOW_SAME_ROLE_COLOCATE:-1}"
+PD_ALLOW_SAME_ROLE_COLOCATE="${PD_ALLOW_SAME_ROLE_COLOCATE:1}"
+# 角色失衡/资源不足时最多空等轮次（每轮 sleep PD_SEARCH_RETRY_SEC）；0=不限制
+PD_SEARCH_MAX_ROUNDS="${PD_SEARCH_MAX_ROUNDS:-60}"
+PD_SEARCH_RETRY_SEC="${PD_SEARCH_RETRY_SEC:-10}"
+# 启动搜索前清理超过该秒数的陈旧角色租约（崩溃未释放）；0=不清理
+PD_LEASE_MAX_AGE="${PD_LEASE_MAX_AGE:-86400}"
 PD_PLACEMENT=""
+PD_SEARCH_FAIL_ROUNDS=0
+PD_LAST_SEARCH_REASON=""
 
 if [ $ENGINE_TYPE == "SigInfer" ]; then
     declare -A npu_server_list=(
@@ -308,6 +315,7 @@ search_servers() {
 
 # PD：扫描集群，结合 host_role_lease 做角色亲和放置，并 acquire 租约。
 # 规则：同机可堆叠多个 CI job 的 P（或 D）；严禁 P/D 混部。
+# 放置前会为 P/D 预留 idle 主机池，避免 Prefill 占满导致 Decode 饿死。
 search_pd_servers() {
     local MODEL=$1
     local JOB_COUNT=$2
@@ -318,6 +326,7 @@ search_pd_servers() {
 
     servers_found=()
     placement_out=""
+    PD_LAST_SEARCH_REASON=""
 
     local needed
     local place_req_args=(--topology "$TOPOLOGY" --required-hosts)
@@ -327,7 +336,13 @@ search_pd_servers() {
     needed=$(python3 "$curr_dir/pd_place_servers.py" "${place_req_args[@]}")
     if [ -z "$needed" ] || [ "$needed" -lt 2 ]; then
         echo "ERROR: invalid PD_TOPOLOGY=$TOPOLOGY"
+        PD_LAST_SEARCH_REASON="invalid_topology"
         return 1
+    fi
+
+    if [ "${PD_LEASE_MAX_AGE:-0}" -gt 0 ] 2>/dev/null; then
+        python3 "$curr_dir/host_role_lease.py" prune-stale --max-age "$PD_LEASE_MAX_AGE" \
+            || echo "WARN: prune-stale failed (ignored)"
     fi
 
     echo "PD 模式: topology=$TOPOLOGY, 每实例卡数=$NPU_QUANTITY, 最少主机数=${needed}, same_role_colocate=$PD_ALLOW_SAME_ROLE_COLOCATE"
@@ -371,6 +386,7 @@ search_pd_servers() {
 
     if [ ${#candidates[@]} -lt "$needed" ]; then
         echo "PD 候选机不足: need>=$needed got=${#candidates[@]}"
+        PD_LAST_SEARCH_REASON="insufficient_hosts"
         return 1
     fi
 
@@ -398,6 +414,14 @@ search_pd_servers() {
     local placed
     if ! placed=$(python3 "$curr_dir/pd_place_servers.py" "${place_args[@]}" 2>/tmp/pd_place_err.$$); then
         cat /tmp/pd_place_err.$$ >&2 || true
+        if grep -qi "role starvation\|Cannot place" /tmp/pd_place_err.$$ 2>/dev/null; then
+            PD_LAST_SEARCH_REASON="role_starvation"
+            echo "WARN: PD 角色失衡或对端角色无可用主机（卡可能空闲但角色租约冲突）。"
+            echo "      请检查: python3 $curr_dir/host_role_lease.py status"
+            echo "      或等待对端角色/idle 释放；必要时: prune-stale / release-session"
+        else
+            PD_LAST_SEARCH_REASON="place_failed"
+        fi
         rm -f /tmp/pd_place_err.$$
         return 1
     fi
@@ -420,6 +444,7 @@ search_pd_servers() {
             for lid in "${acquired_leases[@]:-}"; do
                 python3 "$curr_dir/host_role_lease.py" release --lease-id "$lid" || true
             done
+            PD_LAST_SEARCH_REASON="acquire_failed"
             return 1
         fi
         acquired_leases+=("$lease_id")
@@ -441,8 +466,10 @@ search_pd_servers() {
     echo "PD 放置结果: $placement_out"
     python3 "$curr_dir/pd_place_servers.py" --validate-placement "$placement_out" || {
         python3 "$curr_dir/host_role_lease.py" release-session --session "$SESSION_ID" || true
+        PD_LAST_SEARCH_REASON="validate_failed"
         return 1
     }
+    PD_LAST_SEARCH_REASON=""
     return 0
 }
 
@@ -533,10 +560,19 @@ while true; do
                 SERVER_QUANTITY=${#servers[@]}
                 export PD_PLACEMENT
                 export PD_TOPOLOGY
+                PD_SEARCH_FAIL_ROUNDS=0
             else
                 servers=()
                 SERVER_QUANTITY=1
                 PD_PLACEMENT=""
+                PD_SEARCH_FAIL_ROUNDS=$((PD_SEARCH_FAIL_ROUNDS + 1))
+                echo "PD 选机失败 (${PD_LAST_SEARCH_REASON:-unknown}), round=${PD_SEARCH_FAIL_ROUNDS}/${PD_SEARCH_MAX_ROUNDS:-unlimited}"
+                if [ "${PD_SEARCH_MAX_ROUNDS:-0}" -gt 0 ] && [ "$PD_SEARCH_FAIL_ROUNDS" -ge "$PD_SEARCH_MAX_ROUNDS" ]; then
+                    echo "ERROR: PD 选机连续失败已达上限 (${PD_SEARCH_MAX_ROUNDS})，跳过模型 ${model}（避免无限空等）"
+                    ret=1
+                    PD_SEARCH_FAIL_ROUNDS=0
+                    continue
+                fi
             fi
         else
             PD_PLACEMENT=""
@@ -618,10 +654,13 @@ while true; do
             fi
         else
             temp_list+=(${item})
-            echo "未找到足够的空闲 GPU, 无法测试模型${model}, 准备尝试测试下一个模型......"
+            if [ -n "$PD_TOPOLOGY" ]; then
+                echo "PD 暂无法放置模型${model} (reason=${PD_LAST_SEARCH_REASON:-unknown})，稍后重试......"
+            else
+                echo "未找到足够的空闲 GPU, 无法测试模型${model}, 准备尝试测试下一个模型......"
+            fi
             echo
-            # 等待一段时间后重新扫描（例如 10 秒）
-            sleep 10
+            sleep "${PD_SEARCH_RETRY_SEC:-10}"
         fi
     done
 

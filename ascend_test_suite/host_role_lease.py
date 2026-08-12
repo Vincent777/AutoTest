@@ -150,6 +150,29 @@ def release_prefix(data: dict[str, Any], prefix: str) -> int:
     return removed
 
 
+def prune_stale(data: dict[str, Any], max_age_sec: int) -> int:
+    """Drop lease refs older than max_age_sec; hosts with no refs become idle."""
+    if max_age_sec < 0:
+        raise ValueError("max_age_sec must be >= 0")
+    now = int(time.time())
+    removed = 0
+    hosts = data.get("hosts") or {}
+    for host, ent in list(hosts.items()):
+        refs = ent.get("refs") or {}
+        drop = []
+        for k, v in refs.items():
+            ts = int((v or {}).get("timestamp") or 0)
+            if ts <= 0 or (now - ts) >= max_age_sec:
+                drop.append(k)
+        for k in drop:
+            del refs[k]
+            removed += 1
+        if not refs:
+            ent["role"] = "idle"
+            ent["refs"] = {}
+    return removed
+
+
 def dump_roles(data: dict[str, Any]) -> str:
     parts = []
     for host, ent in sorted((data.get("hosts") or {}).items()):
@@ -201,6 +224,17 @@ def main(argv: list[str] | None = None) -> int:
 
     rp = sub.add_parser("release-prefix", help="Release leases whose id starts with prefix")
     rp.add_argument("--prefix", required=True)
+
+    ps = sub.add_parser(
+        "prune-stale",
+        help="Release lease refs older than --max-age seconds (orphaned / crashed jobs)",
+    )
+    ps.add_argument(
+        "--max-age",
+        type=int,
+        default=86400,
+        help="Max lease age in seconds (default 86400 = 1 day)",
+    )
 
     ga = sub.add_parser("get", help="Print effective role for one host")
     ga.add_argument("--host", required=True)
@@ -271,6 +305,15 @@ def main(argv: list[str] | None = None) -> int:
 
             n = with_lock(lock_dir, _rp)
             print(f"OK released={n} prefix={args.prefix}")
+            return 0
+
+        if args.cmd == "prune-stale":
+
+            def _ps(data):
+                return prune_stale(data, args.max_age)
+
+            n = with_lock(lock_dir, _ps)
+            print(f"OK pruned={n} max_age={args.max_age}")
             return 0
 
         print(f"unknown cmd {args.cmd}", file=sys.stderr)
