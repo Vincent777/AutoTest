@@ -189,37 +189,41 @@ def count_expected_pd_roles(topology: str) -> tuple[int, int]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="PD router / server_config helpers")
-    p.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    p.add_argument("--lock", type=Path, default=DEFAULT_LOCK)
-    p.add_argument("--job-id", required=True)
+    # Shared flags must live on subparsers (parents=): argparse only accepts
+    # parent optionals *before* the subcommand otherwise, but our callers use
+    #   pd_router.py <cmd> --job-id ...
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    common.add_argument("--lock", type=Path, default=DEFAULT_LOCK)
+    common.add_argument("--job-id", required=True)
 
+    p = argparse.ArgumentParser(description="PD router / server_config helpers")
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    sub.add_parser("list", help="List all entries as JSON")
+    sub.add_parser("list", parents=[common], help="List all entries as JSON")
 
-    gp = sub.add_parser("get-proxy", help="Print proxy ip and api port")
+    gp = sub.add_parser("get-proxy", parents=[common], help="Print proxy ip and api port")
     gp.add_argument("--json", action="store_true")
 
-    rp = sub.add_parser("register-proxy", help="Append proxy line to server_config")
+    rp = sub.add_parser("register-proxy", parents=[common], help="Append proxy line to server_config")
     rp.add_argument("--ip", required=True)
     rp.add_argument("--port", type=int, required=True)
     rp.add_argument("--topology", required=True)
     rp.add_argument("--engine", required=True)
 
-    w = sub.add_parser("wait-pd-ready", help="Wait until P/D entries match topology")
+    w = sub.add_parser("wait-pd-ready", parents=[common], help="Wait until P/D entries match topology")
     w.add_argument("--topology", required=True)
     w.add_argument("--timeout", type=int, default=600)
 
-    sg = sub.add_parser("sglang-lb-cmd", help="Print SGLang launch_lb command JSON")
+    sg = sub.add_parser("sglang-lb-cmd", parents=[common], help="Print SGLang launch_lb command JSON")
     sg.add_argument("--host", default="0.0.0.0")
     sg.add_argument("--port", type=int, required=True)
 
-    vl = sub.add_parser("vllm-proxy-cmd", help="Print vLLM proxy command JSON")
+    vl = sub.add_parser("vllm-proxy-cmd", parents=[common], help="Print vLLM proxy command JSON")
     vl.add_argument("--host", default="0.0.0.0")
     vl.add_argument("--port", type=int, required=True)
 
-    pe = sub.add_parser("print-endpoints", help="Print shell exports for router launch")
+    pe = sub.add_parser("print-endpoints", parents=[common], help="Print shell exports for router launch")
     pe.add_argument("--engine", choices=("sglang", "vllm"), default="sglang")
 
     args = p.parse_args(argv)

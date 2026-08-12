@@ -239,15 +239,19 @@ cleanup_all_resources() {
     fi
     
     # 3. 清理远程 Docker 容器
-    for ip in ${server_list[@]}; do
-        ssh -q -o ConnectionAttempts=3 s_limingge@$ip "
-            name=${engine_type}_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
-            if [ ! -z \"\$\(docker ps -a | grep \$name\)\" ]; then
-                docker stop \$name
-                docker rm \$name
-            fi
-        "
-    done
+    if [ -n "${PD_PLACEMENT:-}" ]; then
+        stop_pd_engine_containers "${job_count:-0}"
+    else
+        for ip in ${server_list[@]}; do
+            ssh -q -o ConnectionAttempts=3 s_limingge@$ip "
+                name=${engine_type}_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
+                if [ ! -z \"\$\(docker ps -a | grep \$name\)\" ]; then
+                    docker stop \$name
+                    docker rm \$name
+                fi
+            "
+        done
+    fi
     
     echo "=========================================="
     echo "资源清理完成"
