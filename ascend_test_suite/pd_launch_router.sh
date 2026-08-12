@@ -168,7 +168,21 @@ fi
 chmod +x "/tmp/pd_router_launch_${SESSION_ID}_${JOB_COUNT}.sh"
 scp -q "/tmp/pd_router_launch_${SESSION_ID}_${JOB_COUNT}.sh" \
     "s_limingge@${COORD_SSH_HOST}:${LAUNCHER}"
-ssh -q -o ConnectionAttempts=3 "s_limingge@${COORD_SSH_HOST}" "bash ${LAUNCHER}"
+if ! ssh -q -o ConnectionAttempts=3 "s_limingge@${COORD_SSH_HOST}" "bash ${LAUNCHER}"; then
+    echo "ERROR: PD router docker launch script failed on ${COORD_SSH_HOST}" >&2
+    ssh -q -o ConnectionAttempts=2 "s_limingge@${COORD_SSH_HOST}" \
+        "docker ps -a --filter name=${CONTAINER}; echo '--- log ---'; tail -n 80 ${LOG_NAME} 2>/dev/null || true" >&2 || true
+    exit 1
+fi
+
+# Confirm container is running before HTTP probe
+if ! ssh -q -o ConnectionAttempts=2 "s_limingge@${COORD_SSH_HOST}" \
+    "docker inspect -f '{{.State.Running}}' ${CONTAINER} 2>/dev/null | grep -qx true"; then
+    echo "ERROR: PD router container ${CONTAINER} is not running on ${COORD_SSH_HOST}" >&2
+    ssh -q -o ConnectionAttempts=2 "s_limingge@${COORD_SSH_HOST}" \
+        "docker ps -a --filter name=${CONTAINER}; echo '--- log ---'; tail -n 120 ${LOG_NAME} 2>/dev/null || true" >&2 || true
+    exit 1
+fi
 
 # 管理面 IP（10.9.1.x）：CI/编排机可达，用于健康检查与压测入口
 # 数据面 IP（10.0.0.x）：NPU 机间互联，仅给 proxy→P/D backend（已在 JSON 里）
@@ -191,8 +205,11 @@ while [ "$(date +%s)" -lt "$deadline" ]; do
     sleep 3
 done
 if [ "$ready" -ne 1 ]; then
-    echo "WARN: proxy HTTP probe timed out; check ${LOG_NAME} on ${COORD_SSH_HOST}"
-    echo "      hint: orchestrator cannot use data-plane IP ${COORD_LOCAL_IP}; probe uses ${CLIENT_IP}"
+    echo "ERROR: proxy HTTP probe timed out on ${CLIENT_IP}:${PROXY_PORT}" >&2
+    echo "      check ${LOG_NAME} on ${COORD_SSH_HOST}" >&2
+    ssh -q -o ConnectionAttempts=2 "s_limingge@${COORD_SSH_HOST}" \
+        "docker ps -a --filter name=${CONTAINER}; echo '--- log ---'; tail -n 120 ${LOG_NAME} 2>/dev/null || true" >&2 || true
+    exit 1
 fi
 
 ENGINE_KEY=$(echo "$ENGINE" | tr '[:upper:]' '[:lower:]')

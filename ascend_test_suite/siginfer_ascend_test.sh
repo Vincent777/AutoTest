@@ -782,6 +782,15 @@ for option in "${schedule_policies[@]}"; do
                         benchmark_cmd="python3 -m sglang.benchmark.serving"
                     fi
                     
+                    # 压测在引擎容器内执行：非 PD 用无后缀名；PD 用 _p0（含 bench 工具）
+                    bench_host="${server_list[0]}"
+                    bench_container="${engine_type}_ascend_PerformanceTest_${session_id}_${job_count}"
+                    if [ -n "${PD_TOPOLOGY:-}" ]; then
+                        bench_container="${bench_container}_p0"
+                        bench_host="${pd_router_coord_host:-${server_list[0]}}"
+                        echo "PD benchmark via docker exec ${bench_container} on ${bench_host} -> http://${local_master_ip}:${server_port}"
+                    fi
+
                     # 开始执行测试
                     if [ $TEST_PARAM == "Random" ]; then
                         multiplier=4
@@ -798,8 +807,8 @@ for option in "${schedule_policies[@]}"; do
                             # "126000:2048"
                         )
                         # Random
-                        ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${server_list[0]} "
-                            docker exec ${engine_type}_ascend_PerformanceTest_${session_id}_${job_count} /bin/bash -c \"
+                        ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${bench_host} "
+                            docker exec ${bench_container} /bin/bash -c \"
                                 if [ ${engine_type} == \\\"siginfer\\\" ]; then
                                     pip3 install dataSets pillow aiohttp
                                 elif [ ${engine_type} == \\\"mindie\\\" ]; then
@@ -868,8 +877,8 @@ for option in "${schedule_policies[@]}"; do
                     else
                         concurrency_list=(100 200 300 400 500 600 700 800 900 1000)
                         # Sharegpt
-                        ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${server_list[0]} "
-                            docker exec ${engine_type}_ascend_PerformanceTest_${session_id}_${job_count} /bin/bash -c \"
+                        ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${bench_host} "
+                            docker exec ${bench_container} /bin/bash -c \"
                                 if [ ${engine_type} == \\\"siginfer\\\" ]; then
                                     pip3 install dataSets pillow aiohttp
                                 elif [ ${engine_type} == \\\"mindie\\\" ]; then
