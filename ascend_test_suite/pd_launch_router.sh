@@ -156,9 +156,11 @@ PP=\$(python3 -c "import json; d=json.load(open('\${PROXY_JSON}')); print(' '.jo
 DH=\$(python3 -c "import json; d=json.load(open('\${PROXY_JSON}')); print(' '.join(d['decoder_hosts']))")
 DP=\$(python3 -c "import json; d=json.load(open('\${PROXY_JSON}')); print(' '.join(str(x) for x in d['decoder_ports']))")
 echo ">>> vLLM proxy args: prefiller-hosts=\${PH} prefiller-ports=\${PP} decoder-hosts=\${DH} decoder-ports=\${DP}"
+echo ">>> proxy script=\${SCRIPT}"
+# Keep stdout/stderr visible via docker logs AND file (tee)
 docker run -d --name="\${CONTAINER}" --network host --ipc=host \\
   -v /home/s_limingge:/home/s_limingge \\
-  "\${IMAGE}" bash -lc "python3 \${SCRIPT} --host 0.0.0.0 --port \${PROXY_PORT} --prefiller-hosts \${PH} --prefiller-ports \${PP} --decoder-hosts \${DH} --decoder-ports \${DP} > \${LOG_NAME} 2>&1"
+  "\${IMAGE}" bash -lc "python3 -u \${SCRIPT} --host 0.0.0.0 --port \${PROXY_PORT} --prefiller-hosts \${PH} --prefiller-ports \${PP} --decoder-hosts \${DH} --decoder-ports \${DP} 2>&1 | tee -a \${LOG_NAME}"
 EOF
 else
     echo "ERROR: unsupported ENGINE for PD router: $ENGINE" >&2
@@ -188,16 +190,25 @@ fi
 # 数据面 IP（10.0.0.x）：NPU 机间互联，仅给 proxy→P/D backend（已在 JSON 里）
 CLIENT_IP="${COORD_SSH_HOST}"
 echo ">>> PD router: waiting for HTTP on ${CLIENT_IP}:${PROXY_PORT} (ssh/mgmt; data-plane=${COORD_LOCAL_IP})..."
+
+# vLLM proxy exposes GET /healthcheck (NOT /health or /v1/models).
+# SGLang LB may expose /health or /v1/models — try several.
+probe_proxy_http() {
+    local base="$1"
+    curl -sf --max-time 3 "${base}/healthcheck" >/dev/null 2>&1 \
+        || curl -sf --max-time 3 "${base}/health" >/dev/null 2>&1 \
+        || curl -sf --max-time 3 "${base}/v1/models" >/dev/null 2>&1 \
+        || curl -sf --max-time 3 "${base}/" >/dev/null 2>&1
+}
+
 deadline=$(( $(date +%s) + ROUTER_TIMEOUT ))
 ready=0
 while [ "$(date +%s)" -lt "$deadline" ]; do
-    # Prefer probing via management IP; fallback: curl on the coordinator itself
-    if curl -sf --max-time 3 "http://${CLIENT_IP}:${PROXY_PORT}/v1/models" >/dev/null 2>&1 \
-        || curl -sf --max-time 3 "http://${CLIENT_IP}:${PROXY_PORT}/health" >/dev/null 2>&1 \
-        || curl -sf --max-time 3 "http://${CLIENT_IP}:${PROXY_PORT}/" >/dev/null 2>&1 \
+    if probe_proxy_http "http://${CLIENT_IP}:${PROXY_PORT}" \
         || ssh -q -o ConnectionAttempts=2 -o ConnectTimeout=3 "s_limingge@${COORD_SSH_HOST}" \
-            "curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/v1/models >/dev/null 2>&1 \
+            "curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/healthcheck >/dev/null 2>&1 \
              || curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/health >/dev/null 2>&1 \
+             || curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/v1/models >/dev/null 2>&1 \
              || curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/ >/dev/null 2>&1"; then
         ready=1
         break
@@ -206,9 +217,9 @@ while [ "$(date +%s)" -lt "$deadline" ]; do
 done
 if [ "$ready" -ne 1 ]; then
     echo "ERROR: proxy HTTP probe timed out on ${CLIENT_IP}:${PROXY_PORT}" >&2
-    echo "      check ${LOG_NAME} on ${COORD_SSH_HOST}" >&2
+    echo "      tried /healthcheck /health /v1/models / ; check ${LOG_NAME} on ${COORD_SSH_HOST}" >&2
     ssh -q -o ConnectionAttempts=2 "s_limingge@${COORD_SSH_HOST}" \
-        "docker ps -a --filter name=${CONTAINER}; echo '--- log ---'; tail -n 120 ${LOG_NAME} 2>/dev/null || true" >&2 || true
+        "docker ps -a --filter name=${CONTAINER}; echo '--- log ---'; tail -n 120 ${LOG_NAME} 2>/dev/null || true; echo '--- listen ---'; ss -ltn | grep -E ':${PROXY_PORT}\\b' || true" >&2 || true
     exit 1
 fi
 
