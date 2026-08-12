@@ -94,7 +94,11 @@ def normalize_sglang_args(name: str, args: str) -> str:
 
     result = re.sub(r"--port\s+\d+", "--port $PORT", result)
     result = re.sub(r"--served-model-name\s+\S+", f"--served-model-name {name}", result)
-    return result.strip()
+    # Excel 合部命令里若已手写 PD 参数，去掉以免和 $PD_EXTRA_ARGS 重复
+    result = re.sub(r"--disaggregation-mode\s+\S+", "", result)
+    result = re.sub(r"--disaggregation-transfer-backend\s+\S+", "", result)
+    result = re.sub(r"--disaggregation-ib-device\s+\S+", "", result)
+    return re.sub(r"\s+", " ", result).strip()
 
 
 def main():
@@ -138,8 +142,11 @@ def main():
             start = False
         else:
             src_code += f'elif [ $MODEL == "{name}" ]; then\n'
-        src_code += f'    echo "{result}"\n'
-        src_code += f'    EXEC_COMMAND+=" {result} $SGLANG_PREFIX_CACHE > $LOG_NAME 2>&1 &"\n'
+        src_code += f'    echo "{result} $PD_EXTRA_ARGS"\n'
+        src_code += (
+            f'    EXEC_COMMAND+=" $PD_DOCKER_CMD_PREFIX {result} '
+            f'$SGLANG_PREFIX_CACHE $PD_EXTRA_ARGS $PD_DOCKER_CMD_SUFFIX > $LOG_NAME 2>&1 &"\n'
+        )
 
     src_code += "fi\n"
 

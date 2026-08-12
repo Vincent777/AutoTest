@@ -23,7 +23,25 @@ version=$7
 
 curr_dir=$(pwd)
 
-docker run --rm --name="CI_test_job_${CI_job_id}" --privileged -v /home/s_limingge/.npu_locks:/home/s_limingge/.npu_locks -v /CI_Workspace:/CI_Workspace -v /var/run/docker.sock:/var/run/docker.sock auto-test:latest $platform $test_type $engine $model_list $CI_job_id $test_param $version &
+# 可选 PD 环境变量传入 auto-test 容器（未设置则忽略）
+PD_DOCKER_ENV=()
+for _pd_var in \
+    PD_TOPOLOGY PD_ALLOW_SAME_ROLE_COLOCATE PD_SGLANG_TRANSFER_BACKEND PD_SGLANG_IB_DEVICE \
+    PD_VLLM_KV_CONNECTOR ASCEND_MF_STORE_URL MF_CONFIG_STORE_URL \
+    PD_PROXY_PORT_START PD_PROXY_PORT_RANGE PD_ROUTER_STARTUP_TIMEOUT \
+    PD_PIP_INDEX_URL PD_MEMFABRIC_PIP_SPEC PD_MEMFABRIC_WHL PD_MOONCAKE_PIP_SPEC \
+    ENABLE_ASCEND_TRANSFER_WITH_MOONCAKE PD_PIP_BOOTSTRAP; do
+    if [ -n "${!_pd_var:-}" ]; then
+        PD_DOCKER_ENV+=(-e "${_pd_var}=${!_pd_var}")
+    fi
+done
+
+docker run --rm --name="CI_test_job_${CI_job_id}" --privileged \
+  -v /home/s_limingge/.npu_locks:/home/s_limingge/.npu_locks \
+  -v /CI_Workspace:/CI_Workspace \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  "${PD_DOCKER_ENV[@]}" \
+  auto-test:latest $platform $test_type $engine $model_list $CI_job_id $test_param $version &
 CHILD_PID=$!
 
 echo -n "Running"

@@ -26,6 +26,10 @@ variables:
   DASHBOARD_HOST: s_limingge@192.168.100.106
   DASHBOARD_DIR: /home/s_limingge/ci_autotest/llm_perf_dashboard
   DASHBOARD_DB: /home/s_limingge/ci_autotest/llm_perf_dashboard/storage/perf.db
+  # PD 分离（留空则走传统 TP/单机）；示例: 2P2D
+  PD_TOPOLOGY:
+    value: ""
+    description: "PD disaggregation topology, e.g. 2P2D (empty = disabled)"
 
 # 与 SmokeTest-aarch64-ascend 相同写法
 .setup_ssh: &setup_ssh
@@ -78,6 +82,9 @@ vLLM_Perf-aarch64-ascend:
         echo \"Resolved ENGINE_VERSION = \$ENGINE_VERSION\"
         git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
         chmod a+x daemon.sh
+        PD_TOPOLOGY=\"${PD_TOPOLOGY}\" \
+        PD_SGLANG_TRANSFER_BACKEND=\"${PD_SGLANG_TRANSFER_BACKEND:-ascend}\" \
+        PD_VLLM_KV_CONNECTOR=\"${PD_VLLM_KV_CONNECTOR:-MooncakeConnector}\" \
         ./daemon.sh \
           Ascend \
           Performance \
@@ -128,6 +135,9 @@ SGLang_Perf-aarch64-ascend:
         echo \"Resolved ENGINE_VERSION = \$ENGINE_VERSION\"
         git show origin/main:ascend_test_suite/daemon.sh > daemon.sh
         chmod a+x daemon.sh
+        PD_TOPOLOGY=\"${PD_TOPOLOGY}\" \
+        PD_SGLANG_TRANSFER_BACKEND=\"${PD_SGLANG_TRANSFER_BACKEND:-ascend}\" \
+        PD_VLLM_KV_CONNECTOR=\"${PD_VLLM_KV_CONNECTOR:-MooncakeConnector}\" \
         ./daemon.sh \
           Ascend \
           Performance \

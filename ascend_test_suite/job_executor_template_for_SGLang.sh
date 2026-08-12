@@ -24,6 +24,84 @@ JOB_ID="<<<TEST_TYPE>>>_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
 LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "10.0.0")
 SERVER_NAME=$(echo $LOCAL_IP | sed 's/\./_/g')
 
+# PD 分离（可选）：PD_TOPOLOGY=2P2D PD_ROLE=prefill|decode|proxy
+# 每个 P/D 节点本地分配端口并写入 server_config；协调节点在引擎就绪后 sync Prometheus。
+# scrape IP 使用 server_config 中的地址（通常为 10.0.0.x），Prometheus 需能访问。
+PD_TOPOLOGY="${PD_TOPOLOGY:-}"
+PD_ROLE="${PD_ROLE:-}"
+PD_ENGINE="${PD_ENGINE:-sglang}"
+PD_INSTANCE_ID="${PD_INSTANCE_ID:-}"
+PD_CONTAINER_SUFFIX=""
+if [ -n "$PD_INSTANCE_ID" ]; then
+    PD_CONTAINER_SUFFIX="_${PD_INSTANCE_ID}"
+fi
+# Excel 保持合部命令；PD 角色参数由此注入
+# Ascend 910B 无 IB：默认 ascend 后端；可用 PD_SGLANG_TRANSFER_BACKEND=mooncake 覆盖
+PD_SGLANG_TRANSFER_BACKEND="${PD_SGLANG_TRANSFER_BACKEND:-ascend}"
+PD_SGLANG_IB_DEVICE="${PD_SGLANG_IB_DEVICE:-}"
+ASCEND_MF_STORE_URL="${ASCEND_MF_STORE_URL:-}"
+MF_CONFIG_STORE_URL="${MF_CONFIG_STORE_URL:-}"
+# 每次 CI 拉最新镜像，PD 依赖需在容器内动态安装（可用环境变量覆盖）
+PD_PIP_INDEX_URL="${PD_PIP_INDEX_URL:-https://pypi.org/simple}"
+PD_MEMFABRIC_PIP_SPEC="${PD_MEMFABRIC_PIP_SPEC:-memfabric-hybrid>=1.0.8}"
+PD_MEMFABRIC_WHL="${PD_MEMFABRIC_WHL:-}"
+PD_MOONCAKE_PIP_SPEC="${PD_MOONCAKE_PIP_SPEC:-mooncake-transfer-engine}"
+DOCKER_PD_ENVS=""
+PD_DOCKER_CMD_PREFIX=""
+PD_DOCKER_CMD_SUFFIX=""
+PD_PIP_BOOTSTRAP=""
+PD_EXTRA_ARGS=""
+if [ -n "$PD_TOPOLOGY" ]; then
+    case "$PD_ROLE" in
+        prefill)
+            PD_EXTRA_ARGS="--disaggregation-mode prefill --disaggregation-transfer-backend ${PD_SGLANG_TRANSFER_BACKEND}"
+            ;;
+        decode)
+            PD_EXTRA_ARGS="--disaggregation-mode decode --disaggregation-transfer-backend ${PD_SGLANG_TRANSFER_BACKEND}"
+            ;;
+        proxy)
+            PD_EXTRA_ARGS=""
+            ;;
+        *)
+            echo "ERROR: unsupported PD_ROLE=$PD_ROLE (need prefill|decode|proxy)"
+            exit 1
+            ;;
+    esac
+    if [ -n "$PD_SGLANG_IB_DEVICE" ] && [ "$PD_ROLE" != "proxy" ]; then
+        PD_EXTRA_ARGS="${PD_EXTRA_ARGS} --disaggregation-ib-device ${PD_SGLANG_IB_DEVICE}"
+    fi
+    # ascend 后端：Config Store 地址（所有 P/D 必须一致；优先由协调节点注入）
+    if [ "$PD_SGLANG_TRANSFER_BACKEND" = "ascend" ] && [ "$PD_ROLE" != "proxy" ]; then
+        if [ -z "$ASCEND_MF_STORE_URL" ]; then
+            MF_PORT=$((24669 + $(printf '%s' "$JOB_ID" | cksum | awk '{print $1 % 2000}')))
+            ASCEND_MF_STORE_URL="tcp://${LOCAL_IP}:${MF_PORT}"
+            echo "WARN: ASCEND_MF_STORE_URL unset; fallback to local $ASCEND_MF_STORE_URL (prefer coordinator injection)"
+        fi
+        MF_CONFIG_STORE_URL="${MF_CONFIG_STORE_URL:-$ASCEND_MF_STORE_URL}"
+        DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e ASCEND_MF_STORE_URL=${ASCEND_MF_STORE_URL} -e MF_CONFIG_STORE_URL=${MF_CONFIG_STORE_URL}"
+        echo "PD memfabric store: $ASCEND_MF_STORE_URL"
+        # 容器内动态安装 memfabric（镜像每次更新，不能预装在宿主机）
+        if [ -n "$PD_MEMFABRIC_WHL" ]; then
+            PD_PIP_BOOTSTRAP="${PD_PIP_BOOTSTRAP} python3 -c 'import memfabric_hybrid' 2>/dev/null || pip3 install --no-cache-dir '${PD_MEMFABRIC_WHL}' || exit 1; "
+        else
+            PD_PIP_BOOTSTRAP="${PD_PIP_BOOTSTRAP} python3 -c 'import memfabric_hybrid' 2>/dev/null || pip3 install --no-cache-dir '${PD_MEMFABRIC_PIP_SPEC}' -i '${PD_PIP_INDEX_URL}' || exit 1; "
+        fi
+    fi
+    # mooncake 在 Ascend 上需打开适配开关（无 IB 时走 TCP），并按需动态安装
+    if [ "$PD_SGLANG_TRANSFER_BACKEND" = "mooncake" ] && [ "$PD_ROLE" != "proxy" ]; then
+        DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e ENABLE_ASCEND_TRANSFER_WITH_MOONCAKE=true"
+        PD_PIP_BOOTSTRAP="${PD_PIP_BOOTSTRAP} python3 -c 'import mooncake' 2>/dev/null || pip3 install --no-cache-dir '${PD_MOONCAKE_PIP_SPEC}' -i '${PD_PIP_INDEX_URL}' || exit 1; "
+    fi
+    if [ -n "$PD_PIP_BOOTSTRAP" ]; then
+        # docker run IMAGE bash -lc "pip...; launch_server ..."
+        # 注意：外层用双引号，包名用已展开后的单引号，避免嵌套引号打断
+        PD_DOCKER_CMD_PREFIX="bash -lc \"${PD_PIP_BOOTSTRAP}"
+        PD_DOCKER_CMD_SUFFIX="\""
+        echo "PD container bootstrap: dynamic pip install enabled ($PD_SGLANG_TRANSFER_BACKEND)"
+    fi
+    echo "PD extra args: $PD_EXTRA_ARGS"
+fi
+
 # 设置清理函数，确保异常退出时释放锁
 cleanup_locks() {
     local exit_code=$?
@@ -116,10 +194,10 @@ docker_pull_with_retry() {
 
 docker_pull_with_retry "${IMAGE_REPO}:$LATEST_TAG" || exit 1
 
-ret=`docker ps -a | grep sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}`
+ret=`docker ps -a | grep sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
 if [ $? -eq 0 ]; then
-    docker stop sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}
-    docker rm sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}
+    docker stop sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
+    docker rm sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
 fi
 
 if [ $NODE_RANK -ne 0 ]; then
@@ -178,7 +256,9 @@ echo "ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES"
 LOG_NAME="server_log_<<<TEST_TYPE>>>_$(date +'%Y%m%d_%H%M%S').log"
 
 MASTER_IP=`echo $SERVER_LIST | tr '_' '\n' | head -n 1`
-if [ $LOCAL_IP == $MASTER_IP ]; then
+
+allocate_and_write_local_ports() {
+    local extra_kv="$1"
     exec 200>"${LOCK_DIR}/${LOCK_FILE}"
     if ! flock -x 200; then
         echo "无法获取锁，退出..."
@@ -199,11 +279,27 @@ if [ $LOCAL_IP == $MASTER_IP ]; then
     MASTER_PORT=$free_port
 
     if [ -z $PORT ] || [ -z $PROMETHEUS_PORT ] || [ -z $MASTER_PORT ]; then
+        exec 200>&-
         exit 1
     fi
 
-    echo "$LOCAL_IP:$JOB_ID:$PORT $PROMETHEUS_PORT $MASTER_PORT" >> "${LOCK_DIR}/server_config.txt"
+    if [ -n "$extra_kv" ]; then
+        echo "$LOCAL_IP:$JOB_ID:$PORT $PROMETHEUS_PORT $MASTER_PORT $extra_kv" >> "${LOCK_DIR}/server_config.txt"
+    else
+        echo "$LOCAL_IP:$JOB_ID:$PORT $PROMETHEUS_PORT $MASTER_PORT" >> "${LOCK_DIR}/server_config.txt"
+    fi
     exec 200>&-
+}
+
+if [ -n "$PD_TOPOLOGY" ]; then
+    if [ -z "$PD_ROLE" ]; then
+        echo "ERROR: PD_TOPOLOGY is set but PD_ROLE is empty (need prefill|decode|proxy)"
+        exit 1
+    fi
+    echo "PD mode: topology=$PD_TOPOLOGY role=$PD_ROLE engine=$PD_ENGINE"
+    allocate_and_write_local_ports "role=$PD_ROLE topology=$PD_TOPOLOGY engine=$PD_ENGINE"
+elif [ $LOCAL_IP == $MASTER_IP ]; then
+    allocate_and_write_local_ports ""
 else
     while true; do
         exec 200>"${LOCK_DIR}/${LOCK_FILE}"
@@ -226,7 +322,7 @@ else
     done
 fi
 
-EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT} \
+EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX} \
   --network host \
   --ipc=host \
   --privileged \
@@ -256,7 +352,8 @@ EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JO
   -v /home/weight:/home/weight \
   -v /home/s_limingge:/home/s_limingge \
   -e HCCL_SOCKET_IFNAME=enp67s0f0 \
-  -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES  \
+  -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES \
+  ${DOCKER_PD_ENVS} \
   ${IMAGE_REPO}:$LATEST_TAG"
 
 <<<generated source code>>>
@@ -269,13 +366,13 @@ if [ $? -ne 0 ]; then
 fi
 
 TIMEOUT_SECONDS=$((60*30))
-if [ $NODE_RANK -eq 0 ]; then
+if [ -n "$PD_TOPOLOGY" ] || [ $NODE_RANK -eq 0 ]; then
     timeout $TIMEOUT_SECONDS tail -F $LOG_NAME | grep --line-buffered -m 1 -E "The server is fired up and ready to roll|Application startup complete"
     EXIT_STATUS=$?
     if [ $EXIT_STATUS -eq 124 ]; then
         echo "模型启动超时（${TIMEOUT_SECONDS}秒）"
     elif [ $EXIT_STATUS -eq 0 ]; then
-        echo ">>> Detected master service startup completion!"
+        echo ">>> Detected master/PD service startup completion!"
     else
         echo "模型启动失败，退出状态码：$EXIT_STATUS"
     fi

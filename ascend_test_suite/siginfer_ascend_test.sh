@@ -78,6 +78,33 @@ if [ -z $server_list ]; then
     exit 1
 fi
 
+# PD 分离放置：host:role:id,... ；约束 P/D 不得同机
+PD_TOPOLOGY="${PD_TOPOLOGY:-}"
+PD_PLACEMENT="${PD_PLACEMENT:-}"
+PD_ENGINE="${PD_ENGINE:-$(echo "${ENGINE_TYPE}" | tr '[:upper:]' '[:lower:]')}"
+# Ascend 910B 无 IB：SGLang 默认 ascend；vLLM 默认 MooncakeConnector
+PD_SGLANG_TRANSFER_BACKEND="${PD_SGLANG_TRANSFER_BACKEND:-ascend}"
+PD_SGLANG_IB_DEVICE="${PD_SGLANG_IB_DEVICE:-}"
+PD_VLLM_KV_CONNECTOR="${PD_VLLM_KV_CONNECTOR:-MooncakeConnector}"
+ASCEND_MF_STORE_URL="${ASCEND_MF_STORE_URL:-}"
+MF_CONFIG_STORE_URL="${MF_CONFIG_STORE_URL:-}"
+# 保留用户显式注入值；每个模型 job 可按 JOB_ID 重新派生 store URL
+ASCEND_MF_STORE_URL_USER="$ASCEND_MF_STORE_URL"
+MF_CONFIG_STORE_URL_USER="$MF_CONFIG_STORE_URL"
+
+if [ -n "$PD_TOPOLOGY" ]; then
+    echo "PD mode enabled: topology=$PD_TOPOLOGY placement=$PD_PLACEMENT engine=$PD_ENGINE"
+    if [ -z "$PD_PLACEMENT" ]; then
+        echo "ERROR: PD_TOPOLOGY set but PD_PLACEMENT empty"
+        exit 1
+    fi
+    if ! python3 "$curr_dir/pd_place_servers.py" --validate-placement "$PD_PLACEMENT"; then
+        echo "ERROR: PD placement violates P/D anti-colocation"
+        exit 1
+    fi
+    echo "PD transfer defaults: sglang_backend=$PD_SGLANG_TRANSFER_BACKEND vllm_connector=$PD_VLLM_KV_CONNECTOR mf_store=${ASCEND_MF_STORE_URL:-auto}"
+fi
+
 # 存储 Docker 容器名称
 declare -a DOCKER_CONTAINER_NAMES
 
@@ -97,6 +124,62 @@ remove_container_from_array() {
     
     DOCKER_CONTAINER_NAMES=("${new_array[@]}")
     echo "已从跟踪列表中删除容器: $value_to_remove"
+}
+
+# PD：按 placement 停止各 P/D 实例容器及 router
+stop_pd_engine_containers() {
+    local jc="${1:-$job_count}"
+    local ent pd_host rest pd_id suffix cname router_host
+
+    if [ -z "${PD_PLACEMENT:-}" ]; then
+        return 0
+    fi
+
+    IFS=',' read -ra _pd_stop_ents <<< "$PD_PLACEMENT"
+    for ent in "${_pd_stop_ents[@]}"; do
+        pd_host="${ent%%:*}"
+        rest="${ent#*:}"
+        pd_id="${rest##*:}"
+        suffix="_${pd_id}"
+        if [ "$ENGINE_TYPE" = "SigInfer" ]; then
+            cname="siginfer_ascend_${TEST_TYPE}Test_${session_id}_${jc}${suffix}"
+        elif [ "$ENGINE_TYPE" = "vLLM" ]; then
+            cname="vllm_ascend_${TEST_TYPE}Test_${session_id}_${jc}${suffix}"
+        elif [ "$ENGINE_TYPE" = "MindIE" ]; then
+            cname="mindie_ascend_${TEST_TYPE}Test_${session_id}_${jc}${suffix}"
+        elif [ "$ENGINE_TYPE" = "SGLang" ]; then
+            cname="sglang_ascend_${TEST_TYPE}Test_${session_id}_${jc}${suffix}"
+        else
+            continue
+        fi
+        ssh -q -o ConnectionAttempts=3 s_limingge@"$pd_host" docker stop "$cname" 2>/dev/null || true
+        ssh -q -o ConnectionAttempts=3 s_limingge@"$pd_host" docker rm "$cname" 2>/dev/null || true
+        if [ -z "${router_host:-}" ]; then
+            router_host="$pd_host"
+        fi
+    done
+
+    router_host="${pd_router_coord_host:-$router_host}"
+    if [ -n "$router_host" ]; then
+        ssh -q -o ConnectionAttempts=3 s_limingge@"$router_host" \
+            docker stop "pd_router_${TEST_TYPE}Test_${session_id}_${jc}" 2>/dev/null || true
+        ssh -q -o ConnectionAttempts=3 s_limingge@"$router_host" \
+            docker rm "pd_router_${TEST_TYPE}Test_${session_id}_${jc}" 2>/dev/null || true
+    fi
+}
+
+# 统一由编排侧同步 Prometheus scrape targets（非 PD / PD 均在此触发）
+sync_prometheus_scrape_targets() {
+    local jid="${1:?job_id}"
+    local script="${curr_dir}/../llm_perf_dashboard/prometheus_grafana/sync_prometheus_from_server_config.sh"
+
+    if [ ! -f "$script" ]; then
+        echo "WARN: prometheus sync script missing: $script"
+        return 0
+    fi
+    echo ">>> Syncing Prometheus scrape targets (job_id=$jid)..."
+    PD_ENGINE="$PD_ENGINE" bash "$script" --job-id "$jid" --engine "$PD_ENGINE" || \
+        echo "WARN: prometheus sync returned non-zero (ignored)"
 }
 
 # 标志变量，用于跟踪是否由信号中断
@@ -132,6 +215,11 @@ cleanup_all_resources() {
             release_npu_locks_batch "$SERVER_NAME" "0 1 2 3 4 5 6 7" "${TEST_TYPE}Test_${model}_${job_count}" "${session_id}"
         done
         echo "NPU 锁释放完成"
+        # 释放本 session 的主机 PD 角色租约
+        if [ -n "${PD_TOPOLOGY:-}" ]; then
+            echo "正在释放 host role leases (session=$session_id)..."
+            python3 "$curr_dir/host_role_lease.py" release-session --session "$session_id" || true
+        fi
         # 获取文件锁（阻塞）
         exec 200>"${LOCK_DIR}/${LOCK_FILE}"    # 打开文件描述符 200
         if ! flock -x 200; then    # 获取独占锁
@@ -310,7 +398,7 @@ for option in "${schedule_policies[@]}"; do
 
                 echo "尝试同时在${server_list[@]}服务器上面启动测试......"
                 
-                # 将 server_list 数组合并为用下划线分隔的字符串
+                # 将 server_list 数组合并为用下划线分隔的字符串（非 PD / TP 多机）
                 server_list_str=$(
                     for i in "${server_list[@]}"; do
                         printf '%s\n' "${local_ip_map[$i]}"
@@ -320,36 +408,125 @@ for option in "${schedule_policies[@]}"; do
                 unset pid_map
                 declare -A pid_map
                 seq_num=0
-                # 依次在所有服务器上面启动任务
-                for ip in ${server_list[@]}; do
-                    echo "启动第${seq_num}台服务器: $ip......"
 
-                    if [ $ip == ${server_list[0]} ]; then
-                        local_master_ip=${local_ip_map[$ip]}
-                    fi
+                pd_router_coord_host=""
+                pd_router_coord_local_ip=""
 
-                    if [ $TEST_TYPE == "Smoke" ]; then
-                        if [ $ENGINE_TYPE == "MindIE" ]; then
-                            ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@$ip /home/s_limingge/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh $model $gpu_quantity $server_list_str $seq_num $job_count $session_id $version > "$curr_dir/logs/smoke/$session_id/${filename}_${seq_num}" &
-                        else
-                            ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@$ip /home/s_limingge/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh $model $gpu_quantity $use_prefix_cache_flag $option $swap_space $server_list_str $seq_num $job_count $session_id $version > "$curr_dir/logs/smoke/$session_id/${filename}_${seq_num}" &
-                        fi
-                        ssh_pid=$!
-                        pid_map[$ssh_pid]=$ip
-                        SSH_PID_MAP[$ssh_pid]=$ip
+                launch_executor() {
+                    local ip=$1
+                    local rank=$2
+                    local slist=$3
+                    local pd_role=$4
+                    local log_suffix=$5
+                    local remote_cmd
+                    local pd_env_prefix=""
+                    if [ $ENGINE_TYPE == "MindIE" ]; then
+                        remote_cmd="/home/s_limingge/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh $model $gpu_quantity $slist $rank $job_count $session_id $version"
                     else
-                        if [ $ENGINE_TYPE == "MindIE" ]; then
-                            ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@$ip /home/s_limingge/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh $model $gpu_quantity $server_list_str $seq_num $job_count $session_id $version &
-                        else
-                            ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@$ip /home/s_limingge/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh $model $gpu_quantity $use_prefix_cache_flag $option $swap_space $server_list_str $seq_num $job_count $session_id $version &
-                        fi
-                        ssh_pid=$!
-                        pid_map[$ssh_pid]=$ip
-                        SSH_PID_MAP[$ssh_pid]=$ip
+                        remote_cmd="/home/s_limingge/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh $model $gpu_quantity $use_prefix_cache_flag $option $swap_space $slist $rank $job_count $session_id $version"
                     fi
-                    
-                    ((seq_num++))
-                done
+                    if [ -n "$PD_TOPOLOGY" ]; then
+                        pd_env_prefix="PD_TOPOLOGY=${PD_TOPOLOGY} PD_ROLE=${pd_role} PD_ENGINE=${PD_ENGINE} PD_INSTANCE_ID=${log_suffix}"
+                        if [ "$ENGINE_TYPE" = "SGLang" ] || [ "$PD_ENGINE" = "sglang" ]; then
+                            pd_env_prefix="${pd_env_prefix} PD_SGLANG_TRANSFER_BACKEND=${PD_SGLANG_TRANSFER_BACKEND}"
+                            if [ -n "$PD_SGLANG_IB_DEVICE" ]; then
+                                pd_env_prefix="${pd_env_prefix} PD_SGLANG_IB_DEVICE=${PD_SGLANG_IB_DEVICE}"
+                            fi
+                            if [ -n "$ASCEND_MF_STORE_URL" ]; then
+                                pd_env_prefix="${pd_env_prefix} ASCEND_MF_STORE_URL=${ASCEND_MF_STORE_URL}"
+                                pd_env_prefix="${pd_env_prefix} MF_CONFIG_STORE_URL=${MF_CONFIG_STORE_URL:-$ASCEND_MF_STORE_URL}"
+                            fi
+                        fi
+                        if [ "$ENGINE_TYPE" = "vLLM" ] || [ "$PD_ENGINE" = "vllm" ]; then
+                            pd_env_prefix="${pd_env_prefix} PD_VLLM_KV_CONNECTOR=${PD_VLLM_KV_CONNECTOR}"
+                        fi
+                        remote_cmd="${pd_env_prefix} ${remote_cmd}"
+                    fi
+                    if [ $TEST_TYPE == "Smoke" ]; then
+                        ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@$ip \
+                          "bash -lc $(printf '%q' "$remote_cmd")" \
+                          > "$curr_dir/logs/smoke/$session_id/${filename}_${log_suffix}" &
+                    else
+                        ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@$ip \
+                          "bash -lc $(printf '%q' "$remote_cmd")" &
+                    fi
+                    ssh_pid=$!
+                    pid_map[$ssh_pid]=$ip
+                    SSH_PID_MAP[$ssh_pid]=$ip
+                }
+
+                if [ -n "$PD_TOPOLOGY" ] && [ -n "$PD_PLACEMENT" ]; then
+                    # 每个模型 job 重置为用户注入值，再按需派生（避免多模型共用同一 store 端口）
+                    ASCEND_MF_STORE_URL="$ASCEND_MF_STORE_URL_USER"
+                    MF_CONFIG_STORE_URL="$MF_CONFIG_STORE_URL_USER"
+                    # SGLang ascend 后端：为本次 job 生成统一 ASCEND_MF_STORE_URL（所有 P/D 共用）
+                    if { [ "$ENGINE_TYPE" = "SGLang" ] || [ "$PD_ENGINE" = "sglang" ]; } \
+                        && [ "$PD_SGLANG_TRANSFER_BACKEND" = "ascend" ] \
+                        && [ -z "$ASCEND_MF_STORE_URL" ]; then
+                        mf_store_host_ip=""
+                        IFS=',' read -ra _mf_ents <<< "$PD_PLACEMENT"
+                        for ent in "${_mf_ents[@]}"; do
+                            _mf_host="${ent%%:*}"
+                            _mf_rest="${ent#*:}"
+                            _mf_role="${_mf_rest%%:*}"
+                            if [ "$_mf_role" = "prefill" ]; then
+                                mf_store_host_ip="${local_ip_map[$_mf_host]}"
+                                break
+                            fi
+                        done
+                        if [ -z "$mf_store_host_ip" ]; then
+                            _mf_first="${_mf_ents[0]%%:*}"
+                            mf_store_host_ip="${local_ip_map[$_mf_first]}"
+                        fi
+                        if [ -z "$mf_store_host_ip" ]; then
+                            echo "ERROR: cannot derive ASCEND_MF_STORE_URL host from PD_PLACEMENT"
+                            exit 1
+                        fi
+                        job_id_key="${TEST_TYPE}Test_${model}_${session_id}_${job_count}"
+                        mf_store_port=$((24669 + $(printf '%s' "$job_id_key" | cksum | awk '{print $1 % 2000}')))
+                        ASCEND_MF_STORE_URL="tcp://${mf_store_host_ip}:${mf_store_port}"
+                        MF_CONFIG_STORE_URL="$ASCEND_MF_STORE_URL"
+                        echo "Derived ASCEND_MF_STORE_URL=$ASCEND_MF_STORE_URL (job=$job_id_key)"
+                    fi
+                    if [ -n "$ASCEND_MF_STORE_URL" ] && [ -z "$MF_CONFIG_STORE_URL" ]; then
+                        MF_CONFIG_STORE_URL="$ASCEND_MF_STORE_URL"
+                    fi
+                    # PD：每台机独立实例（本机 local_ip 作为 SERVER_LIST），NODE_RANK=0，注入 PD_ROLE
+                    IFS=',' read -ra _pd_ents <<< "$PD_PLACEMENT"
+                    for ent in "${_pd_ents[@]}"; do
+                        pd_host="${ent%%:*}"
+                        rest="${ent#*:}"
+                        pd_role="${rest%%:*}"
+                        pd_id="${rest##*:}"
+                        local_only="${local_ip_map[$pd_host]}"
+                        if [ -z "$local_only" ]; then
+                            echo "ERROR: no local_ip_map for PD host $pd_host"
+                            exit 1
+                        fi
+                        if [ -z "$local_master_ip" ]; then
+                            local_master_ip=$local_only
+                        fi
+                        if [ "$pd_role" = "prefill" ] && [ -z "$pd_router_coord_host" ]; then
+                            pd_router_coord_host="$pd_host"
+                            pd_router_coord_local_ip="$local_only"
+                        fi
+                        echo "启动 PD 实例 ${pd_id} role=${pd_role} on $pd_host (local=$local_only)......"
+                        launch_executor "$pd_host" 0 "$local_only" "$pd_role" "${pd_id}"
+                        ((seq_num++))
+                    done
+                else
+                    # 依次在所有服务器上面启动任务（TP 多机 / 单机）
+                    for ip in ${server_list[@]}; do
+                        echo "启动第${seq_num}台服务器: $ip......"
+
+                        if [ $ip == ${server_list[0]} ]; then
+                            local_master_ip=${local_ip_map[$ip]}
+                        fi
+
+                        launch_executor "$ip" "$seq_num" "$server_list_str" "" "$seq_num"
+                        ((seq_num++))
+                    done
+                fi
 
                 # 接收各个节点的rank_table.json并进行合并与分发
                 if [ $ENGINE_TYPE == "MindIE" ]; then
@@ -388,7 +565,11 @@ for option in "${schedule_policies[@]}"; do
 
                 success=0
                 # 等待所有服务器任务启动完成
-                remaining=${#server_list[@]}
+                if [ -n "$PD_TOPOLOGY" ] && [ -n "$PD_PLACEMENT" ]; then
+                    remaining=$(echo "$PD_PLACEMENT" | tr ',' '\n' | grep -c . || true)
+                else
+                    remaining=${#server_list[@]}
+                fi
                 while (( remaining > 0 )); do
                     wait -n -p done_pid
                     err=$?
@@ -409,6 +590,9 @@ for option in "${schedule_policies[@]}"; do
                             # ...
 
                             # 启动失败，清理工作
+                            if [ -n "${PD_PLACEMENT:-}" ]; then
+                                stop_pd_engine_containers "$job_count"
+                            else
                             for ip in ${server_list[@]}; do
                                 if [ $ENGINE_TYPE == "SigInfer" ]; then
                                     ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop siginfer_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
@@ -424,6 +608,7 @@ for option in "${schedule_policies[@]}"; do
                                     ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                                 fi
                             done
+                            fi
                             
                             ret_code=$err
                             success=1
@@ -441,6 +626,30 @@ for option in "${schedule_policies[@]}"; do
                     continue
                 fi
 
+                job_id="${TEST_TYPE}Test_${model}_${session_id}_${job_count}"
+
+                # PD：P/D 就绪后启动 Router/Proxy，压测走 proxy 入口
+                if [ -n "$PD_TOPOLOGY" ] && [ -n "$PD_PLACEMENT" ]; then
+                    if [ -z "$pd_router_coord_host" ] || [ -z "$pd_router_coord_local_ip" ]; then
+                        echo "ERROR: cannot determine PD router coordinator from placement"
+                        stop_pd_engine_containers "$job_count"
+                        ret_code=1
+                        continue
+                    fi
+                    echo ">>> Launching PD router on ${pd_router_coord_host} (${pd_router_coord_local_ip})..."
+                    if ! bash "$curr_dir/pd_launch_router.sh" \
+                        "$ENGINE_TYPE" "$TEST_TYPE" "$session_id" "$job_count" "$model" "$version" \
+                        "$pd_router_coord_host" "$pd_router_coord_local_ip" "$job_id" "$PD_TOPOLOGY"; then
+                        echo "ERROR: PD router launch failed"
+                        stop_pd_engine_containers "$job_count"
+                        ret_code=1
+                        continue
+                    fi
+                fi
+
+                # 非 PD：全部节点就绪后 sync；PD：router 注册 proxy 后 sync
+                sync_prometheus_scrape_targets "$job_id"
+
                 if [ -f "${LOCK_DIR}/${LOCK_FILE}" ]; then
                     # 获取文件锁（阻塞）
                     exec 200>"${LOCK_DIR}/${LOCK_FILE}"    # 打开文件描述符 200
@@ -448,9 +657,18 @@ for option in "${schedule_policies[@]}"; do
                         echo "无法获取锁，退出..."
                         exit 1
                     fi
-                    # 读取Server端配置信息
-                    job_id="${TEST_TYPE}Test_${model}_${session_id}_${job_count}"
-                    server_port=`cat "${LOCK_DIR}/server_config.txt" | grep "${local_master_ip}:${job_id}:" | awk -F ':' '{print $3}' | awk '{print $1}' | tail -n 1`
+                    # 读取 Server 端配置：PD 模式优先 proxy 入口，否则 master
+                    if [ -n "$PD_TOPOLOGY" ]; then
+                        read -r local_master_ip server_port < <(python3 "$curr_dir/pd_router.py" get-proxy --job-id "$job_id" 2>/dev/null || true)
+                        if [ -z "$local_master_ip" ] || [ -z "$server_port" ]; then
+                            echo "WARN: proxy entry missing, fallback to first prefill port"
+                            server_port=`cat "${LOCK_DIR}/server_config.txt" | grep "${job_id}:" | grep "role=prefill" | awk -F ':' '{print $3}' | awk '{print $1}' | head -n 1`
+                            local_master_ip=`cat "${LOCK_DIR}/server_config.txt" | grep "${job_id}:" | grep "role=prefill" | awk -F ':' '{print $1}' | head -n 1`
+                        fi
+                        echo "PD benchmark entry: http://${local_master_ip}:${server_port}"
+                    else
+                        server_port=`cat "${LOCK_DIR}/server_config.txt" | grep "${local_master_ip}:${job_id}:" | awk -F ':' '{print $3}' | awk '{print $1}' | tail -n 1`
+                    fi
                     # 锁会自动在脚本退出或文件描述符关闭时释放
                     exec 200>&-  # 关闭文件描述符
                 else
@@ -773,6 +991,9 @@ for option in "${schedule_policies[@]}"; do
                 echo "测试完成！"
 
                 # 测试完成，清理工作
+                if [ -n "${PD_PLACEMENT:-}" ]; then
+                    stop_pd_engine_containers "$job_count"
+                else
                 for ip in ${server_list[@]}; do
                     if [ $ENGINE_TYPE == "SigInfer" ]; then
                         ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker stop siginfer_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
@@ -788,6 +1009,13 @@ for option in "${schedule_policies[@]}"; do
                         ssh -q -o ConnectionAttempts=3 s_limingge@$ip docker rm sglang_ascend_${TEST_TYPE}Test_${session_id}_${job_count}
                     fi
                 done
+                fi
+
+                # 释放本 job 的主机 PD 角色租约（同 session 其他并行 job 不受影响）
+                if [ -n "${PD_TOPOLOGY:-}" ]; then
+                    echo "释放 host role leases prefix=${session_id}:${job_count}:"
+                    python3 "$curr_dir/host_role_lease.py" release-prefix --prefix "${session_id}:${job_count}:" || true
+                fi
                 
                 # 发送测试报告
                 if [ $send_report -eq 1 ]; then

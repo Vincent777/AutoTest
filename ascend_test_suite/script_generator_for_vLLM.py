@@ -4,6 +4,14 @@ import os
 import sys
 
 
+def strip_existing_pd_flags(args: str) -> str:
+    """Excel 合部命令里若已手写 PD 参数，去掉以免和 $PD_EXTRA_ARGS 重复。"""
+    result = re.sub(r"--kv-transfer-config\s+'[^']*'", "", args)
+    result = re.sub(r'--kv-transfer-config\s+"[^"]*"', "", result)
+    result = re.sub(r"--kv-transfer-config\s+\S+", "", result)
+    return re.sub(r"\s+", " ", result).strip()
+
+
 def main():
     verison = ""
     if len(sys.argv) != 3:
@@ -50,6 +58,7 @@ def main():
         result = re.sub(r"--model\s+", "", result)
         result = re.sub(r"--port\s+\d+", "--port $PORT", result)
         result = re.sub(r"--served-model-name\s+\S+", f"--served-model-name {name}", result)
+        result = strip_existing_pd_flags(result)
         
         if start:
             src_code += f"if [ $MODEL == \"{name}\" ]; then\n"
@@ -58,11 +67,11 @@ def main():
             src_code += f"elif [ $MODEL == \"{name}\" ]; then\n"
         src_code += "    echo \"vllm serve"
         src_code += result
-        src_code += "\"\n"
+        src_code += " $PD_EXTRA_ARGS\"\n"
         
         src_code += "    EXEC_COMMAND+=\" vllm serve"
         src_code += result
-        src_code += " > $LOG_NAME 2>&1 &\"\n"
+        src_code += " $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &\"\n"
         
     src_code += "fi\n"
 
