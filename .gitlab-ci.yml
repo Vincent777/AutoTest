@@ -157,37 +157,37 @@ vLLM_Perf-aarch64-ascend:
 #   tags:
 #     - "910_ascend_for_sglang_perf"
 
-IngestPerfResults:
-  <<: *setup_ssh
-  stage: ingest
-  image: docker:stable
-  needs:
-    - job: vLLM_Perf-aarch64-ascend
-      artifacts: true
-    - job: SGLang_Perf-aarch64-ascend
-      artifacts: true
-  script:
-    - |
-      echo "Ingest shared-dir Excel into formal dashboard db on 106"
-      VLLM_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/vllm" 2>/dev/null | head -n 1)"
-      SGLANG_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/sglang" 2>/dev/null | head -n 1)"
-      echo "VLLM_JOB_ID=${VLLM_JOB_ID}"
-      echo "SGLANG_JOB_ID=${SGLANG_JOB_ID}"
-      echo "SHARED=${SHARED_PERF_ARTIFACTS}"
-      echo "DB=${DASHBOARD_DB}"
-      if [ -z "${VLLM_JOB_ID}" ] || [ -z "${SGLANG_JOB_ID}" ]; then
-        echo "ERROR: cannot resolve job ids from ci_reports artifacts" >&2
-        find "${LLM_PERF_DIR}/ci_reports" -type f | sort || true
-        exit 1
-      fi
-      ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${DASHBOARD_HOST}" "
-        set -e
-        cd ${DASHBOARD_DIR}
-        python3 -m pip install -q -r requirements.txt
-        bash runners/ingest_ci_reports.sh \
-          --shared-root ${SHARED_PERF_ARTIFACTS} \
-          --job-ids ${VLLM_JOB_ID},${SGLANG_JOB_ID} \
-          --db ${DASHBOARD_DB}
-      "
-  tags:
-    - "910_ascend_for_vllm_perf"
+# IngestPerfResults:
+#   <<: *setup_ssh
+#   stage: ingest
+#   image: docker:stable
+#   needs:
+#     - job: vLLM_Perf-aarch64-ascend
+#       artifacts: true
+#     - job: SGLang_Perf-aarch64-ascend
+#       artifacts: true
+#   script:
+#     - |
+#       echo "Ingest shared-dir Excel into formal dashboard db on 106"
+#       VLLM_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/vllm" 2>/dev/null | head -n 1)"
+#       SGLANG_JOB_ID="$(ls -1 "${LLM_PERF_DIR}/ci_reports/sglang" 2>/dev/null | head -n 1)"
+#       echo "VLLM_JOB_ID=${VLLM_JOB_ID}"
+#       echo "SGLANG_JOB_ID=${SGLANG_JOB_ID}"
+#       echo "SHARED=${SHARED_PERF_ARTIFACTS}"
+#       echo "DB=${DASHBOARD_DB}"
+#       if [ -z "${VLLM_JOB_ID}" ] || [ -z "${SGLANG_JOB_ID}" ]; then
+#         echo "ERROR: cannot resolve job ids from ci_reports artifacts" >&2
+#         find "${LLM_PERF_DIR}/ci_reports" -type f | sort || true
+#         exit 1
+#       fi
+#       ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "${DASHBOARD_HOST}" "
+#         set -e
+#         cd ${DASHBOARD_DIR}
+#         python3 -m pip install -q -r requirements.txt
+#         bash runners/ingest_ci_reports.sh \
+#           --shared-root ${SHARED_PERF_ARTIFACTS} \
+#           --job-ids ${VLLM_JOB_ID},${SGLANG_JOB_ID} \
+#           --db ${DASHBOARD_DB}
+#       "
+#   tags:
+#     - "910_ascend_for_vllm_perf"
