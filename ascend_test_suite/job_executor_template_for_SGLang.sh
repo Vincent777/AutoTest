@@ -94,6 +94,9 @@ if [ -n "$PD_TOPOLOGY" ]; then
         else
             PD_PIP_BOOTSTRAP="${PD_PIP_BOOTSTRAP} python3 -c 'import memfabric_hybrid' 2>/dev/null || pip3 install --no-cache-dir '${PD_MEMFABRIC_PIP_SPEC}' -i '${PD_PIP_INDEX_URL}' || exit 1; "
         fi
+        # v0.5.17 镜像：mooncake transfer_worker 已传 dst_device_kv_indices，
+        # 但 AscendKVManager.send_kvcache 未接该参数 → TypeError 导致 Prefill transfer 线程死掉。
+        PD_PIP_BOOTSTRAP="${PD_PIP_BOOTSTRAP} python3 /home/s_limingge/ci_autotest/ascend_test_suite/pd_ascend_send_kvcache_compat.py || exit 1; "
     fi
     # mooncake 在 Ascend 上需打开适配开关（无 IB 时走 TCP），并按需动态安装
     if [ "$PD_SGLANG_TRANSFER_BACKEND" = "mooncake" ] && [ "$PD_ROLE" != "proxy" ]; then
