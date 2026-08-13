@@ -242,13 +242,16 @@ cleanup_all_resources() {
         if ! flock -x 200; then    # 获取独占锁
             echo "无法获取锁，退出..."
         fi
-        for ip in ${server_list[@]}; do
-            job_id="${TEST_TYPE}Test_${model}_${session_id}_${job_count}"
-            # 删除Server端配置信息
-            # sed -i "/${local_ip_map[$ip]}:${job_id}:/d" "${LOCK_DIR}/server_config.txt"
-            new_config=`sed "/${local_ip_map[$ip]}:${job_id}:/d" "${LOCK_DIR}/server_config.txt"`
+        job_id="${TEST_TYPE}Test_${model}_${session_id}_${job_count}"
+        # 删除本 job 在 server_config 中的全部行：
+        # - P/D 用数据面 IP（10.0.0.x）写入
+        # - PD proxy 用管理面 IP（10.9.1.x）写入（register-proxy）
+        # 仅按 local_ip_map 删除会漏掉 proxy 行。
+        if [ -f "${LOCK_DIR}/server_config.txt" ]; then
+            new_config=`sed "/:${job_id}:/d" "${LOCK_DIR}/server_config.txt"`
             echo "${new_config}" > "${LOCK_DIR}/server_config.txt"
-        done
+            echo "已清理 server_config 中 job_id=${job_id} 的全部行（含 proxy）"
+        fi
         # 锁会自动在脚本退出或文件描述符关闭时释放
         exec 200>&-  # 关闭文件描述符
         echo "Server Config文件锁释放完成"
