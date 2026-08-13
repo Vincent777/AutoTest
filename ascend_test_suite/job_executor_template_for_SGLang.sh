@@ -62,6 +62,15 @@ if [ -n "$PD_TOPOLOGY" ]; then
             ;;
         decode)
             PD_EXTRA_ARGS="--disaggregation-mode decode --disaggregation-transfer-backend ${PD_SGLANG_TRANSFER_BACKEND}"
+            # PD + NPU Graph：大批次（实测 bs=99）会在 init_forward_metadata 里 aclrtSynchronizeStream
+            # 卡死 300s watchdog。限制 running/graph batch，并按官方关闭 TASK_QUEUE。
+            PD_DECODE_MAX_RUNNING_REQUESTS="${PD_DECODE_MAX_RUNNING_REQUESTS:-32}"
+            PD_EXTRA_ARGS="${PD_EXTRA_ARGS} --max-running-requests ${PD_DECODE_MAX_RUNNING_REQUESTS} --cuda-graph-max-bs ${PD_DECODE_MAX_RUNNING_REQUESTS}"
+            DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e TASK_QUEUE_ENABLE=0"
+            if [ "${PD_DECODE_DISABLE_OVERLAP:-0}" = "1" ]; then
+                PD_EXTRA_ARGS="${PD_EXTRA_ARGS} --disable-overlap-schedule"
+            fi
+            echo "PD decode: max-running-requests=${PD_DECODE_MAX_RUNNING_REQUESTS} TASK_QUEUE_ENABLE=0"
             ;;
         proxy)
             PD_EXTRA_ARGS=""

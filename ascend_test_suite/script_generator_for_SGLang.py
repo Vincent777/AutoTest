@@ -99,6 +99,10 @@ def normalize_sglang_args(name: str, args: str) -> str:
     result = re.sub(r"--disaggregation-transfer-backend\s+\S+", "", result)
     result = re.sub(r"--disaggregation-ib-device\s+\S+", "", result)
     result = re.sub(r"--disaggregation-bootstrap-port\s+\S+", "", result)
+    # Decode 侧会注入 --max-running-requests / --cuda-graph-max-bs，避免 argparse 重复
+    result = re.sub(r"--max-running-requests\s+\S+", "", result)
+    result = re.sub(r"--cuda-graph-max-bs(?:-decode)?\s+\S+", "", result)
+    result = re.sub(r"--disable-overlap-schedule\b", "", result)
     return re.sub(r"\s+", " ", result).strip()
 
 
