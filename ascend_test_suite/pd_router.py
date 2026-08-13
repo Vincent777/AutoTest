@@ -150,35 +150,44 @@ def get_proxy(entries: list[ServerConfigEntry]) -> ServerConfigEntry:
 
 
 def build_sglang_lb_cmd(entries: list[ServerConfigEntry], host: str, port: int) -> list[str]:
+    """Build SGLang PD router command for Ascend images (sglang>=0.5).
+
+    Ascend quay.io/ascend/sglang:v0.5.x ships LB under ``sglang_router``, NOT
+    ``sglang.srt.disaggregation.launch_lb`` / ``mini_lb`` (those modules are absent).
+
+    CLI (sglang_router.launch_router):
+      --pd-disaggregation
+      --prefill http://ip:api_port [bootstrap_port]
+      --decode  http://ip:api_port   (repeatable)
+    """
     prefills = endpoints_by_role(entries, "prefill")
     decodes = endpoints_by_role(entries, "decode")
     if not prefills or not decodes:
         raise ValueError("Need at least one prefill and one decode entry before launching router")
 
+    missing_boot = [f"{p.ip}:{p.api_port}" for p in prefills if not p.bootstrap_port]
+    if missing_boot:
+        raise ValueError(
+            "bootstrap_port missing for prefills "
+            f"{missing_boot}; check server_config (need --disaggregation-bootstrap-port)"
+        )
+
+    # Official path in Ascend sglang 0.5.x images
     cmd = [
         "python3",
         "-m",
-        "sglang.srt.disaggregation.launch_lb",
+        "sglang_router.launch_router",
+        "--pd-disaggregation",
         "--host",
         host,
         "--port",
         str(port),
     ]
-    bootstrap_ports: list[str] = []
     for p in prefills:
-        cmd.extend(["--prefill", f"http://{p.ip}:{p.api_port}"])
-        if p.bootstrap_port:
-            bootstrap_ports.append(str(p.bootstrap_port))
+        # Each --prefill takes URL and optional bootstrap port as next token
+        cmd.extend(["--prefill", f"http://{p.ip}:{p.api_port}", str(p.bootstrap_port)])
     for d in decodes:
         cmd.extend(["--decode", f"http://{d.ip}:{d.api_port}"])
-    # launch_lb / mini_lb: optional --prefill-bootstrap-ports aligned with --prefill order
-    if bootstrap_ports:
-        if len(bootstrap_ports) != len(prefills):
-            raise ValueError(
-                f"bootstrap_port missing for some prefills "
-                f"({len(bootstrap_ports)}/{len(prefills)}); check server_config"
-            )
-        cmd.extend(["--prefill-bootstrap-ports", *bootstrap_ports])
     return cmd
 
 
@@ -235,7 +244,7 @@ def main(argv: list[str] | None = None) -> int:
     w.add_argument("--topology", required=True)
     w.add_argument("--timeout", type=int, default=600)
 
-    sg = sub.add_parser("sglang-lb-cmd", parents=[common], help="Print SGLang launch_lb command JSON")
+    sg = sub.add_parser("sglang-lb-cmd", parents=[common], help="Print SGLang sglang_router.launch_router command JSON")
     sg.add_argument("--host", default="0.0.0.0")
     sg.add_argument("--port", type=int, required=True)
 
@@ -318,16 +327,7 @@ def main(argv: list[str] | None = None) -> int:
             decodes = endpoints_by_role(entries, "decode")
             eng = args.engine.lower()
             if eng == "sglang":
-                parts = ["python3", "-m", "sglang.srt.disaggregation.launch_lb"]
-                boots: list[str] = []
-                for p in prefills:
-                    parts.extend(["--prefill", f"http://{p.ip}:{p.api_port}"])
-                    if p.bootstrap_port:
-                        boots.append(str(p.bootstrap_port))
-                for d in decodes:
-                    parts.extend(["--decode", f"http://{d.ip}:{d.api_port}"])
-                if boots and len(boots) == len(prefills):
-                    parts.extend(["--prefill-bootstrap-ports", *boots])
+                parts = build_sglang_lb_cmd(entries, "0.0.0.0", 8000)
                 print("ROUTER_CMD=" + shlex.quote(json.dumps(parts)))
             else:
                 payload = {

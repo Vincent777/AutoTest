@@ -100,12 +100,18 @@ if [ "$ENGINE" = "SGLang" ]; then
 #!/usr/bin/env bash
 set -euo pipefail
 IMAGE="${IMAGE}"
+CONTAINER="${CONTAINER}"
+LOG_NAME="${LOG_NAME}"
+LB_JSON="/home/s_limingge/pd_lb_cmd_${SESSION_ID}_${JOB_COUNT}.json"
 if ! docker image inspect "\${IMAGE}" >/dev/null 2>&1; then
   docker pull "\${IMAGE}"
 fi
-docker run -d --name=${CONTAINER} --network host --ipc=host \\
+echo ">>> SGLang PD router cmd:" 
+python3 -c "import json; print(' '.join(json.load(open('\${LB_JSON}'))['cmd']))"
+# tee so docker logs and host log both capture ModuleNotFound / argparse errors
+docker run -d --name="\${CONTAINER}" --network host --ipc=host \\
   -v /home/s_limingge:/home/s_limingge \\
-  \${IMAGE} bash -lc 'python3 -c "import json,subprocess; cmd=json.load(open(\"/home/s_limingge/pd_lb_cmd_${SESSION_ID}_${JOB_COUNT}.json\"))[\"cmd\"]; subprocess.check_call(cmd)" > ${LOG_NAME} 2>&1'
+  "\${IMAGE}" bash -lc "python3 -u -c 'import json,subprocess,sys; cmd=json.load(open(\"\${LB_JSON}\"))[\"cmd\"]; print(\"exec:\", \" \".join(cmd), flush=True); sys.exit(subprocess.call(cmd))' 2>&1 | tee -a \${LOG_NAME}"
 EOF
 elif [ "$ENGINE" = "vLLM" ]; then
     IMAGE="quay.io/ascend/vllm-ascend:${TAG}"
@@ -204,6 +210,14 @@ probe_proxy_http() {
 deadline=$(( $(date +%s) + ROUTER_TIMEOUT ))
 ready=0
 while [ "$(date +%s)" -lt "$deadline" ]; do
+    # Fail fast if container already died (e.g. ModuleNotFoundError)
+    if ! ssh -q -o ConnectionAttempts=2 -o ConnectTimeout=3 "s_limingge@${COORD_SSH_HOST}" \
+        "docker inspect -f '{{.State.Running}}' ${CONTAINER} 2>/dev/null | grep -qx true"; then
+        echo "ERROR: PD router container ${CONTAINER} exited during HTTP probe" >&2
+        ssh -q -o ConnectionAttempts=2 "s_limingge@${COORD_SSH_HOST}" \
+            "docker ps -a --filter name=${CONTAINER}; echo '--- log ---'; tail -n 120 ${LOG_NAME} 2>/dev/null || docker logs --tail 120 ${CONTAINER} 2>&1 || true" >&2 || true
+        exit 1
+    fi
     if probe_proxy_http "http://${CLIENT_IP}:${PROXY_PORT}" \
         || ssh -q -o ConnectionAttempts=2 -o ConnectTimeout=3 "s_limingge@${COORD_SSH_HOST}" \
             "curl -sf --max-time 2 http://127.0.0.1:${PROXY_PORT}/healthcheck >/dev/null 2>&1 \
