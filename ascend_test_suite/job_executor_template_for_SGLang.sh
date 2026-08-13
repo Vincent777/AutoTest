@@ -41,6 +41,10 @@ PD_SGLANG_TRANSFER_BACKEND="${PD_SGLANG_TRANSFER_BACKEND:-ascend}"
 PD_SGLANG_IB_DEVICE="${PD_SGLANG_IB_DEVICE:-}"
 ASCEND_MF_STORE_URL="${ASCEND_MF_STORE_URL:-}"
 MF_CONFIG_STORE_URL="${MF_CONFIG_STORE_URL:-}"
+# 910B/A2 官方 PD 文档要求 device_rdma（走 HCCN/RoCE，不是主机 IB 网卡名）
+ASCEND_MF_TRANSFER_PROTOCOL="${ASCEND_MF_TRANSFER_PROTOCOL:-device_rdma}"
+# Prefill bootstrap HTTP 端口（与 API 端口分离；注册 /route 用这个，不是 Uvicorn API）
+PD_BOOTSTRAP_PORT="${PD_BOOTSTRAP_PORT:-}"
 # 每次 CI 拉最新镜像，PD 依赖需在容器内动态安装（可用环境变量覆盖）
 PD_PIP_INDEX_URL="${PD_PIP_INDEX_URL:-https://pypi.org/simple}"
 PD_MEMFABRIC_PIP_SPEC="${PD_MEMFABRIC_PIP_SPEC:-memfabric-hybrid>=1.0.8}"
@@ -79,7 +83,8 @@ if [ -n "$PD_TOPOLOGY" ]; then
         fi
         MF_CONFIG_STORE_URL="${MF_CONFIG_STORE_URL:-$ASCEND_MF_STORE_URL}"
         DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e ASCEND_MF_STORE_URL=${ASCEND_MF_STORE_URL} -e MF_CONFIG_STORE_URL=${MF_CONFIG_STORE_URL}"
-        echo "PD memfabric store: $ASCEND_MF_STORE_URL"
+        DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e ASCEND_MF_TRANSFER_PROTOCOL=${ASCEND_MF_TRANSFER_PROTOCOL}"
+        echo "PD memfabric store: $ASCEND_MF_STORE_URL protocol=$ASCEND_MF_TRANSFER_PROTOCOL"
         # 容器内动态安装 memfabric（镜像每次更新，不能预装在宿主机）
         if [ -n "$PD_MEMFABRIC_WHL" ]; then
             PD_PIP_BOOTSTRAP="${PD_PIP_BOOTSTRAP} python3 -c 'import memfabric_hybrid' 2>/dev/null || pip3 install --no-cache-dir '${PD_MEMFABRIC_WHL}' || exit 1; "
@@ -277,9 +282,26 @@ allocate_and_write_local_ports() {
     PROMETHEUS_PORT=$free_port
     get_free_port
     MASTER_PORT=$free_port
+    BOOTSTRAP_PORT=""
+    if [ -n "$PD_TOPOLOGY" ] && [ "$PD_ROLE" = "prefill" ]; then
+        get_free_port
+        BOOTSTRAP_PORT=$free_port
+        PD_EXTRA_ARGS="${PD_EXTRA_ARGS} --disaggregation-bootstrap-port ${BOOTSTRAP_PORT}"
+        if [ -n "$extra_kv" ]; then
+            extra_kv="${extra_kv} bootstrap_port=${BOOTSTRAP_PORT}"
+        else
+            extra_kv="bootstrap_port=${BOOTSTRAP_PORT}"
+        fi
+        echo "PD prefill bootstrap_port=$BOOTSTRAP_PORT (API port=$PORT)"
+    fi
 
     if [ -z $PORT ] || [ -z $PROMETHEUS_PORT ] || [ -z $MASTER_PORT ]; then
         exec 200>&-
+        exit 1
+    fi
+    if [ "$PD_ROLE" = "prefill" ] && [ -z "$BOOTSTRAP_PORT" ]; then
+        exec 200>&-
+        echo "ERROR: failed to allocate disaggregation bootstrap port"
         exit 1
     fi
 
@@ -298,6 +320,7 @@ if [ -n "$PD_TOPOLOGY" ]; then
     fi
     echo "PD mode: topology=$PD_TOPOLOGY role=$PD_ROLE engine=$PD_ENGINE"
     allocate_and_write_local_ports "role=$PD_ROLE topology=$PD_TOPOLOGY engine=$PD_ENGINE"
+    echo "PD extra args (final): $PD_EXTRA_ARGS"
 elif [ $LOCAL_IP == $MASTER_IP ]; then
     allocate_and_write_local_ports ""
 else

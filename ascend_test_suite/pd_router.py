@@ -31,6 +31,7 @@ class ServerConfigEntry:
     role: str = ""
     topology: str = ""
     engine: str = ""
+    bootstrap_port: int | None = None
     extra: dict[str, str] = field(default_factory=dict)
 
 
@@ -66,7 +67,14 @@ def parse_server_config_line(line: str) -> ServerConfigEntry | None:
         role=(kv.get("role") or "").strip().lower(),
         topology=(kv.get("topology") or "").strip(),
         engine=(kv.get("engine") or "").strip().lower(),
-        extra={k: v for k, v in kv.items() if k not in {"role", "topology", "engine", "metrics_port"}},
+        bootstrap_port=int(kv["bootstrap_port"])
+        if (kv.get("bootstrap_port") or "").isdigit()
+        else None,
+        extra={
+            k: v
+            for k, v in kv.items()
+            if k not in {"role", "topology", "engine", "metrics_port", "bootstrap_port"}
+        },
     )
 
 
@@ -156,10 +164,21 @@ def build_sglang_lb_cmd(entries: list[ServerConfigEntry], host: str, port: int) 
         "--port",
         str(port),
     ]
+    bootstrap_ports: list[str] = []
     for p in prefills:
         cmd.extend(["--prefill", f"http://{p.ip}:{p.api_port}"])
+        if p.bootstrap_port:
+            bootstrap_ports.append(str(p.bootstrap_port))
     for d in decodes:
         cmd.extend(["--decode", f"http://{d.ip}:{d.api_port}"])
+    # launch_lb / mini_lb: optional --prefill-bootstrap-ports aligned with --prefill order
+    if bootstrap_ports:
+        if len(bootstrap_ports) != len(prefills):
+            raise ValueError(
+                f"bootstrap_port missing for some prefills "
+                f"({len(bootstrap_ports)}/{len(prefills)}); check server_config"
+            )
+        cmd.extend(["--prefill-bootstrap-ports", *bootstrap_ports])
     return cmd
 
 
@@ -300,11 +319,15 @@ def main(argv: list[str] | None = None) -> int:
             eng = args.engine.lower()
             if eng == "sglang":
                 parts = ["python3", "-m", "sglang.srt.disaggregation.launch_lb"]
+                boots: list[str] = []
                 for p in prefills:
                     parts.extend(["--prefill", f"http://{p.ip}:{p.api_port}"])
+                    if p.bootstrap_port:
+                        boots.append(str(p.bootstrap_port))
                 for d in decodes:
                     parts.extend(["--decode", f"http://{d.ip}:{d.api_port}"])
-                # shlex.quote so callers can safely eval the line
+                if boots and len(boots) == len(prefills):
+                    parts.extend(["--prefill-bootstrap-ports", *boots])
                 print("ROUTER_CMD=" + shlex.quote(json.dumps(parts)))
             else:
                 payload = {

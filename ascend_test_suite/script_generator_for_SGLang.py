@@ -98,6 +98,7 @@ def normalize_sglang_args(name: str, args: str) -> str:
     result = re.sub(r"--disaggregation-mode\s+\S+", "", result)
     result = re.sub(r"--disaggregation-transfer-backend\s+\S+", "", result)
     result = re.sub(r"--disaggregation-ib-device\s+\S+", "", result)
+    result = re.sub(r"--disaggregation-bootstrap-port\s+\S+", "", result)
     return re.sub(r"\s+", " ", result).strip()
 
 

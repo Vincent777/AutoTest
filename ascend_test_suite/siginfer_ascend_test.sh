@@ -104,6 +104,7 @@ PD_SGLANG_IB_DEVICE="${PD_SGLANG_IB_DEVICE:-}"
 PD_VLLM_KV_CONNECTOR="${PD_VLLM_KV_CONNECTOR:-MooncakeConnector}"
 ASCEND_MF_STORE_URL="${ASCEND_MF_STORE_URL:-}"
 MF_CONFIG_STORE_URL="${MF_CONFIG_STORE_URL:-}"
+ASCEND_MF_TRANSFER_PROTOCOL="${ASCEND_MF_TRANSFER_PROTOCOL:-device_rdma}"
 # 保留用户显式注入值；每个模型 job 可按 JOB_ID 重新派生 store URL
 ASCEND_MF_STORE_URL_USER="$ASCEND_MF_STORE_URL"
 MF_CONFIG_STORE_URL_USER="$MF_CONFIG_STORE_URL"
@@ -456,6 +457,7 @@ for option in "${schedule_policies[@]}"; do
                                 pd_env_prefix="${pd_env_prefix} ASCEND_MF_STORE_URL=${ASCEND_MF_STORE_URL}"
                                 pd_env_prefix="${pd_env_prefix} MF_CONFIG_STORE_URL=${MF_CONFIG_STORE_URL:-$ASCEND_MF_STORE_URL}"
                             fi
+                            pd_env_prefix="${pd_env_prefix} ASCEND_MF_TRANSFER_PROTOCOL=${ASCEND_MF_TRANSFER_PROTOCOL:-device_rdma}"
                         fi
                         if [ "$ENGINE_TYPE" = "vLLM" ] || [ "$PD_ENGINE" = "vllm" ]; then
                             pd_env_prefix="${pd_env_prefix} PD_VLLM_KV_CONNECTOR=${PD_VLLM_KV_CONNECTOR}"
