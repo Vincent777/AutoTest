@@ -36,7 +36,7 @@ for _pd_var in \
     fi
 done
 
-docker run --rm --name="CI_test_job_${CI_job_id}" --privileged \
+docker run --rm --name="CI_test_job_${CI_job_id}" --privileged --network host \
   -v /home/s_limingge/.npu_locks:/home/s_limingge/.npu_locks \
   -v /CI_Workspace:/CI_Workspace \
   -v /var/run/docker.sock:/var/run/docker.sock \
