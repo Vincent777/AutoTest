@@ -84,7 +84,10 @@ if [ -n "$PD_TOPOLOGY" ]; then
         MF_CONFIG_STORE_URL="${MF_CONFIG_STORE_URL:-$ASCEND_MF_STORE_URL}"
         DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e ASCEND_MF_STORE_URL=${ASCEND_MF_STORE_URL} -e MF_CONFIG_STORE_URL=${MF_CONFIG_STORE_URL}"
         DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e ASCEND_MF_TRANSFER_PROTOCOL=${ASCEND_MF_TRANSFER_PROTOCOL}"
-        echo "PD memfabric store: $ASCEND_MF_STORE_URL protocol=$ASCEND_MF_TRANSFER_PROTOCOL"
+        # Ascend TransferEngine / bootstrap 用 get_local_ip_auto()；多网卡时必须强制数据面 IP，
+        # 否则可能广播 10.9.1.x，对端 WaitingForInput 直至 300s 超时。
+        DOCKER_PD_ENVS="${DOCKER_PD_ENVS} -e SGLANG_HOST_IP=${LOCAL_IP}"
+        echo "PD memfabric store: $ASCEND_MF_STORE_URL protocol=$ASCEND_MF_TRANSFER_PROTOCOL host_ip=$LOCAL_IP"
         # 容器内动态安装 memfabric（镜像每次更新，不能预装在宿主机）
         if [ -n "$PD_MEMFABRIC_WHL" ]; then
             PD_PIP_BOOTSTRAP="${PD_PIP_BOOTSTRAP} python3 -c 'import memfabric_hybrid' 2>/dev/null || pip3 install --no-cache-dir '${PD_MEMFABRIC_WHL}' || exit 1; "
@@ -380,6 +383,12 @@ EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JO
   ${IMAGE_REPO}:$LATEST_TAG"
 
 <<<generated source code>>>
+
+# PD：API/bootstrap 绑定数据面 IP（与官方 Ascend 示例一致；勿用 0.0.0.0 作为对外通告地址）
+if [ -n "$PD_TOPOLOGY" ] && [ "$PD_ROLE" != "proxy" ]; then
+    EXEC_COMMAND="${EXEC_COMMAND//--host 0.0.0.0/--host ${LOCAL_IP}}"
+    echo "PD bind host overridden to data-plane LOCAL_IP=$LOCAL_IP"
+fi
 
 echo "$EXEC_COMMAND"
 
