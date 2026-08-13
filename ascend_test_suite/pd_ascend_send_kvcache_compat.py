@@ -2,13 +2,18 @@
 """Compat patch for Ascend SGLang images where mooncake transfer_worker is newer
 than AscendKVManager.send_kvcache.
 
+Path note:
+  - Source of truth lives in CI controller at
+    /CI_Workspace/ci_autotest/ascend_test_suite/pd_ascend_send_kvcache_compat.py
+    (entrypoint.sh clones/updates the repo under /CI_Workspace).
+  - ascend_resource_monitor.sh scp's this file to each NPU host as
+    /home/s_limingge/pd_ascend_send_kvcache_compat.py
+  - SGLang inference containers only mount /home/s_limingge, NOT /CI_Workspace,
+    so the in-container path must be /home/s_limingge/pd_ascend_send_kvcache_compat.py.
+
 Symptom (quay.io/ascend/sglang:v0.5.17-*):
   TypeError: AscendKVManager.send_kvcache() got an unexpected keyword argument
   'dst_device_kv_indices'
-
-Upstream main already accepts the kwargs; older Ascend image packages do not.
-This script rewrites the installed ascend/conn.py signature in-place (container
-ephemeral FS) when the kwargs are missing.
 """
 from __future__ import annotations
 

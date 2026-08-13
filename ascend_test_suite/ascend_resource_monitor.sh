@@ -480,9 +480,15 @@ for name in "${!npu_server_list[@]}"; do
     if [ $name == 'aicc002' ]; then
         sshpass -p 's_limingge' scp "${curr_dir}/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh" s_limingge@${npu_server_list['aicc002']}:/home/s_limingge
         sshpass -p 's_limingge' scp "${curr_dir}/npu_lock_manager_for_ci.sh" s_limingge@${npu_server_list['aicc002']}:/home/s_limingge
+        if [ -f "${curr_dir}/pd_ascend_send_kvcache_compat.py" ]; then
+            sshpass -p 's_limingge' scp "${curr_dir}/pd_ascend_send_kvcache_compat.py" s_limingge@${npu_server_list['aicc002']}:/home/s_limingge
+        fi
     else
         scp "${curr_dir}/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh" s_limingge@${npu_server_list[$name]}:/home/s_limingge
         scp "${curr_dir}/npu_lock_manager_for_ci.sh" s_limingge@${npu_server_list[$name]}:/home/s_limingge
+        if [ -f "${curr_dir}/pd_ascend_send_kvcache_compat.py" ]; then
+            scp "${curr_dir}/pd_ascend_send_kvcache_compat.py" s_limingge@${npu_server_list[$name]}:/home/s_limingge
+        fi
     fi
 done
 
