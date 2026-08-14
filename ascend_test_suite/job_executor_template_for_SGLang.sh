@@ -146,20 +146,58 @@ cleanup_locks() {
 trap cleanup_locks EXIT INT TERM
 
 free_port=""
+server_ports=()
+
+# 从 server_config 收集本机已登记端口（含 bootstrap_port=N / kv_port=N）
+collect_reserved_ports() {
+    local ip="$1"
+    server_ports=()
+    [ -f "${LOCK_DIR}/server_config.txt" ] || return 0
+    local line rest tok
+    while IFS= read -r line; do
+        rest="${line#*:*:}"
+        for tok in $rest; do
+            if [[ "$tok" =~ ^[0-9]+$ ]]; then
+                server_ports+=("$tok")
+            elif [[ "$tok" =~ ^[A-Za-z_][A-Za-z0-9_]*=([0-9]+)$ ]]; then
+                server_ports+=("${BASH_REMATCH[1]}")
+            fi
+        done
+    done < <(grep -E "^${ip}:" "${LOCK_DIR}/server_config.txt" 2>/dev/null || true)
+}
+
+port_is_busy() {
+    local port="$1"
+    if [[ " ${server_ports[*]} " == *" ${port} "* ]]; then
+        return 0
+    fi
+    if ss -ltnH "sport = :${port}" 2>/dev/null | grep -q .; then
+        return 0
+    fi
+    if ss -ltn 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}$"; then
+        return 0
+    fi
+    if command -v lsof >/dev/null 2>&1 && lsof -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+        return 0
+    fi
+    if (echo >/dev/tcp/127.0.0.1/"$port") >/dev/null 2>&1; then
+        return 0
+    fi
+    return 1
+}
 
 get_free_port() {
     local PORT_RANGE_START=20000
     local PORT_RANGE_END=20999
+    local port
 
     for port in $(seq $PORT_RANGE_START $PORT_RANGE_END); do
-        if ! lsof -i :"$port" >/dev/null 2>&1; then
-            if [[ " ${server_ports[@]} " =~ " $port " ]]; then
-                continue
-            fi
-            server_ports+=($port)
-            free_port="$port"
-            return
+        if port_is_busy "$port"; then
+            continue
         fi
+        server_ports+=("$port")
+        free_port="$port"
+        return
     done
     free_port=""
 }
@@ -288,7 +326,7 @@ allocate_and_write_local_ports() {
         touch "${LOCK_DIR}/server_config.txt"
     fi
 
-    server_ports=(`cat "${LOCK_DIR}/server_config.txt" | grep $LOCAL_IP | awk -F ':' '{print $3}'`)
+    collect_reserved_ports "$LOCAL_IP"
 
     get_free_port
     PORT=$free_port
@@ -309,7 +347,7 @@ allocate_and_write_local_ports() {
         echo "PD prefill bootstrap_port=$BOOTSTRAP_PORT (API port=$PORT)"
     fi
 
-    if [ -z $PORT ] || [ -z $PROMETHEUS_PORT ] || [ -z $MASTER_PORT ]; then
+    if [ -z "$PORT" ] || [ -z "$PROMETHEUS_PORT" ] || [ -z "$MASTER_PORT" ]; then
         exec 200>&-
         exit 1
     fi

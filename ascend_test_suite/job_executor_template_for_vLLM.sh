@@ -37,25 +37,26 @@ if [ -n "$PD_INSTANCE_ID" ]; then
 fi
 # Excel 保持合部命令；PD 角色参数由此注入（可用 PD_VLLM_KV_CONNECTOR 覆盖）
 # Ascend 910B：默认 MooncakeConnector（NixlConnector 为 NVIDIA 向）
+# kv_port / engine_id 在分配端口后写入，避免默认 14579 或多实例冲突
 PD_VLLM_KV_CONNECTOR="${PD_VLLM_KV_CONNECTOR:-MooncakeConnector}"
 PD_EXTRA_ARGS=""
+PD_KV_ROLE=""
 if [ -n "$PD_TOPOLOGY" ]; then
     case "$PD_ROLE" in
         prefill)
-            PD_EXTRA_ARGS="--kv-transfer-config '{\"kv_connector\":\"${PD_VLLM_KV_CONNECTOR}\",\"kv_role\":\"kv_producer\"}'"
+            PD_KV_ROLE="kv_producer"
             ;;
         decode)
-            PD_EXTRA_ARGS="--kv-transfer-config '{\"kv_connector\":\"${PD_VLLM_KV_CONNECTOR}\",\"kv_role\":\"kv_consumer\"}'"
+            PD_KV_ROLE="kv_consumer"
             ;;
         proxy)
-            PD_EXTRA_ARGS=""
+            PD_KV_ROLE=""
             ;;
         *)
             echo "ERROR: unsupported PD_ROLE=$PD_ROLE (need prefill|decode|proxy)"
             exit 1
             ;;
     esac
-    echo "PD extra args: $PD_EXTRA_ARGS"
 fi
 
 # 设置清理函数，确保异常退出时释放锁
@@ -88,22 +89,92 @@ cleanup_locks() {
 trap cleanup_locks EXIT INT TERM
 
 free_port=""
+server_ports=()
+# Mooncake handshake 会占用 kv_port .. kv_port+tp_size-1，预留一块避免同机冲突
+KV_PORT_BLOCK_SIZE="${PD_VLLM_KV_PORT_BLOCK:-32}"
+
+# 从 server_config 收集本机已登记端口（含 bootstrap_port=N / kv_port=N 及 Mooncake 端口块）
+collect_reserved_ports() {
+    local ip="$1"
+    server_ports=()
+    [ -f "${LOCK_DIR}/server_config.txt" ] || return 0
+    local line rest tok base i
+    while IFS= read -r line; do
+        rest="${line#*:*:}"
+        for tok in $rest; do
+            if [[ "$tok" =~ ^[0-9]+$ ]]; then
+                server_ports+=("$tok")
+            elif [[ "$tok" =~ ^kv_port=([0-9]+)$ ]]; then
+                base="${BASH_REMATCH[1]}"
+                for ((i = 0; i < KV_PORT_BLOCK_SIZE; i++)); do
+                    server_ports+=("$((base + i))")
+                done
+            elif [[ "$tok" =~ ^[A-Za-z_][A-Za-z0-9_]*=([0-9]+)$ ]]; then
+                server_ports+=("${BASH_REMATCH[1]}")
+            fi
+        done
+    done < <(grep -E "^${ip}:" "${LOCK_DIR}/server_config.txt" 2>/dev/null || true)
+}
+
+port_is_busy() {
+    local port="$1"
+    if [[ " ${server_ports[*]} " == *" ${port} "* ]]; then
+        return 0
+    fi
+    if ss -ltnH "sport = :${port}" 2>/dev/null | grep -q .; then
+        return 0
+    fi
+    if ss -ltn 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}$"; then
+        return 0
+    fi
+    if command -v lsof >/dev/null 2>&1 && lsof -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+        return 0
+    fi
+    if (echo >/dev/tcp/127.0.0.1/"$port") >/dev/null 2>&1; then
+        return 0
+    fi
+    return 1
+}
 
 get_free_port() {
     local PORT_RANGE_START=20000
     local PORT_RANGE_END=20999
+    local port
 
     for port in $(seq $PORT_RANGE_START $PORT_RANGE_END); do
-        if ! lsof -i :"$port" >/dev/null 2>&1; then
-            if [[ " ${server_ports[@]} " =~ " $port " ]]; then
-                continue
+        if port_is_busy "$port"; then
+            continue
+        fi
+        server_ports+=("$port")
+        free_port="$port"
+        return
+    done
+    free_port=""
+}
+
+# 连续 block 个空闲端口，返回起始口（用于 Mooncake kv_port）
+get_free_port_block() {
+    local block_size="${1:-32}"
+    local PORT_RANGE_START=21000
+    local PORT_RANGE_END=22999
+    local port i ok
+    free_port=""
+    for port in $(seq $PORT_RANGE_START $((PORT_RANGE_END - block_size + 1))); do
+        ok=1
+        for ((i = 0; i < block_size; i++)); do
+            if port_is_busy "$((port + i))"; then
+                ok=0
+                break
             fi
-            server_ports+=($port)
+        done
+        if [ "$ok" -eq 1 ]; then
+            for ((i = 0; i < block_size; i++)); do
+                server_ports+=("$((port + i))")
+            done
             free_port="$port"
             return
         fi
     done
-    free_port=""
 }
 
 if [ $USE_PREFIX_CACHE -eq 1 ]; then
@@ -241,7 +312,7 @@ allocate_and_write_local_ports() {
         touch "${LOCK_DIR}/server_config.txt"
     fi
 
-    server_ports=(`cat "${LOCK_DIR}/server_config.txt" | grep $LOCAL_IP | awk -F ':' '{print $3}'`)
+    collect_reserved_ports "$LOCAL_IP"
 
     get_free_port
     PORT=$free_port
@@ -249,8 +320,29 @@ allocate_and_write_local_ports() {
     PROMETHEUS_PORT=$free_port
     get_free_port
     MASTER_PORT=$free_port
+    KV_PORT=""
 
-    if [ -z $PORT ] || [ -z $PROMETHEUS_PORT ] || [ -z $MASTER_PORT ]; then
+    # PD + Mooncake：每实例独立 kv_port（及后续 TP handshake 端口块）
+    if [ -n "$PD_TOPOLOGY" ] && [ -n "$PD_KV_ROLE" ]; then
+        get_free_port_block "$KV_PORT_BLOCK_SIZE"
+        KV_PORT=$free_port
+        if [ -z "$KV_PORT" ]; then
+            exec 200>&-
+            echo "ERROR: failed to allocate Mooncake kv_port block"
+            exit 1
+        fi
+        local engine_id="${PD_INSTANCE_ID:-${PD_ROLE}}"
+        PD_EXTRA_ARGS="--kv-transfer-config '{\"kv_connector\":\"${PD_VLLM_KV_CONNECTOR}\",\"kv_role\":\"${PD_KV_ROLE}\",\"kv_port\":${KV_PORT},\"engine_id\":\"${engine_id}\"}'"
+        if [ -n "$extra_kv" ]; then
+            extra_kv="${extra_kv} kv_port=${KV_PORT}"
+        else
+            extra_kv="kv_port=${KV_PORT}"
+        fi
+        echo "PD Mooncake: kv_port=${KV_PORT} (block=${KV_PORT_BLOCK_SIZE}) role=${PD_KV_ROLE} engine_id=${engine_id}"
+        echo "PD extra args: $PD_EXTRA_ARGS"
+    fi
+
+    if [ -z "$PORT" ] || [ -z "$PROMETHEUS_PORT" ] || [ -z "$MASTER_PORT" ]; then
         exec 200>&-
         exit 1
     fi

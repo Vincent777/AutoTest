@@ -57,6 +57,8 @@ def main():
         result = re.sub(r"^.*docker\.xcoresigma\.com/docker/vllm/vllm-openai\:\S+", "", args)
         result = re.sub(r"--model\s+", "", result)
         result = re.sub(r"--port\s+\d+", "--port $PORT", result)
+        if not re.search(r"--port\s+\$PORT\b|--port\s+\d+", result):
+            result = f"{result} --port $PORT"
         result = re.sub(r"--served-model-name\s+\S+", f"--served-model-name {name}", result)
         result = strip_existing_pd_flags(result)
         

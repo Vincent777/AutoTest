@@ -93,6 +93,8 @@ def normalize_sglang_args(name: str, args: str) -> str:
         result = " ".join(parts)
 
     result = re.sub(r"--port\s+\d+", "--port $PORT", result)
+    if not re.search(r"--port\s+\$PORT\b|--port\s+\d+", result):
+        result = f"{result} --port $PORT"
     result = re.sub(r"--served-model-name\s+\S+", f"--served-model-name {name}", result)
     # Excel 合部命令里若已手写 PD 参数，去掉以免和 $PD_EXTRA_ARGS 重复
     result = re.sub(r"--disaggregation-mode\s+\S+", "", result)
