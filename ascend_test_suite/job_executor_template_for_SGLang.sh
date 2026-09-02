@@ -21,8 +21,20 @@ VERSION=${10}
 # 生成唯一的任务ID
 TASK_ID="<<<TEST_TYPE>>>_${MODEL}_${JOB_COUNT}"
 JOB_ID="<<<TEST_TYPE>>>_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
-LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "10.0.0" | head -n 1)
-SERVER_NAME=$(echo $LOCAL_IP | sed 's/\./_/g')
+# 锁名 = ${SERVER_NAME}_npu_X.lock；SERVER_NAME 来自 LOCAL_IP（点改下划线）
+# 优先 10.0.0.x；可用 LOCAL_IP 环境变量覆盖；否则取首个非 lo 的 global IPv4
+if [ -z "${LOCAL_IP:-}" ]; then
+    LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "^10\.0\.0\." | head -n 1)
+fi
+if [ -z "${LOCAL_IP:-}" ]; then
+    LOCAL_IP=$(ip -o -4 addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n 1)
+fi
+if [ -z "${LOCAL_IP:-}" ]; then
+    echo "ERROR: LOCAL_IP empty; export LOCAL_IP=<this-host-ip> (ip -br addr). Empty LOCAL_IP makes locks named _npu_X.lock"
+    exit 1
+fi
+SERVER_NAME=$(echo "$LOCAL_IP" | sed 's/\./_/g')
+echo "LOCAL_IP=$LOCAL_IP SERVER_NAME=$SERVER_NAME"
 
 # PD 分离（可选）：PD_TOPOLOGY=2P2D PD_ROLE=prefill|decode|proxy
 # 每个 P/D 节点本地分配端口并写入 server_config；协调节点在引擎就绪后 sync Prometheus。
@@ -310,6 +322,25 @@ done
 ASCEND_RT_VISIBLE_DEVICES=$(echo "${GPU_INFO[@]}" | sed -E 's/\s+/\,/g')
 echo "ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES"
 
+# HCCL 网卡：优先环境变量；否则按 LOCAL_IP 反查（禁止 lo；空 LOCAL_IP 时 awk 会误匹配 lo）
+if [ -z "${HCCL_SOCKET_IFNAME:-}" ]; then
+    HCCL_SOCKET_IFNAME=$(ip -o -4 addr show 2>/dev/null | awk -v ip="$LOCAL_IP" '
+        $0 ~ ("inet " ip "/") {
+            if ($2 != "lo" && $2 !~ /^docker/ && $2 !~ /^veth/ && $2 !~ /^br-/) {
+                print $2; exit
+            }
+        }')
+fi
+if [ -z "${HCCL_SOCKET_IFNAME:-}" ] || [ "${HCCL_SOCKET_IFNAME}" = "lo" ]; then
+    HCCL_SOCKET_IFNAME=$(ip -br link 2>/dev/null | awk '
+        $1 !~ /^(lo|docker|veth|br-|virbr)/ && $2 ~ /UP/ {print $1; exit}')
+fi
+if [ -z "${HCCL_SOCKET_IFNAME:-}" ] || [ "${HCCL_SOCKET_IFNAME}" = "lo" ]; then
+    echo "ERROR: cannot resolve HCCL_SOCKET_IFNAME; set it explicitly (ip -br link / ip -br addr)"
+    exit 1
+fi
+echo "HCCL_SOCKET_IFNAME=$HCCL_SOCKET_IFNAME"
+
 LOG_NAME="server_log_<<<TEST_TYPE>>>_$(date +'%Y%m%d_%H%M%S').log"
 
 MASTER_IP=`echo $SERVER_LIST | tr '_' '\n' | head -n 1`
@@ -373,7 +404,7 @@ if [ -n "$PD_TOPOLOGY" ]; then
     echo "PD mode: topology=$PD_TOPOLOGY role=$PD_ROLE engine=$PD_ENGINE"
     allocate_and_write_local_ports "role=$PD_ROLE topology=$PD_TOPOLOGY engine=$PD_ENGINE"
     echo "PD extra args (final): $PD_EXTRA_ARGS"
-elif [ $LOCAL_IP == $MASTER_IP ]; then
+elif [ "$LOCAL_IP" = "$MASTER_IP" ]; then
     allocate_and_write_local_ports ""
 else
     while true; do
@@ -384,7 +415,7 @@ else
         fi
 
         server_ports=`cat "${LOCK_DIR}/server_config.txt" | grep "${MASTER_IP}:${JOB_ID}:" | awk -F ':' '{print $3}' | tail -n 1`
-        if [ ! -z "$server_ports" ]; then
+        if [ -n "$server_ports" ]; then
             PORT=$(echo $server_ports | awk '{print $1}')
             PROMETHEUS_PORT=$(echo $server_ports | awk '{print $2}')
             MASTER_PORT=$(echo $server_ports | awk '{print $3}')
@@ -426,8 +457,9 @@ EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JO
   -v /data:/data \
   -v /home/weight:/home/weight \
   -v /home/s_limingge:/home/s_limingge \
-  -e HCCL_SOCKET_IFNAME=enp67s0f0 \
+  -e HCCL_SOCKET_IFNAME=${HCCL_SOCKET_IFNAME} \
   -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES \
+  -e PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src \
   ${DOCKER_PD_ENVS} \
   ${IMAGE_REPO}:$LATEST_TAG"
 

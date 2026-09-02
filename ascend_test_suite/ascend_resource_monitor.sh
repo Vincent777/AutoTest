@@ -67,6 +67,7 @@ PD_LAST_SEARCH_REASON=""
 if [ $ENGINE_TYPE == "SigInfer" ]; then
     declare -A npu_server_list=(
         ["aicc001"]="10.9.1.78"
+        ["aicc002"]="10.9.1.90"
         ["aicc003"]="10.9.1.106"
         # ["aicc004"]="10.9.1.114"
         # ["aicc005"]="10.9.1.98"
@@ -84,6 +85,7 @@ if [ $ENGINE_TYPE == "SigInfer" ]; then
 elif [ $ENGINE_TYPE == "vLLM" ]; then
     declare -A npu_server_list=(
         ["aicc001"]="10.9.1.78"
+        ["aicc002"]="10.9.1.90"
         ["aicc003"]="10.9.1.106"
         # ["aicc004"]="10.9.1.114"
         # ["aicc005"]="10.9.1.98"
@@ -135,10 +137,10 @@ elif [ $ENGINE_TYPE == "SGLang" ]; then
 fi
 
 full_model_list_for_smoke=(DeepSeek-R1-AWQ:8 DeepSeek-R1-W8A8:16 DeepSeek-R1-Distill-Qwen-1.5B:1 DeepSeek-R1-Distill-Qwen-32B:2 DeepSeek-R1-Distill-Llama-8B:1 DeepSeek-R1-Distill-Llama-70B:4 Meta-Llama-3.1-8B-Instruct:1 Meta-Llama-3.1-70B-Instruct:4 Qwen2.5-0.5B-Instruct:1 Qwen2.5-72B-Instruct:4 QwQ-32B:2 Qwen2.5-0.5B-Instruct-AWQ:1 Qwen2.5-72B-Instruct-AWQ:2 QwQ-32B-AWQ:1 Qwen3-32B:4 Qwen3-30B-A3B:2 Qwen3-235B-A22B:8 Qwen3-32B-v2:2 Qwen3-14B:2 DeepSeek-R1-Distill-Qwen-14B:2)
-full_model_list_for_performance=(DeepSeek-R1-Distill-Qwen-32B:2 DeepSeek-R1-W8A8:16 DeepSeek-R1-AWQ:8 DeepSeek-R1-0528:16 Qwen3-235B-A22B:8 Qwen3-32B:4 Qwen2.5-72B-Instruct:4 Qwen2.5-72B-Instruct-AWQ:2 Qwen3-32B-v2:2 Qwen3-14B:2 DeepSeek-R1-Distill-Qwen-14B:2)
+full_model_list_for_performance=(DeepSeek-R1-Distill-Qwen-32B:2 DeepSeek-R1-W8A8:16 DeepSeek-R1-AWQ:8 DeepSeek-R1-0528:16 Qwen3-235B-A22B:8 Qwen3-32B:4 Qwen2.5-72B-Instruct:4 Qwen2.5-72B-Instruct-AWQ:2 Qwen3-32B-v2:2 Qwen3-14B:2 DeepSeek-R1-Distill-Qwen-14B:2 DeepSeek-V4-Flash-w8a8-mtp:8 DeepSeek-V3.1-Terminus-Channel-int8:8 Meta-Llama-3.1-70B-Instruct:8)
 # full_model_list_for_performance=(DeepSeek-R1-0528:16 DeepSeek-R1-Distill-Qwen-32B:2 DeepSeek-R1-Distill-Llama-8B:1 Qwen3-32B:4 Qwen3-235B-A22B:8 DeepSeek-R1-W8A8:16)
 full_model_list_for_accuracy=(DeepSeek-R1-AWQ:8 DeepSeek-R1-W8A8:16 DeepSeek-R1-Distill-Qwen-1.5B:1 Qwen3-235B-A22B:8 DeepSeek-R1-Distill-Qwen-32B:2 DeepSeek-R1-Distill-Llama-8B:1 DeepSeek-R1-Distill-Llama-70B:4 Meta-Llama-3.1-8B-Instruct:1 Qwen2.5-72B-Instruct-AWQ:2 Qwen2.5-32B-Instruct-AWQ:1 Qwen2.5-72B-Instruct:4 Meta-Llama-3.1-70B-Instruct:4 Qwen2.5-0.5B-Instruct:1 QwQ-32B:2 Qwen2.5-0.5B-Instruct-AWQ:1 QwQ-32B-AWQ:1 Qwen3-32B:4 Qwen3-30B-A3B:2 Qwen3-14B:2 DeepSeek-R1-Distill-Qwen-14B:2)
-full_model_list_for_stability=(DeepSeek-R1-Distill-Qwen-32B:2 DeepSeek-R1:16 DeepSeek-R1-AWQ:8)
+full_model_list_for_stability=(DeepSeek-R1-0528:16 Qwen3-235B-A22B:8 DeepSeek-V3.1-Terminus-Channel-int8:8 Meta-Llama-3.1-70B-Instruct:8)
 
 log_name_suffix=$(date +"%Y%m%d")
 export TASK_START_TIME=${log_name_suffix}
@@ -186,7 +188,20 @@ elif [ $TEST_TYPE == "Performance" ]; then
     touch ${processed_models}
     num_of_prefix_cache_options=1
 elif [ $TEST_TYPE == "Stability" ]; then
-    full_model_list=(${full_model_list_for_stability[@]})
+    if [ $MODEL_LIST == "default" ]; then
+        full_model_list=(${full_model_list_for_stability[@]})
+    else
+        model_list=($(echo "$MODEL_LIST" | tr ',' ' '))
+        full_model_list=()
+        for model in "${model_list[@]}"; do
+            for item in "${full_model_list_for_stability[@]}"; do
+                name=`echo "$item" | awk -F : '{print $1}'`
+                if [ $model == $name ]; then
+                    full_model_list+=($item)
+                fi
+            done
+        done
+    fi
     rm -rf $curr_dir/logs/stability/$SESSION_ID/*.log $curr_dir/logs/stability/$SESSION_ID/processed_models_*
     processed_models=${curr_dir}/logs/stability/$SESSION_ID/"processed_models"_${log_name_suffix}
     touch ${processed_models}
@@ -229,82 +244,44 @@ search_servers() {
     servers_found=()
     for key in "${!npu_server_list[@]}"; do
         echo "$key => ${npu_server_list[$key]}"
-        if [ $key == 'aicc002' ]; then
-            sshpass -p 's_limingge' ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${npu_server_list['aicc002']} "# 目标空闲 GPU 数量
-                source /home/s_limingge/npu_lock_manager_for_ci.sh
-                if [ $NPU_QUANTITY -eq 16 ]; then
-                    TARGET_FREE_GPUS=8
-                else
-                    TARGET_FREE_GPUS=$NPU_QUANTITY
-                fi
-                echo \"开始在${key}上扫描 GPU, 目标: 寻找 \$TARGET_FREE_GPUS 张空闲 GPU...\"
-                # 使用 npu-smi 获取 GPU 使用情况
-                GPU_INFO=(\$(npu-smi info | grep \"No\ running\ processes\ found\ in\ NPU\" | awk '{print \$8}'))
-                # 检查空闲 GPU 数量
-                FREE_COUNT=\$(echo \"\${GPU_INFO[@]}\" | wc -w)
-                echo \"当前空闲 GPU 数量：\$FREE_COUNT, 索引: \${GPU_INFO[@]}\"
-                # 如果找到足够的空闲 GPU, 则返回结果并退出
-                if [ \"\$FREE_COUNT\" -ge \"\$TARGET_FREE_GPUS\" ]; then
-                    echo \"成功找到 \$TARGET_FREE_GPUS 张空闲 GPU, 索引：\${GPU_INFO[@]}\"
-                    echo \"检查是否可以锁定其中 \$TARGET_FREE_GPUS 张 GPU\"
-                    # 生成唯一的任务ID
-                    TASK_ID=\"${TEST_TYPE}Test_${MODEL}_${JOB_COUNT}\"
-                    LOCAL_IP=\$(hostname -I | xargs printf \"%s\\n\" | grep \"10.0.0\" | head -n 1)
-                    SERVER_NAME=\$(echo \$LOCAL_IP | sed 's/\./_/g')
-                    check_npu_locks_batch \${SERVER_NAME} \"\${GPU_INFO[*]}\" \${TASK_ID} ${SESSION_ID} NPU_LIST_FOUND
-                    if [ \${#NPU_LIST_FOUND[@]} -ge \$TARGET_FREE_GPUS ]; then
-                        SELECTED_NPUS=\"\${NPU_LIST_FOUND[@]:0:\$TARGET_FREE_GPUS}\"
-                        echo \"可以锁定其中 \$TARGET_FREE_GPUS 张 GPU, 索引：\${SELECTED_NPUS}\"
-                        exit 0
-                    else
-                        echo \"锁定失败（可能被其他任务占用），继续扫描......\"
-                    fi
-                fi
-                exit 1"
-            err=$?
-            if [ $err -eq 0 ]; then
-                servers_found+=(${npu_server_list[$key]})
+        ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${npu_server_list[$key]} "# 目标空闲 GPU 数量
+            source /home/s_limingge/npu_lock_manager_for_ci.sh
+            if [ $NPU_QUANTITY -eq 16 ]; then
+                TARGET_FREE_GPUS=8
+            else
+                TARGET_FREE_GPUS=$NPU_QUANTITY
             fi
-        else
-            ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${npu_server_list[$key]} "# 目标空闲 GPU 数量
-                source /home/s_limingge/npu_lock_manager_for_ci.sh
-                if [ $NPU_QUANTITY -eq 16 ]; then
-                    TARGET_FREE_GPUS=8
+            echo \"开始在${key}上扫描 GPU, 目标: 寻找 \$TARGET_FREE_GPUS 张空闲 GPU...\"
+            # 使用 npu-smi 获取 GPU 使用情况
+            GPU_INFO=(\$(npu-smi info | grep \"No\ running\ processes\ found\ in\ NPU\" | awk '{print \$8}'))
+            # if [ $NPU_QUANTITY -ne 16 ]; then
+            #    过滤掉第7块和第8块GPU卡
+            #    GPU_INFO=\$(echo \"\${GPU_INFO[@]}\" | sed -E 's/\b6\b//g' | sed -E 's/\b7\b//g' | sed -E 's/\s+/ /g' | xargs)
+            # fi
+            # 检查空闲 GPU 数量
+            FREE_COUNT=\$(echo \"\${GPU_INFO[@]}\" | wc -w)
+            echo \"当前空闲 GPU 数量：\$FREE_COUNT, 索引: \${GPU_INFO[@]}\"
+            # 如果找到足够的空闲 GPU, 则返回结果并退出
+            if [ \"\$FREE_COUNT\" -ge \"\$TARGET_FREE_GPUS\" ]; then
+                echo \"成功找到 \$TARGET_FREE_GPUS 张空闲 GPU, 索引：\${GPU_INFO[@]}\"
+                echo \"检查是否可以锁定其中 \$TARGET_FREE_GPUS 张 GPU\"
+                # 生成唯一的任务ID
+                TASK_ID=\"${TEST_TYPE}Test_${MODEL}_${JOB_COUNT}\"
+                LOCAL_IP=\$(hostname -I | xargs printf \"%s\\n\" | grep \"10.0.0\" | head -n 1)
+                SERVER_NAME=\$(echo \$LOCAL_IP | sed 's/\./_/g')
+                check_npu_locks_batch \${SERVER_NAME} \"\${GPU_INFO[*]}\" \${TASK_ID} ${SESSION_ID} NPU_LIST_FOUND
+                if [ \${#NPU_LIST_FOUND[@]} -ge \$TARGET_FREE_GPUS ]; then
+                    SELECTED_NPUS=\"\${NPU_LIST_FOUND[@]:0:\$TARGET_FREE_GPUS}\"
+                    echo \"可以锁定其中 \$TARGET_FREE_GPUS 张 GPU, 索引：\${SELECTED_NPUS}\"
+                    exit 0
                 else
-                    TARGET_FREE_GPUS=$NPU_QUANTITY
+                    echo \"锁定失败（可能被其他任务占用），继续扫描......\"
                 fi
-                echo \"开始在${key}上扫描 GPU, 目标: 寻找 \$TARGET_FREE_GPUS 张空闲 GPU...\"
-                # 使用 npu-smi 获取 GPU 使用情况
-                GPU_INFO=(\$(npu-smi info | grep \"No\ running\ processes\ found\ in\ NPU\" | awk '{print \$8}'))
-                # if [ $NPU_QUANTITY -ne 16 ]; then
-                #    过滤掉第7块和第8块GPU卡
-                #    GPU_INFO=\$(echo \"\${GPU_INFO[@]}\" | sed -E 's/\b6\b//g' | sed -E 's/\b7\b//g' | sed -E 's/\s+/ /g' | xargs)
-                # fi
-                # 检查空闲 GPU 数量
-                FREE_COUNT=\$(echo \"\${GPU_INFO[@]}\" | wc -w)
-                echo \"当前空闲 GPU 数量：\$FREE_COUNT, 索引: \${GPU_INFO[@]}\"
-                # 如果找到足够的空闲 GPU, 则返回结果并退出
-                if [ \"\$FREE_COUNT\" -ge \"\$TARGET_FREE_GPUS\" ]; then
-                    echo \"成功找到 \$TARGET_FREE_GPUS 张空闲 GPU, 索引：\${GPU_INFO[@]}\"
-                    echo \"检查是否可以锁定其中 \$TARGET_FREE_GPUS 张 GPU\"
-                    # 生成唯一的任务ID
-                    TASK_ID=\"${TEST_TYPE}Test_${MODEL}_${JOB_COUNT}\"
-                    LOCAL_IP=\$(hostname -I | xargs printf \"%s\\n\" | grep \"10.0.0\" | head -n 1)
-                    SERVER_NAME=\$(echo \$LOCAL_IP | sed 's/\./_/g')
-                    check_npu_locks_batch \${SERVER_NAME} \"\${GPU_INFO[*]}\" \${TASK_ID} ${SESSION_ID} NPU_LIST_FOUND
-                    if [ \${#NPU_LIST_FOUND[@]} -ge \$TARGET_FREE_GPUS ]; then
-                        SELECTED_NPUS=\"\${NPU_LIST_FOUND[@]:0:\$TARGET_FREE_GPUS}\"
-                        echo \"可以锁定其中 \$TARGET_FREE_GPUS 张 GPU, 索引：\${SELECTED_NPUS}\"
-                        exit 0
-                    else
-                        echo \"锁定失败（可能被其他任务占用），继续扫描......\"
-                    fi
-                fi
-                exit 1"
-            err=$?
-            if [ $err -eq 0 ]; then
-                servers_found+=(${npu_server_list[$key]})
             fi
+            exit 1"
+        err=$?
+        if [ $err -eq 0 ]; then
+            servers_found+=(${npu_server_list[$key]})
         fi
 
         if [ ${#servers_found[@]} -ge $SERVER_QUANTITY ]; then
@@ -475,18 +452,10 @@ search_pd_servers() {
 
 for name in "${!npu_server_list[@]}"; do
     echo "$name => ${npu_server_list[$name]}"
-    if [ $name == 'aicc002' ]; then
-        sshpass -p 's_limingge' scp "${curr_dir}/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh" s_limingge@${npu_server_list['aicc002']}:/home/s_limingge
-        sshpass -p 's_limingge' scp "${curr_dir}/npu_lock_manager_for_ci.sh" s_limingge@${npu_server_list['aicc002']}:/home/s_limingge
-        if [ -f "${curr_dir}/pd_ascend_send_kvcache_compat.py" ]; then
-            sshpass -p 's_limingge' scp "${curr_dir}/pd_ascend_send_kvcache_compat.py" s_limingge@${npu_server_list['aicc002']}:/home/s_limingge
-        fi
-    else
-        scp "${curr_dir}/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh" s_limingge@${npu_server_list[$name]}:/home/s_limingge
-        scp "${curr_dir}/npu_lock_manager_for_ci.sh" s_limingge@${npu_server_list[$name]}:/home/s_limingge
-        if [ -f "${curr_dir}/pd_ascend_send_kvcache_compat.py" ]; then
-            scp "${curr_dir}/pd_ascend_send_kvcache_compat.py" s_limingge@${npu_server_list[$name]}:/home/s_limingge
-        fi
+    scp "${curr_dir}/${ENGINE_TYPE}_job_executor_for_${TEST_TYPE}Test.sh" s_limingge@${npu_server_list[$name]}:/home/s_limingge
+    scp "${curr_dir}/npu_lock_manager_for_ci.sh" s_limingge@${npu_server_list[$name]}:/home/s_limingge
+    if [ -f "${curr_dir}/pd_ascend_send_kvcache_compat.py" ]; then
+        scp "${curr_dir}/pd_ascend_send_kvcache_compat.py" s_limingge@${npu_server_list[$name]}:/home/s_limingge
     fi
 done
 

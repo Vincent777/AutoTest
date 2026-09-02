@@ -14,6 +14,7 @@ fi
 
 declare -A npu_server_list=(
     ["aicc001"]="10.9.1.78"
+    ["aicc002"]="10.9.1.90"
     ["aicc003"]="10.9.1.106"
     ["aicc004"]="10.9.1.114"
     ["aicc005"]="10.9.1.98"
@@ -27,7 +28,7 @@ declare -A npu_server_list=(
 for key in "${!npu_server_list[@]}"; do
     echo "$key => ${npu_server_list[$key]}"
     ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${npu_server_list[$key]} "# 处理${TEST_TYPE} Test容器
-        container_list=\$(docker ps -a --format \"{{.Names}}\" | grep -E \"(vllm|sglang)_ascend_${TEST_TYPE}Test_\")
+        container_list=\$(docker ps -a --format \"{{.Names}}\" | grep -E \"(vllm|sglang|siginfer)_ascend_${TEST_TYPE}Test_\")
         for container in \$container_list; do
             if [ $SHUTDOWN -eq 1 ]; then
                 docker stop \$container

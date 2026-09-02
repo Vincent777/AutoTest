@@ -43,6 +43,7 @@ fi
 
 declare -A npu_server_list=(
     ["10.9.1.78"]="AICC_001"
+    ["10.9.1.90"]="AICC_002"
     ["10.9.1.106"]="AICC_003"
     ["10.9.1.114"]="AICC_004"
     ["10.9.1.98"]="AICC_005"
@@ -55,6 +56,7 @@ declare -A npu_server_list=(
 
 declare -A local_ip_map=(
     ["10.9.1.78"]="10.0.0.13"
+    ["10.9.1.90"]="10.0.0.22"
     ["10.9.1.106"]="10.0.0.3"
     ["10.9.1.114"]="10.0.0.43"
     ["10.9.1.98"]="10.0.0.40"
@@ -798,8 +800,10 @@ for option in "${schedule_policies[@]}"; do
 
                     # 开始执行测试
                     if [ $TEST_PARAM == "Random" ]; then
-                        multiplier=4
-                        concurrency_list=(1 5 10 20 50 100 150 200)
+                        # multiplier=4
+                        # concurrency_list=(1 5 10 20 50 100 150 200)
+                        multiplier=1
+                        concurrency_list=(1)
                         length_pairs=(
                             "128:128"
                             "128:1024"
@@ -1002,28 +1006,32 @@ for option in "${schedule_policies[@]}"; do
                     fi
                 elif [ $TEST_TYPE == "Stability" ]; then
                     # 调用JMeter或者Locust工具
-                    export JVM_ARGS="-Xms4g -Xmx4g -XX:+UseG1GC"
-                    jmeter -n -t smoke.jmx
-                    jmeter -n -t test.jmx -l result.jtl
-                    /opt/apache-jmeter-5.6.3/bin/jmeter \
-                        -n \
-                        -t /data/test/llm_perf.jmx \
-                        -l /data/jtl/result_$(date +\%F).jtl  \
-                        -e \
-                        -o report/  \
-                        -Jmodel=${model} \
-                        -Jbatch_size=16 \
-                        -Jcontext_len=8192 \
-                        -Jqps=30    \
-                        > /data/log/jmeter_$(date +\%F).log 2>&1 &
+                    # export JVM_ARGS="-Xms4g -Xmx4g -XX:+UseG1GC"
+                    # jmeter -n -t smoke.jmx
+                    # jmeter -n -t test.jmx -l result.jtl
+                    # /opt/apache-jmeter-5.6.3/bin/jmeter \
+                    #     -n \
+                    #     -t /data/test/llm_perf.jmx \
+                    #     -l /data/jtl/result_$(date +\%F).jtl  \
+                    #     -e \
+                    #     -o report/  \
+                    #     -Jmodel=${model} \
+                    #     -Jbatch_size=16 \
+                    #     -Jcontext_len=8192 \
+                    #     -Jqps=30    \
+                    #     > /data/log/jmeter_$(date +\%F).log 2>&1 &
 
-                        # 在 JMX 中使用：
-                        # ${__P(model)}
-                        # ${__P(batch_size)}
-                        # ${__P(context_len)}
+                    #     # 在 JMX 中使用：
+                    #     # ${__P(model)}
+                    #     # ${__P(batch_size)}
+                    #     # ${__P(context_len)}
 
-                        JMETER_PID=$!
-                        wait $JMETER_PID
+                    #     JMETER_PID=$!
+                    #     wait $JMETER_PID
+
+                    echo "按任意键结束......"
+                    # read -n 1 -s
+                    sleep infinity
                 fi
 
                 echo "测试完成！"

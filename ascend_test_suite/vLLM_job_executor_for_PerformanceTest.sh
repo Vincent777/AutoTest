@@ -19,8 +19,8 @@ SESSION_ID=$9
 VERSION=${10}
 
 # 生成唯一的任务ID
-TASK_ID="<<<TEST_TYPE>>>_${MODEL}_${JOB_COUNT}"
-JOB_ID="<<<TEST_TYPE>>>_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
+TASK_ID="PerformanceTest_${MODEL}_${JOB_COUNT}"
+JOB_ID="PerformanceTest_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
 LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "10.0.0" | head -n 1)
 SERVER_NAME=$(echo $LOCAL_IP | sed 's/\./_/g')
 
@@ -226,10 +226,10 @@ docker_pull_with_retry() {
 
 docker_pull_with_retry "quay.io/ascend/vllm-ascend:$LATEST_TAG" || exit 1
 
-ret=`docker ps -a | grep vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
+ret=`docker ps -a | grep vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
 if [ $? -eq 0 ]; then
-    docker stop vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
-    docker rm vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
+    docker stop vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
+    docker rm vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
 fi
 
 # Slave节点需要等待Master节点的HTTP Server启动完成......
@@ -295,7 +295,7 @@ done
 ASCEND_RT_VISIBLE_DEVICES=$(echo "${GPU_INFO[@]}" | sed -E 's/\s+/\,/g')
 echo "ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES"
 
-LOG_NAME="server_log_<<<TEST_TYPE>>>_$(date +'%Y%m%d_%H%M%S').log"
+LOG_NAME="server_log_PerformanceTest_$(date +'%Y%m%d_%H%M%S').log"
 
 MASTER_IP=`echo $SERVER_LIST | tr '_' '\n' | head -n 1`
 
@@ -392,11 +392,11 @@ else    # Slave节点同步到master节点的端口配置
     done
 fi
 
-EXEC_COMMAND="docker run --name=vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX} \
+EXEC_COMMAND="docker run --name=vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX} \
   --network host \
   --ipc=host \
   --privileged \
-  --shm-size=10995116277 \
+  --shm-size=512g \
   --workdir /workspace \
   -v /dev/davinci0:/dev/davinci0 \
   -v /dev/davinci1:/dev/davinci1 \
@@ -424,10 +424,40 @@ EXEC_COMMAND="docker run --name=vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_
   -v /home/weight:/home/weight \
   -v /home/s_limingge:/home/s_limingge \
   -e HCCL_SOCKET_IFNAME=enp67s0f0 \
-  -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES  \
+  -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES \
+  -e OMP_PROC_BIND=false \
+  -e OMP_NUM_THREADS=10 \
+  -e PYTORCH_NPU_ALLOC_CONF=expandable_segments:True \
+  -e LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libjemalloc.so.2 \
+  -e HCCL_BUFFSIZE=1024 \
+  -e TASK_QUEUE_ENABLE=1 \
+  -e HCCL_OP_EXPANSION_MODE=AIV \
+  -e ASCEND_MAX_OP_CACHE_SIZE=-1 \
+  -e VLLM_ASCEND_ENABLE_MLAPO=1 \
+  -e TE_PARALLEL_COMPILER=32 \
+  -e VLLM_ASCEND_BALANCE_SCHEDULING=1 \
+  -e PYTHONHASHSEED=0 \
   quay.io/ascend/vllm-ascend:$LATEST_TAG"
 
-<<<generated source code>>>
+if [ $MODEL == "DeepSeek-R1-Distill-Qwen-32B" ]; then
+    echo "vllm serve /home/weight/DeepSeek-R1-Distill-Qwen-32B --served-model-name DeepSeek-R1-Distill-Qwen-32B --port $PORT -tp 2 --max-model-len 32768 --no-enable-prefix-caching --compilation-config '{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"}' $PD_EXTRA_ARGS"
+    EXEC_COMMAND+=" vllm serve /home/weight/DeepSeek-R1-Distill-Qwen-32B --served-model-name DeepSeek-R1-Distill-Qwen-32B --port $PORT -tp 2 --max-model-len 32768 --no-enable-prefix-caching --compilation-config '{\"cudagraph_mode\":\"FULL_DECODE_ONLY\"}' $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &"
+elif [ $MODEL == "DeepSeek-R1-Distill-Llama-8B" ]; then
+    echo "vllm serve /home/weight/DeepSeek-R1-Distill-Llama-8B --served-model-name DeepSeek-R1-Distill-Llama-8B --port $PORT -tp 1 --no-enable-prefix-caching $PD_EXTRA_ARGS"
+    EXEC_COMMAND+=" vllm serve /home/weight/DeepSeek-R1-Distill-Llama-8B --served-model-name DeepSeek-R1-Distill-Llama-8B --port $PORT -tp 1 --no-enable-prefix-caching $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &"
+elif [ $MODEL == "Qwen3-32B-FP8" ]; then
+    echo "vllm serve /home/weight/Qwen3/Qwen3-32B-FP8/ --served-model-name Qwen3-32B-FP8 --port $PORT --no-enable-prefix-caching -tp 2 --no-enable-prefix-caching $PD_EXTRA_ARGS"
+    EXEC_COMMAND+=" vllm serve /home/weight/Qwen3/Qwen3-32B-FP8/ --served-model-name Qwen3-32B-FP8 --port $PORT --no-enable-prefix-caching -tp 2 --no-enable-prefix-caching $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &"
+elif [ $MODEL == "DeepSeek-R1-Distill-Llama-70B" ]; then
+    echo "vllm serve /home/weight/DeepSeek-R1-Distill-Llama-70B --served-model-name DeepSeek-R1-Distill-Llama-70B --port $PORT -tp 4 --no-enable-prefix-caching $PD_EXTRA_ARGS"
+    EXEC_COMMAND+=" vllm serve /home/weight/DeepSeek-R1-Distill-Llama-70B --served-model-name DeepSeek-R1-Distill-Llama-70B --port $PORT -tp 4 --no-enable-prefix-caching $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &"
+elif [ $MODEL == "Qwen3-235B-A22B" ]; then
+    echo "vllm serve /home/weight/Qwen3/Qwen3-235B-A22B --served-model-name Qwen3-235B-A22B --port $PORT -tp 8 --gpu-memory-utilization 0.98 --no-enable-prefix-caching $PD_EXTRA_ARGS"
+    EXEC_COMMAND+=" vllm serve /home/weight/Qwen3/Qwen3-235B-A22B --served-model-name Qwen3-235B-A22B --port $PORT -tp 8 --gpu-memory-utilization 0.98 --no-enable-prefix-caching $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &"
+elif [ $MODEL == "DeepSeek-V4-Flash-w8a8-mtp" ]; then
+    echo "vllm serve /home/weight/DeepSeek-V4-Flash-w8a8-mtp --max_model_len $((512*1024)) --max-num-batched-tokens 8192 --served-model-name DeepSeek-V4-Flash-w8a8-mtp --gpu-memory-utilization 0.95 --max-num-seqs 16 --data-parallel-size 1 --tensor-parallel-size 8 --enable-expert-parallel --tokenizer-mode deepseek_v4 --tool-call-parser deepseek_v4 --enable-auto-tool-choice --reasoning-parser deepseek_v4 --safetensors-load-strategy 'prefetch' --model-loader-extra-config='{\"enable_multithread_load\": \"true\", \"num_threads\": 128}' --quantization ascend --enable-prefix-caching --port $PORT --block-size 128 --speculative-config '{\"num_speculative_tokens\": 1,\"method\": \"mtp\",\"enforce_eager\": true}' --compilation-config '{\"cudagraph_mode\": \"FULL_DECODE_ONLY\", \"cudagraph_capture_sizes\": [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 128, 256, 512, 1024, 2048, 4096, 8192]}' --async-scheduling --additional-config '{\"ascend_compilation_config\":{\"enable_npugraph_ex\":true,\"enable_static_kernel\":true},\"enable_cpu_binding\": true,\"enable_dsa_cp\": false,\"multistream_overlap_shared_expert\":true}' $PD_EXTRA_ARGS"
+    EXEC_COMMAND+=" vllm serve /home/weight/DeepSeek-V4-Flash-w8a8-mtp --max_model_len $((512*1024)) --max-num-batched-tokens 8192 --served-model-name DeepSeek-V4-Flash-w8a8-mtp --gpu-memory-utilization 0.95 --max-num-seqs 16 --data-parallel-size 1 --tensor-parallel-size 8 --enable-expert-parallel --tokenizer-mode deepseek_v4 --tool-call-parser deepseek_v4 --enable-auto-tool-choice --reasoning-parser deepseek_v4 --safetensors-load-strategy 'prefetch' --model-loader-extra-config='{\"enable_multithread_load\": \"true\", \"num_threads\": 128}' --quantization ascend --enable-prefix-caching --port $PORT --block-size 128 --speculative-config '{\"num_speculative_tokens\": 1,\"method\": \"mtp\",\"enforce_eager\": true}' --compilation-config '{\"cudagraph_mode\": \"FULL_DECODE_ONLY\", \"cudagraph_capture_sizes\": [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 128, 256, 512, 1024, 2048, 4096, 8192]}' --async-scheduling --additional-config '{\"ascend_compilation_config\":{\"enable_npugraph_ex\":true,\"enable_static_kernel\":true},\"enable_cpu_binding\": true,\"enable_dsa_cp\": false,\"multistream_overlap_shared_expert\":true}' $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &"
+fi
 
 echo "$EXEC_COMMAND"
 
