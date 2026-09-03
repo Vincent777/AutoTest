@@ -274,6 +274,197 @@ cleanup_timeout_locks() {
     echo "清理了 $cleaned_count 个超时锁"
 }
 
+# 获取空闲 NPU 的 Logic Device ID 列表（兼容 910B 单芯与 310P 一卡双芯）
+#
+# 背景:
+#   - 910B(单芯): "No running processes found in NPU X" 的 X 即 Device ID。
+#   - 310P(一卡双芯): 进程表打印物理卡 NPU ID（如 18944/19072）；一卡空闲时两芯都空闲。
+#     部分驱动版本 Chip 行只有 Bus-Id、没有 Device 数字，不能把物理卡 ID 当作 Device。
+#     此时按 Chip 行出现顺序分配全局 Logic Device ID (0,1,2,3,...)。
+#
+# 判定双芯/物理卡模式（满足其一即展开）:
+#   1) 任一物理卡下 Chip 行数 >= 2
+#   2) 空闲 NPU ID 中存在 > 64 的物理卡 ID
+#
+# 输出: 空格分隔、按数值升序的 Device ID，例如 "1 4 5" 或 "0 1 2 3"
+# 用法: GPU_INFO=($(get_free_npu_device_ids))
+get_free_npu_device_ids() {
+    local smi_out
+    smi_out=$(npu-smi info 2>/dev/null) || {
+        echo "错误: 无法执行 npu-smi info" >&2
+        return 1
+    }
+
+    # 优先用 npu-smi info -m（NPU ID / Chip ID / Device ID 三列），失败则解析 info 表格
+    local map_out=""
+    map_out=$(npu-smi info -m 2>/dev/null) || true
+
+    echo "$smi_out" | MAP_OUT="$map_out" awk '
+    BEGIN {
+        current_npu = ""
+        max_chips = 0
+        in_process = 0
+        nchips = 0
+        next_logic = 0
+        phy_free = 0
+        has_map = 0
+        map_out = ENVIRON["MAP_OUT"]
+
+        # 解析 npu-smi info -m: 每行 NPU_ID Chip_ID Device_ID
+        if (map_out != "") {
+            n = split(map_out, lines, /\n/)
+            for (li = 1; li <= n; li++) {
+                line = lines[li]
+                gsub(/\|/, " ", line)
+                nn = split(line, a, /[[:space:]]+/)
+                nf = 0
+                delete f
+                for (i = 1; i <= nn; i++) if (a[i] != "") f[++nf] = a[i]
+                if (nf >= 3 && f[1] ~ /^[0-9]+$/ && f[2] ~ /^[0-9]+$/ && f[3] ~ /^[0-9]+$/) {
+                    devices[f[1]] = devices[f[1]] " " f[3]
+                    chip_count[f[1]]++
+                    if (chip_count[f[1]] > max_chips) max_chips = chip_count[f[1]]
+                    has_map = 1
+                }
+            }
+        }
+    }
+    /Processes:/ { in_process = 1 }
+    /No running processes found in NPU/ {
+        for (i = NF; i >= 1; i--) {
+            t = $i
+            gsub(/\|/, "", t)
+            if (t ~ /^[0-9]+$/) {
+                free[t] = 1
+                if ((t + 0) > 64) phy_free = 1
+                break
+            }
+        }
+        next
+    }
+    {
+        if (in_process || has_map) next
+
+        line = $0
+        gsub(/\|/, " ", line)
+        n = split(line, a, /[[:space:]]+/)
+        nf = 0
+        delete f
+        for (i = 1; i <= n; i++) if (a[i] != "") f[++nf] = a[i]
+        if (nf < 2) next
+        if (f[1] ~ /^(NPU|Chip|Process|No|=|\+|Version)/) next
+        if (f[1] !~ /^[0-9]+$/) next
+
+        # 卡头行，兼容多种 310P/910B 表格:
+        #   18944 310P3 OK ... | 0 910B1 OK ... | 18944 OK ... | 18944 0 OK ...
+        is_header = 0
+        if (f[2] ~ /[A-Za-z]/ && f[2] !~ /^[0-9a-fA-F]+:/) {
+            # 第二列是产品名或 Health(OK)
+            is_header = 1
+        } else if (nf >= 3 && f[2] ~ /^[0-9]+$/ && f[3] ~ /^(OK|Warning|Error|Failure)/) {
+            # 第二列 Chip-Phy-ID，第三列 Health
+            is_header = 1
+        }
+        if (is_header) {
+            current_npu = f[1]
+            if (!(current_npu in chip_count)) chip_count[current_npu] = 0
+            next
+        }
+
+        if (current_npu == "") next
+
+        # 芯行: Chip [Device] Bus-Id ...
+        if (f[2] ~ /^[0-9]+$/ && nf >= 3 && f[3] ~ /:/) {
+            # Chip Device Bus-Id
+            chip_dev = f[2] + 0
+            chip_count[current_npu]++
+            if (chip_count[current_npu] > max_chips) max_chips = chip_count[current_npu]
+            nchips++
+            chip_npu[nchips] = current_npu
+            chip_devcol[nchips] = chip_dev
+            chip_has_devcol[nchips] = 1
+        } else if (f[2] ~ /:/) {
+            # Chip Bus-Id（无 Device 列，310P 常见）
+            chip_count[current_npu]++
+            if (chip_count[current_npu] > max_chips) max_chips = chip_count[current_npu]
+            nchips++
+            chip_npu[nchips] = current_npu
+            chip_devcol[nchips] = -1
+            chip_has_devcol[nchips] = 0
+        }
+    }
+    END {
+        # 若未走 info -m，根据 Chip 行生成 NPU -> Device 映射
+        if (!has_map && nchips > 0) {
+            dual = (max_chips >= 2 || phy_free) ? 1 : 0
+            if (dual) {
+                # 若 Device 列存在且同一卡上不全是相同值，直接用 Device 列；
+                # 否则（无 Device 列 / 仅卡内索引）按出现顺序分配 0,1,2,...
+                use_devcol = 1
+                for (npu in chip_count) {
+                    if (chip_count[npu] < 1) continue
+                    seen_val = ""
+                    uniq = 0
+                    for (i = 1; i <= nchips; i++) {
+                        if (chip_npu[i] != npu) continue
+                        if (!chip_has_devcol[i]) { use_devcol = 0; break }
+                        if (seen_val == "") { seen_val = chip_devcol[i]; uniq = 1 }
+                        else if (chip_devcol[i] != seen_val) uniq++
+                    }
+                    if (!use_devcol) break
+                    # 双芯卡但 Device 列全相同（如都是 0）→ 不可用
+                    if (chip_count[npu] >= 2 && uniq < 2) { use_devcol = 0; break }
+                }
+                for (i = 1; i <= nchips; i++) {
+                    npu = chip_npu[i]
+                    if (use_devcol) {
+                        dev = chip_devcol[i]
+                    } else {
+                        dev = next_logic++
+                    }
+                    devices[npu] = devices[npu] " " dev
+                }
+            } else {
+                # 单芯: Device = NPU ID
+                for (i = 1; i <= nchips; i++) {
+                    npu = chip_npu[i]
+                    devices[npu] = devices[npu] " " npu
+                }
+            }
+        }
+
+        dual_chip = (max_chips >= 2 || phy_free) ? 1 : 0
+        delete seen
+        nout = 0
+        for (npu in free) {
+            if (dual_chip && (npu in devices)) {
+                n = split(devices[npu], d, " ")
+                for (i = 1; i <= n; i++) {
+                    if (d[i] == "" || d[i] in seen) continue
+                    seen[d[i]] = 1
+                    out[++nout] = d[i] + 0
+                }
+            } else {
+                if (!(npu in seen)) {
+                    seen[npu] = 1
+                    out[++nout] = npu + 0
+                }
+            }
+        }
+        for (i = 1; i <= nout; i++) {
+            for (j = i + 1; j <= nout; j++) {
+                if (out[j] < out[i]) {
+                    t = out[i]; out[i] = out[j]; out[j] = t
+                }
+            }
+        }
+        for (i = 1; i <= nout; i++) {
+            printf "%s%s", out[i], (i < nout ? " " : "")
+        }
+        if (nout > 0) printf "\n"
+    }'
+}
+
 # 主函数 - 用于命令行调用
 main() {
     local command=$1
@@ -331,8 +522,11 @@ main() {
         cleanup_timeout)
             cleanup_timeout_locks
             ;;
+        list-free)
+            get_free_npu_device_ids
+            ;;
         *)
-            echo "用法: $0 {acquire|acquire_batch|release|release_batch|check|info|list|cleanup_all|cleanup_timeout} [args...]"
+            echo "用法: $0 {acquire|acquire_batch|release|release_batch|check|info|list|list-free|cleanup_all|cleanup_timeout} [args...]"
             exit 1
             ;;
     esac

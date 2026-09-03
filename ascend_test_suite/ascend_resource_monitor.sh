@@ -245,15 +245,23 @@ search_servers() {
     for key in "${!npu_server_list[@]}"; do
         echo "$key => ${npu_server_list[$key]}"
         ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${npu_server_list[$key]} "# 目标空闲 GPU 数量
-            source /home/s_limingge/npu_lock_manager_for_ci.sh
+            if [ -f ${curr_dir}/npu_lock_manager_for_ci.sh ]; then
+                source ${curr_dir}/npu_lock_manager_for_ci.sh
+            else
+                source /home/s_limingge/npu_lock_manager_for_ci.sh
+            fi
             if [ $NPU_QUANTITY -eq 16 ]; then
                 TARGET_FREE_GPUS=8
             else
                 TARGET_FREE_GPUS=$NPU_QUANTITY
             fi
             echo \"开始在${key}上扫描 GPU, 目标: 寻找 \$TARGET_FREE_GPUS 张空闲 GPU...\"
-            # 使用 npu-smi 获取 GPU 使用情况
-            GPU_INFO=(\$(npu-smi info | grep \"No\ running\ processes\ found\ in\ NPU\" | awk '{print \$8}'))
+            # 兼容 310P 一卡双芯：物理卡 ID -> Logic Device 0..N
+            if declare -F get_free_npu_device_ids >/dev/null 2>&1; then
+                GPU_INFO=(\$(get_free_npu_device_ids))
+            else
+                GPU_INFO=(\$(npu-smi info | grep \"No\ running\ processes\ found\ in\ NPU\" | awk '{print \$8}'))
+            fi
             # if [ $NPU_QUANTITY -ne 16 ]; then
             #    过滤掉第7块和第8块GPU卡
             #    GPU_INFO=\$(echo \"\${GPU_INFO[@]}\" | sed -E 's/\b6\b//g' | sed -E 's/\b7\b//g' | sed -E 's/\s+/ /g' | xargs)
@@ -330,9 +338,17 @@ search_pd_servers() {
         local host_ip="${npu_server_list[$key]}"
         local probe_out
         probe_out=$(ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${host_ip} "
-            source /home/s_limingge/npu_lock_manager_for_ci.sh
+            if [ -f ${curr_dir}/npu_lock_manager_for_ci.sh ]; then
+                source ${curr_dir}/npu_lock_manager_for_ci.sh
+            else
+                source /home/s_limingge/npu_lock_manager_for_ci.sh
+            fi
             TARGET_FREE_GPUS=$NPU_QUANTITY
-            GPU_INFO=(\$(npu-smi info | grep \"No\ running\ processes\ found\ in\ NPU\" | awk '{print \$8}'))
+            if declare -F get_free_npu_device_ids >/dev/null 2>&1; then
+                GPU_INFO=(\$(get_free_npu_device_ids))
+            else
+                GPU_INFO=(\$(npu-smi info | grep \"No\ running\ processes\ found\ in\ NPU\" | awk '{print \$8}'))
+            fi
             FREE_COUNT=\$(echo \"\${GPU_INFO[@]}\" | wc -w)
             echo \"PROBE ${key} free=\$FREE_COUNT\"
             if [ \"\$FREE_COUNT\" -lt \"\$TARGET_FREE_GPUS\" ]; then

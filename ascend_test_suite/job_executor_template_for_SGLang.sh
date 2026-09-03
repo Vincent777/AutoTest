@@ -298,7 +298,8 @@ while true; do
         exit 10
     fi
 
-    GPU_INFO=($(npu-smi info | grep "No\ running\ processes\ found\ in\ NPU" | awk '{print $8}'))
+    # 兼容 310P 一卡双芯：物理卡 ID -> Logic Device 0..N
+    GPU_INFO=($(get_free_npu_device_ids))
     FREE_COUNT=$(echo "${GPU_INFO[@]}" | wc -w)
     echo "当前空闲 GPU 数量：$FREE_COUNT, 索引: ${GPU_INFO[@]}"
     if [ "$FREE_COUNT" -ge "$TARGET_FREE_GPUS" ]; then
