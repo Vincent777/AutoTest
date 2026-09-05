@@ -295,6 +295,25 @@ done
 ASCEND_RT_VISIBLE_DEVICES=$(echo "${GPU_INFO[@]}" | sed -E 's/\s+/\,/g')
 echo "ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES"
 
+# HCCL 网卡：优先环境变量；否则按 LOCAL_IP 反查（禁止 lo；空 LOCAL_IP 时 awk 会误匹配 lo）
+if [ -z "${HCCL_SOCKET_IFNAME:-}" ]; then
+    HCCL_SOCKET_IFNAME=$(ip -o -4 addr show 2>/dev/null | awk -v ip="$LOCAL_IP" '
+        $0 ~ ("inet " ip "/") {
+            if ($2 != "lo" && $2 !~ /^docker/ && $2 !~ /^veth/ && $2 !~ /^br-/) {
+                print $2; exit
+            }
+        }')
+fi
+if [ -z "${HCCL_SOCKET_IFNAME:-}" ] || [ "${HCCL_SOCKET_IFNAME}" = "lo" ]; then
+    HCCL_SOCKET_IFNAME=$(ip -br link 2>/dev/null | awk '
+        $1 !~ /^(lo|docker|veth|br-|virbr)/ && $2 ~ /UP/ {print $1; exit}')
+fi
+if [ -z "${HCCL_SOCKET_IFNAME:-}" ] || [ "${HCCL_SOCKET_IFNAME}" = "lo" ]; then
+    echo "ERROR: cannot resolve HCCL_SOCKET_IFNAME; set it explicitly (ip -br link / ip -br addr)"
+    exit 1
+fi
+echo "HCCL_SOCKET_IFNAME=$HCCL_SOCKET_IFNAME"
+
 LOG_NAME="server_log_<<<TEST_TYPE>>>_$(date +'%Y%m%d_%H%M%S').log"
 
 MASTER_IP=`echo $SERVER_LIST | tr '_' '\n' | head -n 1`
@@ -423,9 +442,14 @@ EXEC_COMMAND="docker run --name=vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_
   -v /data:/data \
   -v /home/weight:/home/weight \
   -v /home/s_limingge:/home/s_limingge \
-  -e HCCL_SOCKET_IFNAME=enp67s0f0 \
+  -e HCCL_SOCKET_IFNAME=${HCCL_SOCKET_IFNAME} \
   -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES  \
   quay.io/ascend/vllm-ascend:$LATEST_TAG"
+
+# 部分 vllm-ascend 镜像缺 triton，会导致 torch_npu 加载失败；容器内启动前按需安装
+# （显式走 pypi.org，避免镜像内置的集群内网 pypi cache 不可达）
+# 注意: 重定向与 & 必须在 bash -c 之外（挂在 docker run 上），否则 bash 退出容器会 Exit
+VLLM_TRITON_BOOTSTRAP="python3 -c 'import triton' 2>/dev/null || pip3 install -q triton -i https://pypi.org/simple"
 
 <<<generated source code>>>
 

@@ -71,9 +71,10 @@ def main():
         src_code += result
         src_code += " $PD_EXTRA_ARGS\"\n"
         
-        src_code += "    EXEC_COMMAND+=\" vllm serve "
+        # 容器内先按需安装 triton，再 exec vllm（& 必须在 docker run 外侧，否则 bash -c 退出导致容器 Exit）
+        src_code += "    EXEC_COMMAND+=\" bash -c \\\"${VLLM_TRITON_BOOTSTRAP}; exec vllm serve "
         src_code += result
-        src_code += " $PD_EXTRA_ARGS > $LOG_NAME 2>&1 &\"\n"
+        src_code += " $PD_EXTRA_ARGS\\\" > $LOG_NAME 2>&1 &\"\n"
         
     src_code += "fi\n"
 
