@@ -1,0 +1,67 @@
+*************开始执行Stability测试任务，日期时间:20260908_155557***************
+测试模型列表: MiniMax-M2.5-w8a8-QuaRot:8
+推理引擎版本: v0.5.10-npu.rc1-910b
+开始测试模型: MiniMax-M2.5-w8a8-QuaRot, 启动选项: --schedule-policy DynamicSplitFuseV2
+尝试同时在10.9.1.94服务器上面启动测试......
+启动第0台服务器: 10.9.1.94......
+LOCAL_IP=10.0.0.4 SERVER_NAME=10_0_0_4
+The specified version : v0.5.10-npu.rc1-910b -> image tag : v0.5.10-npu.rc1-910b
+docker pull quay.io/ascend/sglang:v0.5.10-npu.rc1-910b (attempt 1/5)
+v0.5.10-npu.rc1-910b: Pulling from ascend/sglang
+Digest: sha256:e277919948606f508defa4070a9b33940492c010fc359806fe79cbda807331b1
+Status: Image is up to date for quay.io/ascend/sglang:v0.5.10-npu.rc1-910b
+docker pull succeeded: quay.io/ascend/sglang:v0.5.10-npu.rc1-910b
+开始扫描 GPU, 目标: 寻找 8 张空闲 GPU...
+当前空闲 GPU 数量：8, 索引: 0 1 2 3 4 5 6 7
+发现 8 张空闲 GPU, 索引: 0 1 2 3 4 5 6 7
+尝试锁定其中 8 张 GPU
+成功锁定 8 张 GPU, 索引：0 1 2 3 4 5 6 7
+ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+HCCL_SOCKET_IFNAME=enp67s0f0
+python3 -m sglang.launch_server --model-path /home/weight/MiniMax-M2.5-w8a8-QuaRot --served-model-name MiniMax-M2.5-w8a8-QuaRot --port 20000 --tp-size 8 --host 0.0.0.0 --attention-backend ascend --device npu --trust-remote-code --mem-fraction-static 0.85 --tool-call-parser minimax-m2 --reasoning-parser minimax-append-think --quantization modelslim --disable-radix-cache 
+docker run --name=sglang_ascend_StabilityTest_000000_0   --network host   --ipc=host   --privileged   --shm-size=10995116277   --workdir /workspace   -v /dev/davinci0:/dev/davinci0   -v /dev/davinci1:/dev/davinci1   -v /dev/davinci2:/dev/davinci2   -v /dev/davinci3:/dev/davinci3   -v /dev/davinci4:/dev/davinci4   -v /dev/davinci5:/dev/davinci5   -v /dev/davinci6:/dev/davinci6   -v /dev/davinci7:/dev/davinci7   --device /dev/davinci_manager:/dev/davinci_manager   --device /dev/devmm_svm:/dev/devmm_svm   --device /dev/hisi_hdc:/dev/hisi_hdc   -v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/   -v /usr/local/Ascend/driver/include:/usr/local/Ascend/driver/include   -v /usr/local/Ascend/driver/tools:/usr/local/Ascend/driver/tools    -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info   -v /etc/ascend_install.info:/etc/ascend_install.info   -v /usr/local/dcmi:/usr/local/dcmi   -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi   -v /usr/bin/hccn_tool:/usr/bin/hccn_tool   -v /root/.cache:/root/.cache   -v /data:/data   -v /home/weight:/home/weight   -v /home/s_limingge:/home/s_limingge   -e HCCL_SOCKET_IFNAME=enp67s0f0   -e ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7   -e PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src      quay.io/ascend/sglang:v0.5.10-npu.rc1-910b  python3 -m sglang.launch_server --model-path /home/weight/MiniMax-M2.5-w8a8-QuaRot --served-model-name MiniMax-M2.5-w8a8-QuaRot --port 20000 --tp-size 8 --host 0.0.0.0 --attention-backend ascend --device npu --trust-remote-code --mem-fraction-static 0.85 --tool-call-parser minimax-m2 --reasoning-parser minimax-append-think --quantization modelslim --disable-radix-cache --disable-radix-cache   > server_log_StabilityTest_20260908_155606.log 2>&1 &
+[2026-09-08 08:00:31] INFO:     Application startup complete.
+>>> Detected master/PD service startup completion!
+正常退出（退出码: 0），保留NPU锁
+任务启动结束，服务器：10.9.1.94 (PID=3995845)
+>>> Syncing Prometheus scrape targets (job_id=StabilityTest_MiniMax-M2.5-w8a8-QuaRot_000000_0)...
+Sync Prometheus scrape config from /home/s_limingge/.npu_locks/server_config.txt (job_id=StabilityTest_MiniMax-M2.5-w8a8-QuaRot_000000_0)
+  output=/home/s_limingge/ci_autotest/llm_perf_dashboard/prometheus_grafana/vllm/prometheus.yaml
+  wait_timeout=180s
+job=sglang targets=1
+Wrote /home/s_limingge/ci_autotest/llm_perf_dashboard/prometheus_grafana/vllm/prometheus.yaml
+Reloading Prometheus: http://127.0.0.1:9090/-/reload
+Prometheus reload OK
+开始执行模型Stability测试任务......
+按任意键结束......
+Terminated
+
+收到中断信号，正在向所有远程进程发送中断信号...
+
+==========================================
+sglang_ascend_test.sh 退出，开始清理资源...
+==========================================
+正在释放 NPU 锁...
+NPU 锁释放完成
+已清理 server_config 中 job_id=StabilityTest_MiniMax-M2.5-w8a8-QuaRot_000000_0 的全部行（含 proxy）
+Server Config文件锁释放完成
+sglang_ascend_StabilityTest_000000_0
+sglang_ascend_StabilityTest_000000_0
+==========================================
+资源清理完成
+==========================================
+进程被中断，退出...
+
+==========================================
+sglang_ascend_test.sh 退出，开始清理资源...
+==========================================
+正在释放 NPU 锁...
+NPU 锁释放完成
+已清理 server_config 中 job_id=StabilityTest_MiniMax-M2.5-w8a8-QuaRot_000000_0 的全部行（含 proxy）
+Server Config文件锁释放完成
+Error response from daemon: No such container: sglang_ascend_StabilityTest_000000_0
+Error: No such container: sglang_ascend_StabilityTest_000000_0
+==========================================
+资源清理完成
+==========================================
+进程被中断，退出...

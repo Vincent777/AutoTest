@@ -786,7 +786,8 @@ for option in "${schedule_policies[@]}"; do
                         benchmark_cmd="vllm bench serve"
                     elif [ $ENGINE_TYPE == "SGLang" ]; then
                         engine_type="sglang"
-                        benchmark_cmd="python3 -m sglang.benchmark.serving"
+                        # benchmark_cmd="python3 -m sglang.benchmark.serving"
+                        benchmark_cmd="python3 -m sglang.bench_serving"
                     fi
                     
                     # 压测在引擎容器内执行：非 PD 用无后缀名；PD 用 _p0（含 bench 工具）
@@ -846,8 +847,8 @@ for option in "${schedule_policies[@]}"; do
                                         prompts=\\\$((concurrency * ${multiplier}))
                                         echo \\\"Testing concurrency=\\\$concurrency, prompts=\\\$prompts\\\"
                                         if [ ${engine_type} == \\\"sglang\\\" ]; then
-                                            echo \\\"python3 -m sglang.benchmark.serving --backend sglang --host ${local_master_ip} --port ${server_port} --model ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len \\\$input_len --random-output-len \\\$output_len --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency\\\"
-                                            python3 -m sglang.benchmark.serving \
+                                            echo \\\"${benchmark_cmd} --backend sglang --host ${local_master_ip} --port ${server_port} --model ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len \\\$input_len --random-output-len \\\$output_len --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency\\\"
+                                            ${benchmark_cmd} \
                                             --backend sglang \
                                             --host ${local_master_ip} \
                                             --port ${server_port} \
