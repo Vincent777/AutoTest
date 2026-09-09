@@ -5,11 +5,11 @@ global:
   scrape_interval: '5s'
   evaluation_interval: '30s'
 scrape_configs:
-- job_name: siginfer
+- job_name: sglang
   metrics_path: /metrics
   static_configs:
   - targets:
-    - '10.0.0.3:20000'
+    - '10.0.0.4:20000'
     labels:
-      engine: siginfer
+      engine: sglang
       instance_id: n0
