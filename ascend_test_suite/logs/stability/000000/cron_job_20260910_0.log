@@ -1,0 +1,67 @@
+*************开始执行Stability测试任务，日期时间:20260910_210051***************
+测试模型列表: MiniMax-M2.5-eagle3-sgl:8
+推理引擎版本: cann9.0.0-910b-v0.5.16
+开始测试模型: MiniMax-M2.5-eagle3-sgl, 启动选项: --schedule-policy DynamicSplitFuseV2
+尝试同时在10.9.1.94服务器上面启动测试......
+启动第0台服务器: 10.9.1.94......
+LOCAL_IP=10.0.0.4 SERVER_NAME=10_0_0_4
+The specified version : cann9.0.0-910b-v0.5.16 -> image tag : cann9.0.0-910b-v0.5.16
+docker pull quay.io/ascend/sglang:cann9.0.0-910b-v0.5.16 (attempt 1/5)
+cann9.0.0-910b-v0.5.16: Pulling from ascend/sglang
+Digest: sha256:75ecbcc563a9a5d5ea514064827272d3ed82de1d28f596c621dd34fb255fd5e2
+Status: Image is up to date for quay.io/ascend/sglang:cann9.0.0-910b-v0.5.16
+docker pull succeeded: quay.io/ascend/sglang:cann9.0.0-910b-v0.5.16
+开始扫描 GPU, 目标: 寻找 8 张空闲 GPU...
+当前空闲 GPU 数量：8, 索引: 0 1 2 3 4 5 6 7
+发现 8 张空闲 GPU, 索引: 0 1 2 3 4 5 6 7
+尝试锁定其中 8 张 GPU
+成功锁定 8 张 GPU, 索引：0 1 2 3 4 5 6 7
+ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+HCCL_SOCKET_IFNAME=enp67s0f0
+bash -lc "set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=20000 bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh"
+docker run --name=sglang_ascend_StabilityTest_000000_0   --network host   --ipc=host   --privileged   --shm-size=10995116277   --workdir /workspace   -v /dev/davinci0:/dev/davinci0   -v /dev/davinci1:/dev/davinci1   -v /dev/davinci2:/dev/davinci2   -v /dev/davinci3:/dev/davinci3   -v /dev/davinci4:/dev/davinci4   -v /dev/davinci5:/dev/davinci5   -v /dev/davinci6:/dev/davinci6   -v /dev/davinci7:/dev/davinci7   --device /dev/davinci_manager:/dev/davinci_manager   --device /dev/devmm_svm:/dev/devmm_svm   --device /dev/hisi_hdc:/dev/hisi_hdc   -v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/   -v /usr/local/Ascend/driver/include:/usr/local/Ascend/driver/include   -v /usr/local/Ascend/driver/tools:/usr/local/Ascend/driver/tools    -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info   -v /etc/ascend_install.info:/etc/ascend_install.info   -v /usr/local/dcmi:/usr/local/dcmi   -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi   -v /usr/bin/hccn_tool:/usr/bin/hccn_tool   -v /root/.cache:/root/.cache   -v /data:/data   -v /home/weight:/home/weight   -v /home/s_limingge:/home/s_limingge   -e HCCL_SOCKET_IFNAME=enp67s0f0   -e ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7   -e PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src      quay.io/ascend/sglang:cann9.0.0-910b-v0.5.16 bash -lc "set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=20000 bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh" > server_log_StabilityTest_20260910_210100.log 2>&1 &
+[2026-09-10 13:13:38] INFO:     Application startup complete.
+>>> Detected master/PD service startup completion!
+正常退出（退出码: 0），保留NPU锁
+任务启动结束，服务器：10.9.1.94 (PID=1057436)
+>>> Syncing Prometheus scrape targets (job_id=StabilityTest_MiniMax-M2.5-eagle3-sgl_000000_0)...
+Sync Prometheus scrape config from /home/s_limingge/.npu_locks/server_config.txt (job_id=StabilityTest_MiniMax-M2.5-eagle3-sgl_000000_0)
+  output=/home/s_limingge/ci_autotest/llm_perf_dashboard/prometheus_grafana/vllm/prometheus.yaml
+  wait_timeout=180s
+job=sglang targets=1
+Wrote /home/s_limingge/ci_autotest/llm_perf_dashboard/prometheus_grafana/vllm/prometheus.yaml
+Reloading Prometheus: http://127.0.0.1:9090/-/reload
+Prometheus reload OK
+开始执行模型Stability测试任务......
+按任意键结束......
+Terminated
+
+收到中断信号，正在向所有远程进程发送中断信号...
+
+==========================================
+sglang_ascend_test.sh 退出，开始清理资源...
+==========================================
+正在释放 NPU 锁...
+NPU 锁释放完成
+已清理 server_config 中 job_id=StabilityTest_MiniMax-M2.5-eagle3-sgl_000000_0 的全部行（含 proxy）
+Server Config文件锁释放完成
+sglang_ascend_StabilityTest_000000_0
+sglang_ascend_StabilityTest_000000_0
+==========================================
+资源清理完成
+==========================================
+进程被中断，退出...
+
+==========================================
+sglang_ascend_test.sh 退出，开始清理资源...
+==========================================
+正在释放 NPU 锁...
+NPU 锁释放完成
+已清理 server_config 中 job_id=StabilityTest_MiniMax-M2.5-eagle3-sgl_000000_0 的全部行（含 proxy）
+Server Config文件锁释放完成
+Error response from daemon: No such container: sglang_ascend_StabilityTest_000000_0
+Error: No such container: sglang_ascend_StabilityTest_000000_0
+==========================================
+资源清理完成
+==========================================
+进程被中断，退出...

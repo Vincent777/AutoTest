@@ -58,10 +58,16 @@ def normalize_sglang_args(name: str, args: str) -> str:
     args = (args or "").split("\n")[0]
     result = strip_docker_prefix(args)
 
-    # DSV4 Pagoda / sglang-universal-plugin: keep run_dsv4_*.sh, do not rewrite to launch_server.
+    # Pagoda / sglang-universal-plugin: keep run_dsv4_*.sh / run_minimax_*.sh, do not rewrite to launch_server.
     # 禁止在容器内用 setsid：setsid 会 fork 后父进程退出，Docker 把 PID1 结束当成容器退出 (Exited 0)。
+    plugin_script = None
     if re.search(r"run_dsv4", args, re.I):
-        m = re.search(r"((?:setsid\s+)?bash\s+\S*run_dsv4\S*)", result, re.I)
+        plugin_script = "run_dsv4"
+    elif re.search(r"run_minimax", args, re.I):
+        plugin_script = "run_minimax"
+
+    if plugin_script:
+        m = re.search(rf"((?:setsid\s+)?bash\s+\S*{plugin_script}\S*)", result, re.I)
         if m:
             result = m.group(1).strip()
         result = re.sub(r"^setsid\s+", "", result, flags=re.I)
@@ -69,21 +75,33 @@ def normalize_sglang_args(name: str, args: str) -> str:
             result = f"bash {result}"
         # CI mounts host /home/s_limingge; prefer absolute script path
         result = re.sub(
-            r"(bash\s+)(?!/)(\S*run_dsv4\S*)",
+            rf"(bash\s+)(?!/)(\S*{plugin_script}\S*)",
             r"\1/home/s_limingge/sglang-universal-plugin/\2",
             result,
             flags=re.I,
         )
-        # drop excel-only flags / leftover args; port is positional $PORT
-        result = re.sub(r"--tp-size\s+\d+", "", result)
+        tp_match = re.search(r"--tp-size\s+(\d+)", args)
+        # run_minimax_tuned 接收 --tp-size；eagle3 仅用 Excel 里的 --tp-size 供 CI 解析卡数
+        tp_arg = ""
+        if tp_match and plugin_script == "run_minimax" and re.search(r"run_minimax_tuned", args, re.I):
+            tp_arg = f" --tp-size {tp_match.group(1)}"
+        draft_match = re.search(r"DRAFT_PATH=(\S+)", args)
+        draft_arg = f"DRAFT_PATH={draft_match.group(1)} " if draft_match else ""
+        # drop leftover flags; DSV4 port is positional $PORT, MiniMax uses PORT=$PORT env
+        if plugin_script == "run_dsv4":
+            result = re.sub(r"--tp-size\s+\d+", "", result)
         result = re.sub(r"--port\s+\S+", "", result)
         result = re.sub(r"\s+\d+\s*$", "", result)
         # strip anything after the script path
-        result = re.sub(r"(bash\s+\S*run_dsv4\S*).*", r"\1", result, flags=re.I)
+        result = re.sub(rf"(bash\s+\S*{plugin_script}\S*).*", r"\1", result, flags=re.I)
         script = result.strip()
         # entry_points 需 pip install -e；同时强制 PYTHONPATH，避免 editable 元数据在却 import 失败
         # 注意：result 会嵌入 EXEC_COMMAND+="..."，故 bash -lc 外层用 \"，内层 python -c 用单引号
         plugin_root = "/home/s_limingge/sglang-universal-plugin"
+        if plugin_script == "run_minimax":
+            launch = f"{draft_arg}PORT=$PORT {script}{tp_arg}"
+        else:
+            launch = f"{script} $PORT"
         result = (
             "bash -lc "
             "\\"
@@ -93,7 +111,7 @@ def normalize_sglang_args(name: str, args: str) -> str:
             f"export PYTHONPATH={plugin_root}/src; "
             f"pip install -e . --no-deps; "
             f"python3 -c 'import sglang_universal_plugin'; "
-            f"{script} $PORT"
+            f"{launch}"
             "\\"
             '"'
         )
@@ -192,8 +210,8 @@ def main():
             start = False
         else:
             src_code += f'elif [ $MODEL == "{name}" ]; then\n'
-        # run_dsv4 脚本只吃位置参数端口，不要追加 launch_server 专用 flag
-        if re.search(r"run_dsv4", result, re.I):
+        # plugin 启动脚本（run_dsv4 / run_minimax）不要追加 launch_server 专用 flag
+        if re.search(r"run_dsv4|run_minimax", result, re.I):
             src_code += f'    echo "{result}"\n'
             src_code += (
                 f'    EXEC_COMMAND+=" {result} > $LOG_NAME 2>&1 &"\n'

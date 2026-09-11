@@ -33,12 +33,12 @@ if __name__ == "__main__":
 
     if args.test_type == "Performance":
         cmd = ["bash", api_server_script, "Performance", "SGLang",
-               "MiniMax-M2.5-w8a8-QuaRot", "000000", "Random", "v0.5.10-npu.rc1-910b"]
+               "MiniMax-M2.5-eagle3-sgl", "000000", "Random", "cann9.0.0-910b-v0.5.16"]
     else:
         # Service -> Stability
         # QuaRot 需 v0.5.10-npu.rc1（保留 --quantization modelslim）；v0.5.9 会 modelslim scheme=None
         cmd = ["bash", api_server_script, "Stability", "SGLang",
-               "MiniMax-M2.5-w8a8-QuaRot", "000000", "v0.5.10-npu.rc1-910b"]
+               "MiniMax-M2.5-eagle3-sgl", "000000", "cann9.0.0-910b-v0.5.16"]
     master_process = start_process(cmd)
 
     # Handle Ctrl+C, ensure all processes are terminated
