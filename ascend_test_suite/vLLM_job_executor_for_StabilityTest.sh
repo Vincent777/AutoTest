@@ -19,8 +19,8 @@ SESSION_ID=$9
 VERSION=${10}
 
 # 生成唯一的任务ID
-TASK_ID="PerformanceTest_${MODEL}_${JOB_COUNT}"
-JOB_ID="PerformanceTest_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
+TASK_ID="StabilityTest_${MODEL}_${JOB_COUNT}"
+JOB_ID="StabilityTest_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
 LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "10.0.0" | head -n 1)
 SERVER_NAME=$(echo $LOCAL_IP | sed 's/\./_/g')
 
@@ -227,10 +227,10 @@ docker_pull_with_retry() {
 # 默认官方 vllm-ascend；Excel 指定的自定义镜像（如 sd-vllm-ascend）可在下方生成代码中覆盖
 VLLM_DOCKER_IMAGE="quay.io/ascend/vllm-ascend:$LATEST_TAG"
 
-ret=`docker ps -a | grep vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
+ret=`docker ps -a | grep vllm_ascend_StabilityTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
 if [ $? -eq 0 ]; then
-    docker stop vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
-    docker rm vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
+    docker stop vllm_ascend_StabilityTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
+    docker rm vllm_ascend_StabilityTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}
 fi
 
 # Slave节点需要等待Master节点的HTTP Server启动完成......
@@ -315,7 +315,7 @@ if [ -z "${HCCL_SOCKET_IFNAME:-}" ] || [ "${HCCL_SOCKET_IFNAME}" = "lo" ]; then
 fi
 echo "HCCL_SOCKET_IFNAME=$HCCL_SOCKET_IFNAME"
 
-LOG_NAME="server_log_PerformanceTest_$(date +'%Y%m%d_%H%M%S').log"
+LOG_NAME="server_log_StabilityTest_$(date +'%Y%m%d_%H%M%S').log"
 
 MASTER_IP=`echo $SERVER_LIST | tr '_' '\n' | head -n 1`
 
@@ -412,7 +412,7 @@ else    # Slave节点同步到master节点的端口配置
     done
 fi
 
-EXEC_COMMAND="docker run --name=vllm_ascend_PerformanceTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX} \
+EXEC_COMMAND="docker run --name=vllm_ascend_StabilityTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX} \
   --network host \
   --ipc=host \
   --privileged \
@@ -478,8 +478,8 @@ elif [ $MODEL == "Qwen3.6-27B" ]; then
     EXEC_COMMAND+=" bash -c \"env PORT=$PORT /home/s_limingge/start_qwen3.6-27b.sh -tp 4\" > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "dsv4-dspark" ]; then
     VLLM_DOCKER_IMAGE="sd-vllm-ascend:v0.26.0rc1-pub"
-    echo "sed -i 's/--port 8023/--port $PORT/' /workspace/cmd/serve.sh; sed -i 's/--block-size 64/--block-size 128/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8"
-    EXEC_COMMAND+=" bash -c \"sed -i 's/--port 8023/--port $PORT/' /workspace/cmd/serve.sh; sed -i 's/--block-size 64/--block-size 128/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8\" > $LOG_NAME 2>&1 &"
+    echo "sed -i 's/--port 8023/--port $PORT/' /workspace/cmd/serve.sh; sed -i 's/--block-size 128/--block-size 64/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8"
+    EXEC_COMMAND+=" bash -c \"sed -i 's/--port 8023/--port $PORT/' /workspace/cmd/serve.sh; sed -i 's/--block-size 128/--block-size 64/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8\" > $LOG_NAME 2>&1 &"
 fi
 
 # 生成代码可能已按模型覆盖 VLLM_DOCKER_IMAGE；拉取失败时若本地已有镜像则继续

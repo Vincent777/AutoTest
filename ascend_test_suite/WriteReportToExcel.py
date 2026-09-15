@@ -75,10 +75,10 @@ def main():
         if test_type == "Random":
             # 匹配 input 和 output
             input_output_match = re.search(
-                r"Random Testing input=(\d+), output=(\d+)", section)
+                r"Random Testing input=(\w+), output=(\w+)", section)
             if input_output_match:
-                current_config["input"] = int(input_output_match.group(1))
-                current_config["output"] = int(input_output_match.group(2))
+                current_config["input"] = input_output_match.group(1)
+                current_config["output"] = input_output_match.group(2)
                 in_out_length_key = f"{current_config['input']}+{current_config['output']}"
                 context_lengths.append(in_out_length_key)
                 # print(section)

@@ -801,18 +801,28 @@ for option in "${schedule_policies[@]}"; do
 
                     # 开始执行测试
                     if [ $TEST_PARAM == "Random" ]; then
-                        multiplier=4
-                        concurrency_list=(1 5 10 20 50 100 150 200)
+                        # multiplier=4
+                        # concurrency_list=(1 5 10 20 50 100 150 200)
+                        # concurrency_list=(1 5 10 20 50 100)
+                        # length_pairs=(
+                        #     "128:128"
+                        #     "128:1024"
+                        #     "128:2048"
+                        #     "1024:1024"
+                        #     "2048:2048"
+                        #     "4096:1024"
+                        #     "1024:4096"
+                        #     "30000:2048"
+                        #     "126000:2048"
+                        #)
+                        multiplier=1
+                        concurrency_list=(8 12 16)
                         length_pairs=(
-                            "128:128"
-                            "128:1024"
-                            "128:2048"
-                            "1024:1024"
-                            "2048:2048"
-                            "4096:1024"
-                            "1024:4096"
-                            # "30000:2048"
-                            # "126000:2048"
+                            "16K:1K"
+                            "32K:1K"
+                            "64K:1K"
+                            "100K:1K"
+                            "150K:1K"
                         )
                         # Random
                         ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${bench_host} "
@@ -836,17 +846,20 @@ for option in "${schedule_policies[@]}"; do
 
                                     for concurrency in ${concurrency_list[@]}; do
                                         # Avoid obvious over-context random cases that only generate warnings/noisy logs.
-                                        if [ ${engine_type} == \\\"sglang\\\" ] && [ \\\$input_len -gt 16000 ]; then
-                                            echo \\\"Skip input_len=\\\$input_len for sglang random (over safe context budget)\\\"
-                                            break
-                                        fi
-                                        if [ \\\$input_len -ge 30000 ] && [ \\\$concurrency -gt 5 ]; then
-                                            break
+                                        # input_len 可能是 16K/32K/64K 这类非纯数字，需先判断再做整数比较
+                                        if [[ \\\$input_len =~ ^[0-9]+\$ ]]; then
+                                            if [ ${engine_type} == \\\"sglang\\\" ] && [ \\\$input_len -gt 16000 ]; then
+                                                echo \\\"Skip input_len=\\\$input_len for sglang random (over safe context budget)\\\"
+                                                break
+                                            fi
+                                            if [ \\\$input_len -ge 30000 ] && [ \\\$concurrency -gt 5 ]; then
+                                                break
+                                            fi
                                         fi
                                         
-                                        prompts=\\\$((concurrency * ${multiplier}))
-                                        echo \\\"Testing concurrency=\\\$concurrency, prompts=\\\$prompts\\\"
                                         if [ ${engine_type} == \\\"sglang\\\" ]; then
+                                            prompts=\\\$((concurrency * ${multiplier}))
+                                            echo \\\"Testing concurrency=\\\$concurrency, prompts=\\\$prompts\\\"
                                             echo \\\"${benchmark_cmd} --backend sglang --host ${local_master_ip} --port ${server_port} --model ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --tokenizer ${data_path}/$(echo $model | sed -E 's/-v[0-9]+$//')/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len \\\$input_len --random-output-len \\\$output_len --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency\\\"
                                             ${benchmark_cmd} \
                                             --backend sglang \
@@ -861,7 +874,22 @@ for option in "${schedule_policies[@]}"; do
                                             --num-prompts \\\$prompts \
                                             --request-rate inf \
                                             --max-concurrency \\\$concurrency
+                                        elif [ ${engine_type} == \\\"vllm\\\" ] && [ ${version} == \\\"v0.26.0rc1-pub\\\" ]; then
+                                            echo \\\"Testing concurrency=\\\$concurrency, prompts=64\\\"
+                                            declare -A bench_param_list=(
+                                                [\\\"16K\\\"]=\\\"PREFIX_LEN=13952 SUFFIX_LEN=2432 BENCH_NUM_PROMPTS=64\\\"
+                                                [\\\"32K\\\"]=\\\"PREFIX_LEN=27904 SUFFIX_LEN=4864 BENCH_NUM_PROMPTS=64\\\"
+                                                [\\\"64K\\\"]=\\\"PREFIX_LEN=55680 SUFFIX_LEN=9856 BENCH_NUM_PROMPTS=64\\\"
+                                                [\\\"100K\\\"]=\\\"PREFIX_LEN=87040 SUFFIX_LEN=15360 BENCH_NUM_PROMPTS=64\\\"
+                                                [\\\"150K\\\"]=\\\"PREFIX_LEN=130560 SUFFIX_LEN=23040 BENCH_NUM_PROMPTS=64\\\"
+                                            )
+                                            sed -i 's/--base-url http:\\\\/\\\\/localhost:8023/--base-url http:\\\\/\\\\/localhost:${server_port}/' /workspace/cmd/bench-vllm-prefix.sh
+                                            # 变量展开出的 PREFIX_LEN=... 不会被当作赋值前缀，需 eval
+                                            echo \\\"\\\${bench_param_list[\\\${input_len}]} /workspace/cmd/bench-vllm-prefix.sh \\\$input_len \\\$concurrency\\\"
+                                            eval \\\"\\\${bench_param_list[\\\${input_len}]} /workspace/cmd/bench-vllm-prefix.sh \\\$input_len \\\$concurrency\\\"
                                         else
+                                            prompts=\\\$((concurrency * ${multiplier}))
+                                            echo \\\"Testing concurrency=\\\$concurrency, prompts=\\\$prompts\\\"
                                             echo \\\"${benchmark_cmd} --backend openai --port ${server_port} --host ${local_master_ip} --model ${model} --tokenizer ${data_path}/${model}/ --endpoint /v1/completions --dataset-name random --random-input-len \\\$input_len --random-output-len \\\$output_len --num-prompts \\\$prompts --request-rate inf --max-concurrency \\\$concurrency --ignore-eos\\\"
                                             ${benchmark_cmd} \
                                             --backend openai \

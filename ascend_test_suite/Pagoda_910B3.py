@@ -1,5 +1,6 @@
 import argparse
 import multiprocessing
+import shutil
 import subprocess
 import time
 import sys
@@ -16,6 +17,17 @@ def start_process(command, env_vars=None):
         env.update(env_vars)  # 添加额外的环境变量
     return subprocess.Popen(command, env=env, start_new_session=True)
 
+
+def copy_model_list(base_dir: str, engine: str, version: str) -> None:
+    """Copy {engine}_model_list.xlsx from ./latest to ./<version>."""
+    src = os.path.join(base_dir, "latest", f"{engine}_model_list.xlsx")
+    dst_dir = os.path.join(base_dir, version)
+    os.makedirs(dst_dir, exist_ok=True)
+    dst = os.path.join(dst_dir, f"{engine}_model_list.xlsx")
+    shutil.copy2(src, dst)
+    print(f"Copied {src} -> {dst}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pagoda launcher for ascend_resource_monitor")
     parser.add_argument(
@@ -30,14 +42,17 @@ if __name__ == "__main__":
     api_server_script = os.path.join(f"{file_path}", "ascend_resource_monitor.sh")
     multiprocessing.set_start_method("spawn")
     master_process = None
+    engine = "SigInfer"
+    version = "main-b1a01d5e"
+    copy_model_list(file_path, engine, version)
 
     if args.test_type == "Performance":
-        cmd = ["bash", api_server_script, "Performance", "SigInfer",
-               "Qwen3-235B-A22B", "000000", "Random", "main-b1a01d5e"]
+        cmd = ["bash", api_server_script, "Performance", engine,
+               "Qwen3-235B-A22B", "000000", "Random", version]
     else:
         # Service -> Stability
-        cmd = ["bash", api_server_script, "Stability", "SigInfer",
-               "Qwen3-235B-A22B", "000000", "main-b1a01d5e"]
+        cmd = ["bash", api_server_script, "Stability", engine,
+               "Qwen3-235B-A22B", "000000", version]
     master_process = start_process(cmd)
 
     # Handle Ctrl+C, ensure all processes are terminated

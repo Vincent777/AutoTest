@@ -200,7 +200,7 @@ fi
 # quay.io 等外网 registry 偶发 TLS timeout，拉取失败时重试
 docker_pull_with_retry() {
     local image="$1"
-    local max_retries="${DOCKER_PULL_MAX_RETRIES:-5}"
+    local max_retries="${DOCKER_PULL_MAX_RETRIES:-1}"
     local delay="${DOCKER_PULL_RETRY_DELAY:-30}"
     local attempt=1
     while [ "$attempt" -le "$max_retries" ]; do
@@ -224,7 +224,8 @@ docker_pull_with_retry() {
     return 1
 }
 
-docker_pull_with_retry "quay.io/ascend/vllm-ascend:$LATEST_TAG" || exit 1
+# 默认官方 vllm-ascend；Excel 指定的自定义镜像（如 sd-vllm-ascend）可在下方生成代码中覆盖
+VLLM_DOCKER_IMAGE="quay.io/ascend/vllm-ascend:$LATEST_TAG"
 
 ret=`docker ps -a | grep vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
 if [ $? -eq 0 ]; then
@@ -444,7 +445,7 @@ EXEC_COMMAND="docker run --name=vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_
   -v /home/s_limingge:/home/s_limingge \
   -e HCCL_SOCKET_IFNAME=${HCCL_SOCKET_IFNAME} \
   -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES  \
-  quay.io/ascend/vllm-ascend:$LATEST_TAG"
+  __VLLM_DOCKER_IMAGE__"
 
 # 部分 vllm-ascend 镜像缺 triton，会导致 torch_npu 加载失败；容器内启动前按需安装
 # （显式走 pypi.org，避免镜像内置的集群内网 pypi cache 不可达）
@@ -452,6 +453,20 @@ EXEC_COMMAND="docker run --name=vllm_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_
 VLLM_TRITON_BOOTSTRAP="python3 -c 'import triton' 2>/dev/null || pip3 install -q triton -i https://pypi.org/simple"
 
 <<<generated source code>>>
+
+# 生成代码可能已按模型覆盖 VLLM_DOCKER_IMAGE；拉取失败时若本地已有镜像则继续
+echo "Using vLLM docker image: $VLLM_DOCKER_IMAGE"
+if ! docker_pull_with_retry "$VLLM_DOCKER_IMAGE"; then
+    if docker image inspect "$VLLM_DOCKER_IMAGE" >/dev/null 2>&1; then
+        echo "docker pull failed, fallback to local image: $VLLM_DOCKER_IMAGE"
+    else
+        echo "ERROR: image not available remotely or locally: $VLLM_DOCKER_IMAGE"
+        exit 1
+    fi
+fi
+
+# 将占位符替换为最终镜像名（生成分支可能改过 VLLM_DOCKER_IMAGE）
+EXEC_COMMAND="${EXEC_COMMAND/__VLLM_DOCKER_IMAGE__/${VLLM_DOCKER_IMAGE}}"
 
 echo "$EXEC_COMMAND"
 

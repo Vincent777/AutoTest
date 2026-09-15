@@ -42,17 +42,18 @@ if __name__ == "__main__":
     api_server_script = os.path.join(f"{file_path}", "ascend_resource_monitor.sh")
     multiprocessing.set_start_method("spawn")
     master_process = None
-    engine = "SigInfer"
-    version = "main-b1a01d5e"
+    engine = "vLLM"
+    version = "v0.26.0rc1-pub"
     copy_model_list(file_path, engine, version)
 
     if args.test_type == "Performance":
         cmd = ["bash", api_server_script, "Performance", engine,
-               "DeepSeek-R1-0528", "000000", "Random", version]
+               "dsv4-dspark", "000000", "Random", version]
     else:
         # Service -> Stability
+        # QuaRot 需 v0.5.10-npu.rc1（保留 --quantization modelslim）；v0.5.9 会 modelslim scheme=None
         cmd = ["bash", api_server_script, "Stability", engine,
-               "DeepSeek-R1-0528", "000000", version]
+               "dsv4-dspark", "000000", version]
     master_process = start_process(cmd)
 
     # Handle Ctrl+C, ensure all processes are terminated
