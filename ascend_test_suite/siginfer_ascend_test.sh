@@ -881,7 +881,7 @@ for option in "${schedule_policies[@]}"; do
                                                 [\\\"32K\\\"]=\\\"PREFIX_LEN=27904 SUFFIX_LEN=4864 BENCH_NUM_PROMPTS=64\\\"
                                                 [\\\"64K\\\"]=\\\"PREFIX_LEN=55680 SUFFIX_LEN=9856 BENCH_NUM_PROMPTS=64\\\"
                                                 [\\\"100K\\\"]=\\\"PREFIX_LEN=87040 SUFFIX_LEN=15360 BENCH_NUM_PROMPTS=64\\\"
-                                                [\\\"150K\\\"]=\\\"PREFIX_LEN=130560 SUFFIX_LEN=23040 BENCH_NUM_PROMPTS=64\\\"
+                                                [\\\"128K\\\"]=\\\"PREFIX_LEN=111411 SUFFIX_LEN=19661 BENCH_NUM_PROMPTS=64\\\"
                                             )
                                             sed -i 's/--base-url http:\\\\/\\\\/localhost:8023/--base-url http:\\\\/\\\\/localhost:${server_port}/' /workspace/cmd/bench-vllm-prefix.sh
                                             # 变量展开出的 PREFIX_LEN=... 不会被当作赋值前缀，需 eval
