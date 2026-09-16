@@ -43,17 +43,22 @@ if __name__ == "__main__":
     multiprocessing.set_start_method("spawn")
     master_process = None
     engine = "SGLang"
-    version = "cann9.0.0-910b-v0.5.16"
+    # latest
+    # version = "cann9.0.0-910b-v0.5.16"
+    # model = "MiniMax-M2.5-eagle3-sgl"
+    # baseline
+    version = "v0.5.10-npu.rc1-910b"
+    model = "MiniMax-M2.5-w8a8-QuaRot"
     copy_model_list(file_path, engine, version)
 
     if args.test_type == "Performance":
         cmd = ["bash", api_server_script, "Performance", engine,
-               "MiniMax-M2.5-eagle3-sgl", "000000", "Random", version]
+               model, "111111", "Random", version]
     else:
         # Service -> Stability
         # QuaRot 需 v0.5.10-npu.rc1（保留 --quantization modelslim）；v0.5.9 会 modelslim scheme=None
         cmd = ["bash", api_server_script, "Stability", engine,
-               "MiniMax-M2.5-eagle3-sgl", "000000", version]
+               model, "111111", version]
     master_process = start_process(cmd)
 
     # Handle Ctrl+C, ensure all processes are terminated

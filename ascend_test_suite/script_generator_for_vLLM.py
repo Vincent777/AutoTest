@@ -9,8 +9,10 @@ DEFAULT_VLLM_IMAGE_RE = re.compile(
 )
 
 # Excel 中可能出现的镜像名（含短名 sd-vllm-ascend:tag）
+# 注意：带 registry 的完整路径必须写在短名之前，否则会误匹配路径末尾的短名
 DOCKER_IMAGE_RE = re.compile(
     r"("
+    r"xcoresigma-registry\.cn-beijing\.cr\.aliyuncs\.com/docker/[^\s]+|"
     r"docker\.xcoresigma\.com/docker/[^\s]+|"
     r"quay\.io/ascend/[^\s]+|"
     r"sd-vllm-ascend:[^\s]+|"

@@ -1,105 +1,0 @@
-*************开始执行Performance测试任务，日期时间:20260915_141855***************
-测试模型列表: dsv4-dspark:8
-推理引擎版本: v0.26.0rc1-pub
-开始测试模型: dsv4-dspark, 启动选项: --schedule-policy DynamicSplitFuseV2
-尝试同时在10.9.1.78服务器上面启动测试......
-启动第0台服务器: 10.9.1.78......
-Config file url:
-  /home/s_limingge/.tosutilconfig
-
-Update config file successfully!
-The specified version : v0.26.0rc1-pub
-开始扫描 GPU, 目标: 寻找 8 张空闲 GPU...
-当前空闲 GPU 数量：8, 索引: 0 1 2 3 4 5 6 7
-发现 8 张空闲 GPU, 索引: 0 1 2 3 4 5 6 7
-尝试锁定其中 8 张 GPU
-成功锁定 8 张 GPU, 索引：0 1 2 3 4 5 6 7
-ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
-HCCL_SOCKET_IFNAME=enp67s0f0
-sed -i 's/--port 8023/--port 20000/' /workspace/cmd/serve.sh; sed -i 's/--block-size 64/--block-size 128/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8
-Using vLLM docker image: sd-vllm-ascend:v0.26.0rc1-pub
-docker pull sd-vllm-ascend:v0.26.0rc1-pub (attempt 1/1)
-ERROR: docker pull failed after 1 attempts: sd-vllm-ascend:v0.26.0rc1-pub
-Error response from daemon: Get "https://registry-1.docker.io/v2/": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
-docker pull failed, fallback to local image: sd-vllm-ascend:v0.26.0rc1-pub
-docker run --name=vllm_ascend_PerformanceTest_000000_0   --network host   --ipc=host   --privileged   --shm-size=10995116277   --workdir /workspace   -v /dev/davinci0:/dev/davinci0   -v /dev/davinci1:/dev/davinci1   -v /dev/davinci2:/dev/davinci2   -v /dev/davinci3:/dev/davinci3   -v /dev/davinci4:/dev/davinci4   -v /dev/davinci5:/dev/davinci5   -v /dev/davinci6:/dev/davinci6   -v /dev/davinci7:/dev/davinci7   --device /dev/davinci_manager:/dev/davinci_manager   --device /dev/devmm_svm:/dev/devmm_svm   --device /dev/hisi_hdc:/dev/hisi_hdc   -v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/   -v /usr/local/Ascend/driver/include:/usr/local/Ascend/driver/include	  -v /usr/local/Ascend/driver/tools:/usr/local/Ascend/driver/tools    -v /usr/local/Ascend/driver/tools/hccn_tool:/usr/local/Ascend/driver/tools/hccn_tool   -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info   -v /etc/ascend_install.info:/etc/ascend_install.info   -v /usr/local/dcmi:/usr/local/dcmi   -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi   -v /usr/bin/hccn_tool:/usr/bin/hccn_tool   -v /etc/hccn.conf:/etc/hccn.conf   -v /root/.cache:/root/.cache   -v /data:/data   -v /home/weight:/home/weight   -v /home/s_limingge:/home/s_limingge   -e HCCL_SOCKET_IFNAME=enp67s0f0   -e ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7    sd-vllm-ascend:v0.26.0rc1-pub bash -c "sed -i 's/--port 8023/--port 20000/' /workspace/cmd/serve.sh; sed -i 's/--block-size 64/--block-size 128/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8" > server_log_PerformanceTest_20260915_141901.log 2>&1 &
-(APIServer pid=80) INFO:     Application startup complete.
->>> Detected master/PD service startup completion!
-正常退出（退出码: 0），保留NPU锁
-任务启动结束，服务器：10.9.1.78 (PID=3234775)
->>> Syncing Prometheus scrape targets (job_id=PerformanceTest_dsv4-dspark_000000_0)...
-Sync Prometheus scrape config from /home/s_limingge/.npu_locks/server_config.txt (job_id=PerformanceTest_dsv4-dspark_000000_0)
-  output=/home/s_limingge/ci_autotest/llm_perf_dashboard/prometheus_grafana/vllm/prometheus.yaml
-  wait_timeout=180s
-job=vllm targets=1
-Wrote /home/s_limingge/ci_autotest/llm_perf_dashboard/prometheus_grafana/vllm/prometheus.yaml
-Reloading Prometheus: http://127.0.0.1:9090/-/reload
-Prometheus reload OK
-开始执行模型Performance测试任务......
-2026-09-15 06:30:15,293 - 6862 - ServiceProfiler - INFO - VLLM_USE_V1 not set, auto-detected via vLLM 0.26.0+empty: default 1
-  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:21<00:00, 21.01s/it]100%|██████████| 1/1 [00:21<00:00, 21.01s/it]
-  0%|          | 0/64 [00:00<?, ?it/s]  2%|▏         | 1/64 [00:17<18:43, 17.84s/it]  3%|▎         | 2/64 [00:18<07:50,  7.59s/it]  5%|▍         | 3/64 [00:18<04:15,  4.20s/it]  6%|▋         | 4/64 [00:19<03:03,  3.06s/it]  8%|▊         | 5/64 [00:25<03:53,  3.95s/it] 11%|█         | 7/64 [00:32<03:32,  3.73s/it] 14%|█▍        | 9/64 [00:36<02:49,  3.08s/it] 16%|█▌        | 10/64 [00:38<02:34,  2.85s/it] 17%|█▋        | 11/64 [00:41<02:26,  2.77s/it] 19%|█▉        | 12/64 [00:41<01:53,  2.18s/it] 20%|██        | 13/64 [00:46<02:31,  2.97s/it] 22%|██▏       | 14/64 [00:49<02:30,  3.01s/it] 25%|██▌       | 16/64 [00:54<02:08,  2.69s/it] 27%|██▋       | 17/64 [00:57<02:14,  2.87s/it] 28%|██▊       | 18/64 [00:58<01:42,  2.23s/it] 30%|██▉       | 19/64 [01:02<02:00,  2.68s/it] 31%|███▏      | 20/64 [01:04<01:54,  2.60s/it] 33%|███▎      | 21/64 [01:07<01:54,  2.67s/it] 34%|███▍      | 22/64 [01:09<01:46,  2.53s/it] 36%|███▌      | 23/64 [01:12<01:43,  2.53s/it] 38%|███▊      | 24/64 [01:15<01:54,  2.85s/it] 39%|███▉      | 25/64 [01:19<01:57,  3.02s/it] 41%|████      | 26/64 [01:21<01:48,  2.85s/it] 42%|████▏     | 27/64 [01:24<01:45,  2.86s/it] 44%|████▍     | 28/64 [01:26<01:37,  2.71s/it] 45%|████▌     | 29/64 [01:29<01:38,  2.80s/it] 47%|████▋     | 30/64 [01:30<01:08,  2.00s/it] 48%|████▊     | 31/64 [01:33<01:18,  2.37s/it] 50%|█████     | 32/64 [01:33<00:59,  1.84s/it] 52%|█████▏    | 33/64 [01:38<01:19,  2.55s/it] 53%|█████▎    | 34/64 [01:41<01:25,  2.86s/it] 55%|█████▍    | 35/64 [01:44<01:19,  2.73s/it] 56%|█████▋    | 36/64 [01:47<01:22,  2.95s/it] 58%|█████▊    | 37/64 [01:47<00:57,  2.12s/it] 59%|█████▉    | 38/64 [01:49<00:53,  2.08s/it] 61%|██████    | 39/64 [01:52<00:57,  2.32s/it] 62%|██████▎   | 40/64 [01:56<01:03,  2.66s/it] 64%|██████▍   | 41/64 [01:59<01:07,  2.91s/it] 66%|██████▌   | 42/64 [02:03<01:12,  3.31s/it] 67%|██████▋   | 43/64 [02:04<00:52,  2.50s/it] 69%|██████▉   | 44/64 [02:04<00:38,  1.91s/it] 70%|███████   | 45/64 [02:09<00:51,  2.69s/it] 72%|███████▏  | 46/64 [02:12<00:51,  2.87s/it] 73%|███████▎  | 47/64 [02:13<00:35,  2.09s/it] 75%|███████▌  | 48/64 [02:13<00:24,  1.56s/it] 77%|███████▋  | 49/64 [02:17<00:36,  2.46s/it] 78%|███████▊  | 50/64 [02:21<00:40,  2.92s/it] 80%|███████▉  | 51/64 [02:22<00:27,  2.09s/it] 81%|████████▏ | 52/64 [02:26<00:32,  2.71s/it] 83%|████████▎ | 53/64 [02:29<00:32,  2.92s/it] 84%|████████▍ | 54/64 [02:29<00:20,  2.08s/it] 86%|████████▌ | 55/64 [02:35<00:28,  3.19s/it] 88%|████████▊ | 56/64 [02:37<00:22,  2.82s/it] 89%|████████▉ | 57/64 [02:40<00:19,  2.82s/it] 91%|█████████ | 58/64 [02:41<00:13,  2.29s/it] 92%|█████████▏| 59/64 [02:41<00:08,  1.65s/it] 94%|█████████▍| 60/64 [02:44<00:07,  1.90s/it] 97%|█████████▋| 62/64 [02:48<00:04,  2.06s/it] 98%|█████████▊| 63/64 [02:49<00:01,  1.75s/it]100%|██████████| 64/64 [02:51<00:00,  1.75s/it]100%|██████████| 64/64 [02:51<00:00,  2.67s/it]
-测试完成！
-vllm_ascend_PerformanceTest_000000_0
-vllm_ascend_PerformanceTest_000000_0
-('64K+1K', 8):
-  Successful requests: 64.0
-  Failed requests: 0.0
-  Maximum request concurrency: 8.0
-  Benchmark duration (s): 171.1
-  Total input tokens: 4194305.0
-  Total generated tokens: 65536.0
-  Request throughput (req/s): 0.37
-  Output token throughput (tok/s): 383.02
-  Peak output token throughput (tok/s): 136.0
-  Peak concurrent requests: 10.0
-  Total token throughput (tok/s): 24896.31
-  Mean TTFT (ms): 2820.84
-  Median TTFT (ms): 2196.47
-  P50 TTFT (ms): 2196.47
-  P90 TTFT (ms): 3868.06
-  P95 TTFT (ms): 6077.75
-  P99 TTFT (ms): 8567.59
-  Mean TPOT (ms): 17.4
-  Median TPOT (ms): 15.8
-  P50 TPOT (ms): 15.8
-  P90 TPOT (ms): 27.89
-  P95 TPOT (ms): 28.47
-  P99 TPOT (ms): 29.1
-  Mean ITL (ms): 105.7
-  Median ITL (ms): 65.74
-  P50 ITL (ms): 65.74
-  P90 ITL (ms): 158.07
-  P95 ITL (ms): 480.55
-  P99 ITL (ms): 543.66
-  ): 72.73
-  Acceptance length: 6.09
-  Drafts: 10781.0
-  Draft tokens: 75467.0
-  Accepted tokens: 54887.0
-  Position 0: 93.75
-  Position 1: 91.36
-  Position 2: 90.41
-  Position 3: 65.74
-  Position 4: 64.13
-  Position 5: 54.98
-  Position 6: 48.74
-Excel 文件已生成: ./report_20260915/000000/dsv4-dspark_DynamicSplitFuseV2.xlsx
-基准测试结果已填充到: ./report_20260915/000000/dsv4-dspark_DynamicSplitFuseV2.xlsx
-cp: -r not specified; omitting directory '/home/s_limingge/ci_autotest/ascend_test_suite/report_20260915/000000/16k_32K'
-cp: -r not specified; omitting directory '/home/s_limingge/ci_autotest/ascend_test_suite/report_20260915/000000/64k'
-/home/s_limingge/ci_autotest/ascend_test_suite/siginfer_ascend_test.sh: line 1182: syntax error near unexpected token `done'
-/home/s_limingge/ci_autotest/ascend_test_suite/siginfer_ascend_test.sh: line 1182: `    done'
-
-==========================================
-vllm_ascend_test.sh 退出，开始清理资源...
-==========================================
-正在释放 NPU 锁...
-NPU 锁释放完成
-已清理 server_config 中 job_id=PerformanceTest_dsv4-dspark_000000_0 的全部行（含 proxy）
-Server Config文件锁释放完成
-Error response from daemon: No such container: vllm_ascend_PerformanceTest_000000_0
-Error: No such container: vllm_ascend_PerformanceTest_000000_0
-==========================================
-资源清理完成
-==========================================

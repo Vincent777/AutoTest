@@ -1,0 +1,600 @@
+========================================================
+Random Testing input=64K, output=1K
+========================================================
+Testing concurrency=8, prompts=64
+PREFIX_LEN=55680 SUFFIX_LEN=9856 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 64K 8
+INFO 09-15 14:49:28 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 14:49:28 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 14:49:28 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 14:49:28 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 14:49:28 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 14:49:42 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 14:49:42 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xffff02af3880>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=55680, prefix_repetition_suffix_len=9856, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=8, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=64K', 'prefix_len=55680', 'suffix_len=9856', 'num_warmups=1'], result_dir='', result_filename='input64K_out1k_c8.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-c7d9612a-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 8
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     64        
+Failed requests:                         0         
+Maximum request concurrency:             8         
+Benchmark duration (s):                  172.79    
+Total input tokens:                      4194305   
+Total generated tokens:                  65536     
+Request throughput (req/s):              0.37      
+Output token throughput (tok/s):         379.28    
+Peak output token throughput (tok/s):    128.00    
+Peak concurrent requests:                11.00     
+Total token throughput (tok/s):          24652.91  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          2747.08   
+Median TTFT (ms):                        2171.54   
+P50 TTFT (ms):                           2171.54   
+P90 TTFT (ms):                           3832.89   
+P95 TTFT (ms):                           5991.12   
+P99 TTFT (ms):                           8477.91   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          17.71     
+Median TPOT (ms):                        15.00     
+P50 TPOT (ms):                           15.00     
+P90 TPOT (ms):                           28.17     
+P95 TPOT (ms):                           28.59     
+P99 TPOT (ms):                           31.50     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           107.87    
+Median ITL (ms):                         66.03     
+P50 ITL (ms):                            66.03     
+P90 ITL (ms):                            417.88    
+P95 ITL (ms):                            482.03    
+P99 ITL (ms):                            533.55    
+---------------Speculative Decoding---------------
+Acceptance rate (%):                     72.99     
+Acceptance length:                       6.11      
+Drafts:                                  10747     
+Draft tokens:                            75229     
+Accepted tokens:                         54906     
+Per-position acceptance (%):
+  Position 0:                            92.96     
+  Position 1:                            90.36     
+  Position 2:                            89.16     
+  Position 3:                            67.72     
+  Position 4:                            65.88     
+  Position 5:                            54.39     
+  Position 6:                            50.43     
+==================================================
+Testing concurrency=12, prompts=64
+PREFIX_LEN=55680 SUFFIX_LEN=9856 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 64K 12
+INFO 09-15 14:53:21 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 14:53:21 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 14:53:21 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 14:53:21 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 14:53:21 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 14:53:35 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 14:53:35 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffeeec4f920>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=55680, prefix_repetition_suffix_len=9856, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=12, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=64K', 'prefix_len=55680', 'suffix_len=9856', 'num_warmups=1'], result_dir='', result_filename='input64K_out1k_c12.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-cee9f4c8-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 12
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     64        
+Failed requests:                         0         
+Maximum request concurrency:             12        
+Benchmark duration (s):                  146.57    
+Total input tokens:                      4194305   
+Total generated tokens:                  65536     
+Request throughput (req/s):              0.44      
+Output token throughput (tok/s):         447.13    
+Peak output token throughput (tok/s):    168.00    
+Peak concurrent requests:                15.00     
+Total token throughput (tok/s):          29063.68  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          3609.48   
+Median TTFT (ms):                        2835.58   
+P50 TTFT (ms):                           2835.58   
+P90 TTFT (ms):                           6728.48   
+P95 TTFT (ms):                           9647.24   
+P99 TTFT (ms):                           12001.15  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          21.93     
+Median TPOT (ms):                        20.79     
+P50 TPOT (ms):                           20.79     
+P90 TPOT (ms):                           33.04     
+P95 TPOT (ms):                           37.08     
+P99 TPOT (ms):                           42.24     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           134.43    
+Median ITL (ms):                         73.27     
+P50 ITL (ms):                            73.27     
+P90 ITL (ms):                            443.26    
+P95 ITL (ms):                            517.69    
+P99 ITL (ms):                            704.27    
+---------------Speculative Decoding---------------
+Acceptance rate (%):                     73.58     
+Acceptance length:                       6.15      
+Drafts:                                  10680     
+Draft tokens:                            74760     
+Accepted tokens:                         55008     
+Per-position acceptance (%):
+  Position 0:                            92.84     
+  Position 1:                            89.23     
+  Position 2:                            88.02     
+  Position 3:                            66.59     
+  Position 4:                            64.91     
+  Position 5:                            58.90     
+  Position 6:                            54.57     
+==================================================
+Testing concurrency=16, prompts=64
+PREFIX_LEN=55680 SUFFIX_LEN=9856 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 64K 16
+INFO 09-15 14:56:41 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 14:56:41 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 14:56:41 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 14:56:41 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 14:56:41 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 14:56:55 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 14:56:55 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xffff0d433880>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=55680, prefix_repetition_suffix_len=9856, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=16, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=64K', 'prefix_len=55680', 'suffix_len=9856', 'num_warmups=1'], result_dir='', result_filename='input64K_out1k_c16.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-da556411-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 16
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     64        
+Failed requests:                         0         
+Maximum request concurrency:             16        
+Benchmark duration (s):                  135.43    
+Total input tokens:                      4194305   
+Total generated tokens:                  65536     
+Request throughput (req/s):              0.47      
+Output token throughput (tok/s):         483.90    
+Peak output token throughput (tok/s):    208.00    
+Peak concurrent requests:                19.00     
+Total token throughput (tok/s):          31453.58  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          4391.15   
+Median TTFT (ms):                        2982.78   
+P50 TTFT (ms):                           2982.78   
+P90 TTFT (ms):                           10107.95  
+P95 TTFT (ms):                           12927.82  
+P99 TTFT (ms):                           15279.77  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          27.54     
+Median TPOT (ms):                        25.52     
+P50 TPOT (ms):                           25.52     
+P90 TPOT (ms):                           41.58     
+P95 TPOT (ms):                           45.96     
+P99 TPOT (ms):                           48.77     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           164.45    
+Median ITL (ms):                         87.47     
+P50 ITL (ms):                            87.47     
+P90 ITL (ms):                            457.45    
+P95 ITL (ms):                            544.63    
+P99 ITL (ms):                            696.81    
+---------------Speculative Decoding---------------
+Acceptance rate (%):                     71.30     
+Acceptance length:                       5.99      
+Drafts:                                  10965     
+Draft tokens:                            76755     
+Accepted tokens:                         54723     
+Per-position acceptance (%):
+  Position 0:                            93.80     
+  Position 1:                            90.36     
+  Position 2:                            88.78     
+  Position 3:                            63.12     
+  Position 4:                            61.15     
+  Position 5:                            53.39     
+  Position 6:                            48.47     
+==================================================
+========================================================
+Random Testing input=100K, output=1K
+========================================================
+Testing concurrency=8, prompts=64
+PREFIX_LEN=87040 SUFFIX_LEN=15360 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 100K 8
+INFO 09-15 14:59:53 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 14:59:53 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 14:59:53 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 14:59:53 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 14:59:53 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 15:00:07 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 15:00:07 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffeea27f920>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=87040, prefix_repetition_suffix_len=15360, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=8, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=100K', 'prefix_len=87040', 'suffix_len=15360', 'num_warmups=1'], result_dir='', result_filename='input100K_out1k_c8.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-b4dcb29c-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 8
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     64        
+Failed requests:                         0         
+Maximum request concurrency:             8         
+Benchmark duration (s):                  177.58    
+Total input tokens:                      6553600   
+Total generated tokens:                  65536     
+Request throughput (req/s):              0.36      
+Output token throughput (tok/s):         369.05    
+Peak output token throughput (tok/s):    122.00    
+Peak concurrent requests:                11.00     
+Total token throughput (tok/s):          37274.55  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          3844.29   
+Median TTFT (ms):                        3368.75   
+P50 TTFT (ms):                           3368.75   
+P90 TTFT (ms):                           5398.66   
+P95 TTFT (ms):                           6650.75   
+P99 TTFT (ms):                           9600.86   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          17.09     
+Median TPOT (ms):                        16.43     
+P50 TPOT (ms):                           16.43     
+P90 TPOT (ms):                           22.54     
+P95 TPOT (ms):                           28.15     
+P99 TPOT (ms):                           29.70     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           111.12    
+Median ITL (ms):                         68.03     
+P50 ITL (ms):                            68.03     
+P90 ITL (ms):                            314.83    
+P95 ITL (ms):                            458.61    
+P99 ITL (ms):                            715.02    
+---------------Speculative Decoding---------------
+Acceptance rate (%):                     78.95     
+Acceptance length:                       6.53      
+Drafts:                                  10072     
+Draft tokens:                            70504     
+Accepted tokens:                         55660     
+Per-position acceptance (%):
+  Position 0:                            93.17     
+  Position 1:                            90.36     
+  Position 2:                            88.82     
+  Position 3:                            77.89     
+  Position 4:                            75.81     
+  Position 5:                            67.45     
+  Position 6:                            59.11     
+==================================================
+Testing concurrency=12, prompts=64
+PREFIX_LEN=87040 SUFFIX_LEN=15360 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 100K 12
+INFO 09-15 15:03:53 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 15:03:53 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 15:03:53 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 15:03:53 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 15:03:53 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 15:04:08 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 15:04:08 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xffff10e23880>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=87040, prefix_repetition_suffix_len=15360, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=12, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=100K', 'prefix_len=87040', 'suffix_len=15360', 'num_warmups=1'], result_dir='', result_filename='input100K_out1k_c12.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-233b02b6-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 12
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     64        
+Failed requests:                         0         
+Maximum request concurrency:             12        
+Benchmark duration (s):                  151.38    
+Total input tokens:                      6553600   
+Total generated tokens:                  65536     
+Request throughput (req/s):              0.42      
+Output token throughput (tok/s):         432.94    
+Peak output token throughput (tok/s):    168.00    
+Peak concurrent requests:                16.00     
+Total token throughput (tok/s):          43726.68  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          4605.88   
+Median TTFT (ms):                        3716.21   
+P50 TTFT (ms):                           3716.21   
+P90 TTFT (ms):                           7956.65   
+P95 TTFT (ms):                           11760.58  
+P99 TTFT (ms):                           14654.02  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          22.31     
+Median TPOT (ms):                        21.35     
+P50 TPOT (ms):                           21.35     
+P90 TPOT (ms):                           32.85     
+P95 TPOT (ms):                           37.36     
+P99 TPOT (ms):                           43.76     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           143.18    
+Median ITL (ms):                         75.99     
+P50 ITL (ms):                            75.99     
+P90 ITL (ms):                            446.57    
+P95 ITL (ms):                            558.65    
+P99 ITL (ms):                            751.13    
+---------------Speculative Decoding---------------
+Acceptance rate (%):                     77.68     
+Acceptance length:                       6.44      
+Drafts:                                  10201     
+Draft tokens:                            71407     
+Accepted tokens:                         55468     
+Per-position acceptance (%):
+  Position 0:                            94.28     
+  Position 1:                            91.67     
+  Position 2:                            90.18     
+  Position 3:                            72.87     
+  Position 4:                            71.31     
+  Position 5:                            66.68     
+  Position 6:                            56.77     
+==================================================
+Testing concurrency=16, prompts=64
+PREFIX_LEN=87040 SUFFIX_LEN=15360 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 100K 16
+INFO 09-15 15:07:29 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 15:07:29 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 15:07:29 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 15:07:29 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 15:07:29 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 15:07:43 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 15:07:43 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffeffdcf920>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=87040, prefix_repetition_suffix_len=15360, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=16, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=100K', 'prefix_len=87040', 'suffix_len=15360', 'num_warmups=1'], result_dir='', result_filename='input100K_out1k_c16.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-270316ef-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 16
+tip: install termplotlib and gnuplot to plot the metrics
+============ Serving Benchmark Result ============
+Successful requests:                     64        
+Failed requests:                         0         
+Maximum request concurrency:             16        
+Benchmark duration (s):                  150.85    
+Total input tokens:                      6553600   
+Total generated tokens:                  65536     
+Request throughput (req/s):              0.42      
+Output token throughput (tok/s):         434.45    
+Peak output token throughput (tok/s):    192.00    
+Peak concurrent requests:                20.00     
+Total token throughput (tok/s):          43879.89  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          6111.57   
+Median TTFT (ms):                        4797.53   
+P50 TTFT (ms):                           4797.53   
+P90 TTFT (ms):                           12428.56  
+P95 TTFT (ms):                           16189.35  
+P99 TTFT (ms):                           19210.06  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          27.26     
+Median TPOT (ms):                        26.04     
+P50 TPOT (ms):                           26.04     
+P90 TPOT (ms):                           38.02     
+P95 TPOT (ms):                           44.12     
+P99 TPOT (ms):                           56.34     
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           163.18    
+Median ITL (ms):                         89.78     
+P50 ITL (ms):                            89.78     
+P90 ITL (ms):                            455.33    
+P95 ITL (ms):                            586.36    
+P99 ITL (ms):                            743.16    
+---------------Speculative Decoding---------------
+Acceptance rate (%):                     71.52     
+Acceptance length:                       6.01      
+Drafts:                                  10937     
+Draft tokens:                            76559     
+Accepted tokens:                         54753     
+Per-position acceptance (%):
+  Position 0:                            92.63     
+  Position 1:                            87.07     
+  Position 2:                            84.91     
+  Position 3:                            64.85     
+  Position 4:                            62.64     
+  Position 5:                            58.08     
+  Position 6:                            50.43     
+==================================================
+========================================================
+Random Testing input=150K, output=1K
+========================================================
+Testing concurrency=8, prompts=64
+PREFIX_LEN=130560 SUFFIX_LEN=23040 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 150K 8
+INFO 09-15 15:11:06 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 15:11:06 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 15:11:06 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 15:11:06 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 15:11:06 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 15:11:21 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 15:11:21 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xffff1319f920>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=130560, prefix_repetition_suffix_len=23040, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=8, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=150K', 'prefix_len=130560', 'suffix_len=23040', 'num_warmups=1'], result_dir='', result_filename='input150K_out1k_c8.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-0ffe398f-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 8
+Failed requests during benchmark run detected (capping to 10):
+Error 0: Bad Request
+Error 1: Bad Request
+Error 2: Bad Request
+Error 3: Bad Request
+Error 4: Bad Request
+Error 5: Bad Request
+Error 6: Bad Request
+Error 7: Bad Request
+Error 8: Bad Request
+Error 9: Bad Request
+============ Serving Benchmark Result ============
+Successful requests:                     0         
+Failed requests:                         64        
+Maximum request concurrency:             8         
+Benchmark duration (s):                  66.83     
+Total input tokens:                      0         
+Total generated tokens:                  0         
+Request throughput (req/s):              0.00      
+Output token throughput (tok/s):         0.00      
+Peak output token throughput (tok/s):    0.00      
+Peak concurrent requests:                0.00      
+Total token throughput (tok/s):          0.00      
+---------------Time to First Token----------------
+Mean TTFT (ms):                          0.00      
+Median TTFT (ms):                        0.00      
+P50 TTFT (ms):                           0.00      
+P90 TTFT (ms):                           0.00      
+P95 TTFT (ms):                           0.00      
+P99 TTFT (ms):                           0.00      
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          0.00      
+Median TPOT (ms):                        0.00      
+P50 TPOT (ms):                           0.00      
+P90 TPOT (ms):                           0.00      
+P95 TPOT (ms):                           0.00      
+P99 TPOT (ms):                           0.00      
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           0.00      
+Median ITL (ms):                         0.00      
+P50 ITL (ms):                            0.00      
+P90 ITL (ms):                            0.00      
+P95 ITL (ms):                            0.00      
+P99 ITL (ms):                            0.00      
+==================================================
+Testing concurrency=12, prompts=64
+PREFIX_LEN=130560 SUFFIX_LEN=23040 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 150K 12
+INFO 09-15 15:13:17 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 15:13:17 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 15:13:17 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 15:13:17 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 15:13:17 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 15:13:31 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 15:13:31 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xfffeeeeff920>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=130560, prefix_repetition_suffix_len=23040, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=12, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=150K', 'prefix_len=130560', 'suffix_len=23040', 'num_warmups=1'], result_dir='', result_filename='input150K_out1k_c12.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-4ac78e53-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 12
+Failed requests during benchmark run detected (capping to 10):
+Error 0: Bad Request
+Error 1: Bad Request
+Error 2: Bad Request
+Error 3: Bad Request
+Error 4: Bad Request
+Error 5: Bad Request
+Error 6: Bad Request
+Error 7: Bad Request
+Error 8: Bad Request
+Error 9: Bad Request
+============ Serving Benchmark Result ============
+Successful requests:                     0         
+Failed requests:                         64        
+Maximum request concurrency:             12        
+Benchmark duration (s):                  70.16     
+Total input tokens:                      0         
+Total generated tokens:                  0         
+Request throughput (req/s):              0.00      
+Output token throughput (tok/s):         0.00      
+Peak output token throughput (tok/s):    0.00      
+Peak concurrent requests:                0.00      
+Total token throughput (tok/s):          0.00      
+---------------Time to First Token----------------
+Mean TTFT (ms):                          0.00      
+Median TTFT (ms):                        0.00      
+P50 TTFT (ms):                           0.00      
+P90 TTFT (ms):                           0.00      
+P95 TTFT (ms):                           0.00      
+P99 TTFT (ms):                           0.00      
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          0.00      
+Median TPOT (ms):                        0.00      
+P50 TPOT (ms):                           0.00      
+P90 TPOT (ms):                           0.00      
+P95 TPOT (ms):                           0.00      
+P99 TPOT (ms):                           0.00      
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           0.00      
+Median ITL (ms):                         0.00      
+P50 ITL (ms):                            0.00      
+P90 ITL (ms):                            0.00      
+P95 ITL (ms):                            0.00      
+P99 ITL (ms):                            0.00      
+==================================================
+Testing concurrency=16, prompts=64
+PREFIX_LEN=130560 SUFFIX_LEN=23040 BENCH_NUM_PROMPTS=64 /workspace/cmd/bench-vllm-prefix.sh 150K 16
+INFO 09-15 15:15:37 [__init__.py:52] Available plugins for group vllm.platform_plugins:
+INFO 09-15 15:15:37 [__init__.py:54] - ascend -> vllm_ascend:register
+INFO 09-15 15:15:37 [__init__.py:57] All plugins in this group will be loaded. Set `VLLM_PLUGINS` to control which plugins to load.
+INFO 09-15 15:15:37 [__init__.py:237] Platform plugin ascend is activated
+INFO 09-15 15:15:37 [platform.py:61] Breakable cudagraph is force disabled on Ascend because DeepSeek V4 PIECEWISE cudagraph is not supported yet.
+INFO 09-15 15:15:52 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.netloader.netloader.ModelNetLoaderElastic'>` with load format `netloader`
+INFO 09-15 15:15:52 [__init__.py:112] Registered model loader `<class 'vllm_ascend.model_loader.rfork.rfork_loader.RForkModelLoader'>` with load format `rfork`
+Namespace(subparser='bench', bench_type='serve', dispatch_function=<function BenchmarkServingSubcommand.cmd at 0xffff1647f920>, trust_remote_code=True, seed=20260800, num_prompts=64, dataset_name='prefix_repetition', no_stream=False, dataset_path=None, no_oversample=False, skip_chat_template=False, enable_multimodal_chat=False, disable_shuffle=False, custom_output_len=256, custom_ensure_client_side_data=False, spec_bench_output_len=256, spec_bench_category=None, sonnet_input_len=550, sonnet_output_len=150, sonnet_prefix_len=200, sharegpt_output_len=None, timed_trace_chunk_hash_size=16, timed_trace_sec_multiplier=1, timed_trace_label_timestamp='timestamp', timed_trace_label_input_length='input_length', timed_trace_label_output_length='output_length', timed_trace_label_hash_ids='hash_ids', blazedit_min_distance=0.0, blazedit_max_distance=1.0, asr_max_audio_len_sec=inf, asr_min_audio_len_sec=0.0, random_input_len=1024, random_output_len=128, random_range_ratio='0.0', random_prefix_len=0, random_batch_size=1, no_reranker=False, random_mm_base_items_per_request=1, random_mm_num_mm_items_range_ratio=0.0, random_mm_limit_mm_per_prompt={'image': 255, 'video': 1}, random_mm_bucket_config={(256, 256, 1): 0.5, (720, 1280, 1): 0.5, (720, 1280, 16): 0.0}, hf_subset=None, hf_split=None, hf_name=None, hf_output_len=None, bfcl_categories=None, prefix_repetition_prefix_len=130560, prefix_repetition_suffix_len=23040, prefix_repetition_num_prefixes=1, prefix_repetition_output_len=1024, speed_bench_dataset_subset='qualitative', speed_bench_output_len=4096, speed_bench_category=None, label=None, backend='openai', base_url='http://localhost:20000', host='127.0.0.1', port=8000, endpoint='/v1/completions', header=None, max_concurrency=16, model='dsv4-dspark', input_len=None, output_len=None, tokenizer='/home/weight/DeepSeek-V4-Flash-DSpark-w8a8', tokenizer_mode='deepseek_v4', use_beam_search=False, logprobs=None, request_rate=inf, burstiness=1.0, disable_tqdm=False, num_warmups=1, profile=False, save_result=True, save_detailed=True, append_result=False, metadata=['experiment=manual', 'run=single', 'input_tag=150K', 'prefix_len=130560', 'suffix_len=23040', 'num_warmups=1'], result_dir='', result_filename='input150K_out1k_c16.json', ignore_eos=True, self_timed=None, percentile_metrics=None, metric_percentiles='50,90,95,99', goodput=None, request_id_prefix='bench-41b60693-', top_p=None, top_k=None, min_p=None, temperature=0.0, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)
+Starting initial single prompt test run...
+Skipping endpoint ready check.
+Warming up with 1 requests...
+Warmup run completed.
+Starting main benchmark run...
+Traffic request rate: inf
+Burstiness factor: 1.0 (Poisson process)
+Maximum request concurrency: 16
+Failed requests during benchmark run detected (capping to 10):
+Error 0: Bad Request
+Error 1: Bad Request
+Error 2: Bad Request
+Error 3: Bad Request
+Error 4: Bad Request
+Error 5: Bad Request
+Error 6: Bad Request
+Error 7: Bad Request
+Error 8: Bad Request
+Error 9: Bad Request
+============ Serving Benchmark Result ============
+Successful requests:                     0         
+Failed requests:                         64        
+Maximum request concurrency:             16        
+Benchmark duration (s):                  70.83     
+Total input tokens:                      0         
+Total generated tokens:                  0         
+Request throughput (req/s):              0.00      
+Output token throughput (tok/s):         0.00      
+Peak output token throughput (tok/s):    0.00      
+Peak concurrent requests:                0.00      
+Total token throughput (tok/s):          0.00      
+---------------Time to First Token----------------
+Mean TTFT (ms):                          0.00      
+Median TTFT (ms):                        0.00      
+P50 TTFT (ms):                           0.00      
+P90 TTFT (ms):                           0.00      
+P95 TTFT (ms):                           0.00      
+P99 TTFT (ms):                           0.00      
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          0.00      
+Median TPOT (ms):                        0.00      
+P50 TPOT (ms):                           0.00      
+P90 TPOT (ms):                           0.00      
+P95 TPOT (ms):                           0.00      
+P99 TPOT (ms):                           0.00      
+---------------Inter-token Latency----------------
+Mean ITL (ms):                           0.00      
+Median ITL (ms):                         0.00      
+P50 ITL (ms):                            0.00      
+P90 ITL (ms):                            0.00      
+P95 ITL (ms):                            0.00      
+P99 ITL (ms):                            0.00      
+==================================================

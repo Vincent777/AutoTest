@@ -43,7 +43,7 @@ if __name__ == "__main__":
     multiprocessing.set_start_method("spawn")
     master_process = None
     engine = "vLLM"
-    version = "v0.26.0rc1-pub"
+    version = "v0.26.0rc1-pub-v1"
     copy_model_list(file_path, engine, version)
 
     if args.test_type == "Performance":

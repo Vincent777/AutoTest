@@ -477,7 +477,7 @@ elif [ $MODEL == "Qwen3.6-27B" ]; then
     echo "env PORT=$PORT /home/s_limingge/start_qwen3.6-27b.sh -tp 4"
     EXEC_COMMAND+=" bash -c \"env PORT=$PORT /home/s_limingge/start_qwen3.6-27b.sh -tp 4\" > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "dsv4-dspark" ]; then
-    VLLM_DOCKER_IMAGE="sd-vllm-ascend:v0.26.0rc1-pub"
+    VLLM_DOCKER_IMAGE="xcoresigma-registry.cn-beijing.cr.aliyuncs.com/docker/sd-vllm-ascend:v0.26.0rc1-pub-v1"
     echo "sed -i 's/--port 8023/--port $PORT/' /workspace/cmd/serve.sh; sed -i 's/--block-size 64/--block-size 128/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8"
     EXEC_COMMAND+=" bash -c \"sed -i 's/--port 8023/--port $PORT/' /workspace/cmd/serve.sh; sed -i 's/--block-size 64/--block-size 128/' /workspace/cmd/serve.sh; /workspace/cmd/serve.sh -tp 8\" > $LOG_NAME 2>&1 &"
 fi

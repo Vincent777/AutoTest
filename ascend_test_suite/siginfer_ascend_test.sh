@@ -802,8 +802,8 @@ for option in "${schedule_policies[@]}"; do
                     # 开始执行测试
                     if [ $TEST_PARAM == "Random" ]; then
                         # multiplier=4
-                        # concurrency_list=(1 5 10 20 50 100 150 200)
-                        # concurrency_list=(1 5 10 20 50 100)
+                        # # concurrency_list=(1 5 10 20 50 100 150 200)
+                        # concurrency_list=(1 5 10 20 50 100 128)
                         # length_pairs=(
                         #     "128:128"
                         #     "128:1024"
@@ -812,17 +812,17 @@ for option in "${schedule_policies[@]}"; do
                         #     "2048:2048"
                         #     "4096:1024"
                         #     "1024:4096"
-                        #     "30000:2048"
-                        #     "126000:2048"
-                        #)
+                        #     # "30000:2048"
+                        #     # "126000:2048"
+                        # )
                         multiplier=1
                         concurrency_list=(8 12 16)
                         length_pairs=(
-                            "16K:1K"
-                            "32K:1K"
-                            "64K:1K"
-                            "100K:1K"
-                            "150K:1K"
+                            # "16K:1K"
+                            # "32K:1K"
+                            # "64K:1K"
+                            # "100K:1K"
+                            "128K:1K"
                         )
                         # Random
                         ssh -q -o ConnectionAttempts=3 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 s_limingge@${bench_host} "
@@ -874,7 +874,7 @@ for option in "${schedule_policies[@]}"; do
                                             --num-prompts \\\$prompts \
                                             --request-rate inf \
                                             --max-concurrency \\\$concurrency
-                                        elif [ ${engine_type} == \\\"vllm\\\" ] && [ ${version} == \\\"v0.26.0rc1-pub\\\" ]; then
+                                        elif [ ${engine_type} == \\\"vllm\\\" ] && [ ${version} == \\\"v0.26.0rc1-pub-v1\\\" ]; then
                                             echo \\\"Testing concurrency=\\\$concurrency, prompts=64\\\"
                                             declare -A bench_param_list=(
                                                 [\\\"16K\\\"]=\\\"PREFIX_LEN=13952 SUFFIX_LEN=2432 BENCH_NUM_PROMPTS=64\\\"
