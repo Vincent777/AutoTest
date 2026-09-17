@@ -460,7 +460,6 @@ EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JO
   -v /home/s_limingge:/home/s_limingge \
   -e HCCL_SOCKET_IFNAME=${HCCL_SOCKET_IFNAME} \
   -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES \
-  -e PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src \
   ${DOCKER_PD_ENVS} \
   ${IMAGE_REPO}:$LATEST_TAG"
 

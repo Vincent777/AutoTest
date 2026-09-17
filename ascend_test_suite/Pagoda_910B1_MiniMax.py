@@ -46,6 +46,7 @@ if __name__ == "__main__":
     # latest
     # version = "cann9.0.0-910b-v0.5.16"
     # model = "MiniMax-M2.5-eagle3-sgl"
+    # model = "MiniMax-M2.5-w8a8-QuaRot"
     # baseline
     version = "v0.5.10-npu.rc1-910b"
     model = "MiniMax-M2.5-w8a8-QuaRot"

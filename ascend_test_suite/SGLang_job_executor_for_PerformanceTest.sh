@@ -460,7 +460,6 @@ EXEC_COMMAND="docker run --name=sglang_ascend_PerformanceTest_${SESSION_ID}_${JO
   -v /home/s_limingge:/home/s_limingge \
   -e HCCL_SOCKET_IFNAME=${HCCL_SOCKET_IFNAME} \
   -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES \
-  -e PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src \
   ${DOCKER_PD_ENVS} \
   ${IMAGE_REPO}:$LATEST_TAG"
 
@@ -480,14 +479,14 @@ elif [ $MODEL == "Qwen3-235B-A22B" ]; then
     echo "python3 -m sglang.launch_server --model-path /home/weight/Qwen3/Qwen3-235B-A22B --served-model-name Qwen3-235B-A22B --port $PORT --tp-size 8 --host 0.0.0.0 --mem-fraction-static 0.98 --disable-radix-cache --enable-metrics --enable-mfu-metrics $PD_EXTRA_ARGS"
     EXEC_COMMAND+=" $PD_DOCKER_CMD_PREFIX python3 -m sglang.launch_server --model-path /home/weight/Qwen3/Qwen3-235B-A22B --served-model-name Qwen3-235B-A22B --port $PORT --tp-size 8 --host 0.0.0.0 --mem-fraction-static 0.98 --disable-radix-cache --enable-metrics --enable-mfu-metrics $SGLANG_PREFIX_CACHE $PD_EXTRA_ARGS $PD_DOCKER_CMD_SUFFIX > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "DeepSeek-V4-Flash-w8a8-mtp" ]; then
-    echo "bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; bash /home/s_limingge/sglang-universal-plugin/run_dsv4_v0516.sh $PORT\""
-    EXEC_COMMAND+=" bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; bash /home/s_limingge/sglang-universal-plugin/run_dsv4_v0516.sh $PORT\" > $LOG_NAME 2>&1 &"
+    echo "bash -lc \"bash /home/s_limingge/sglang-universal-plugin/run_dsv4_v0516.sh $PORT\""
+    EXEC_COMMAND+=" bash -lc \"bash /home/s_limingge/sglang-universal-plugin/run_dsv4_v0516.sh $PORT\" > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "MiniMax-M2.5-w8a8-QuaRot" ]; then
-    echo "bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_tuned.sh --tp-size 8\""
-    EXEC_COMMAND+=" bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_tuned.sh --tp-size 8\" > $LOG_NAME 2>&1 &"
+    echo "bash -lc \"PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_tuned.sh --tp-size 8\""
+    EXEC_COMMAND+=" bash -lc \"PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_tuned.sh --tp-size 8\" > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "MiniMax-M2.5-eagle3-sgl" ]; then
-    echo "bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh\""
-    EXEC_COMMAND+=" bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh\" > $LOG_NAME 2>&1 &"
+    echo "bash -lc \"DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh\""
+    EXEC_COMMAND+=" bash -lc \"DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh\" > $LOG_NAME 2>&1 &"
 fi
 
 # PD：API/bootstrap 绑定数据面 IP（与官方 Ascend 示例一致；勿用 0.0.0.0 作为对外通告地址）

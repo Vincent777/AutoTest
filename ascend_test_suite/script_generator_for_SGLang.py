@@ -106,11 +106,11 @@ def normalize_sglang_args(name: str, args: str) -> str:
             "bash -lc "
             "\\"
             '"'
-            f"set -e; "
-            f"cd {plugin_root}; "
-            f"export PYTHONPATH={plugin_root}/src; "
-            f"pip install -e . --no-deps; "
-            f"python3 -c 'import sglang_universal_plugin'; "
+            # f"set -e; "
+            # f"cd {plugin_root}; "
+            # f"export PYTHONPATH={plugin_root}/src; "
+            # f"pip install -e . --no-deps; "
+            # f"python3 -c 'import sglang_universal_plugin'; "
             f"{launch}"
             "\\"
             '"'
