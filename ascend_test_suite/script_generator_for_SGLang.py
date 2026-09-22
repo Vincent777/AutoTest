@@ -54,6 +54,33 @@ def strip_docker_prefix(args: str) -> str:
     return result.strip()
 
 
+def extract_plugin_env_assignments(args: str, plugin_script: str) -> str:
+    """Keep KEY=VALUE prefixes immediately before the plugin script (except PORT)."""
+    match = re.search(
+        rf"((?:[A-Za-z_][A-Za-z0-9_]*=\S+\s+)+)(?:setsid\s+)?(?:bash\s+)?\S*{re.escape(plugin_script)}",
+        args or "",
+        re.I,
+    )
+    if not match:
+        # Fallback: DRAFT_PATH may appear away from the script token
+        draft_match = re.search(r"DRAFT_PATH=(\S+)", args or "")
+        return f"DRAFT_PATH={draft_match.group(1).strip(chr(34))} " if draft_match else ""
+
+    kept = []
+    seen = set()
+    for token in match.group(1).split():
+        key, _, val = token.partition("=")
+        if key.upper() == "PORT" or key in seen:
+            continue
+        seen.add(key)
+        kept.append(f"{key}={val.strip(chr(34))}")
+    if "DRAFT_PATH" not in seen:
+        draft_match = re.search(r"DRAFT_PATH=(\S+)", args or "")
+        if draft_match:
+            kept.insert(0, f"DRAFT_PATH={draft_match.group(1).strip(chr(34))}")
+    return (" ".join(kept) + " ") if kept else ""
+
+
 def normalize_sglang_args(name: str, args: str) -> str:
     args = (args or "").split("\n")[0]
     result = strip_docker_prefix(args)
@@ -76,7 +103,7 @@ def normalize_sglang_args(name: str, args: str) -> str:
         # CI mounts host /home/s_limingge; prefer absolute script path
         result = re.sub(
             rf"(bash\s+)(?!/)(\S*{plugin_script}\S*)",
-            r"\1/home/s_limingge/sglang-universal-plugin/\2",
+            r"\1/work/sglang-pagoda/\2",
             result,
             flags=re.I,
         )
@@ -85,8 +112,8 @@ def normalize_sglang_args(name: str, args: str) -> str:
         tp_arg = ""
         if tp_match and plugin_script == "run_minimax" and re.search(r"run_minimax_tuned", args, re.I):
             tp_arg = f" --tp-size {tp_match.group(1)}"
-        draft_match = re.search(r"DRAFT_PATH=(\S+)", args)
-        draft_arg = f"DRAFT_PATH={draft_match.group(1)} " if draft_match else ""
+        # 保留脚本前的 KEY=VALUE（如 SGLANG_M2_ATTN_SCATTER / TOK_WORKERS / DRAFT_PATH），PORT 由 CI 注入
+        extra_env_arg = extract_plugin_env_assignments(args, plugin_script)
         # drop leftover flags; DSV4 port is positional $PORT, MiniMax uses PORT=$PORT env
         if plugin_script == "run_dsv4":
             result = re.sub(r"--tp-size\s+\d+", "", result)
@@ -97,25 +124,42 @@ def normalize_sglang_args(name: str, args: str) -> str:
         script = result.strip()
         # entry_points 需 pip install -e；同时强制 PYTHONPATH，避免 editable 元数据在却 import 失败
         # 注意：result 会嵌入 EXEC_COMMAND+="..."，故 bash -lc 外层用 \"，内层 python -c 用单引号
-        plugin_root = "/home/s_limingge/sglang-universal-plugin"
+        plugin_root = "/work/sglang-pagoda"
         if plugin_script == "run_minimax":
-            launch = f"{draft_arg}PORT=$PORT {script}{tp_arg}"
+            launch = f"{extra_env_arg}PORT=$PORT {script}{tp_arg}"
         else:
-            launch = f"{script} $PORT"
+            launch = f"{extra_env_arg}{script} $PORT"
         result = (
             "bash -lc "
             "\\"
             '"'
-            # f"set -e; "
-            # f"cd {plugin_root}; "
+            f"set -e; "
+            f"cd {plugin_root}; "
             # f"export PYTHONPATH={plugin_root}/src; "
-            # f"pip install -e . --no-deps; "
-            # f"python3 -c 'import sglang_universal_plugin'; "
+            f"pip install -e . --no-deps; "
+            f"python3 -c 'import sglang_universal_plugin'; "
             f"{launch}"
             "\\"
             '"'
         )
         return re.sub(r"\s+", " ", result).strip()
+
+    # Excel docker 示例常写成 bash -c "python3 -m sglang.launch_server ..."
+    # 生成结果还会再包 echo "..." / EXEC_COMMAND+="..."；若不剥掉内层引号，
+    # 嵌套双引号无法转义，$PD_EXTRA_ARGS 也会落到 bash -c 命令外面。
+    bash_c = re.search(
+        r'''bash\s+-c\s+"([^"]*sglang\.launch_server[^"]*)"''',
+        result,
+        re.I,
+    )
+    if not bash_c:
+        bash_c = re.search(
+            r"""bash\s+-c\s+'([^']*sglang\.launch_server[^']*)'""",
+            result,
+            re.I,
+        )
+    if bash_c:
+        result = bash_c.group(1).strip()
 
     # 1) 已是标准入口则沿用；2) 仅有 *launch_server 则规范化；3) 都没有则按模型拼默认命令
     if "sglang.launch_server" not in result:
@@ -162,10 +206,8 @@ def normalize_sglang_args(name: str, args: str) -> str:
     result = re.sub(r"--disaggregation-transfer-backend\s+\S+", "", result)
     result = re.sub(r"--disaggregation-ib-device\s+\S+", "", result)
     result = re.sub(r"--disaggregation-bootstrap-port\s+\S+", "", result)
-    # Decode 侧会注入 --max-running-requests / --cuda-graph-max-bs，避免 argparse 重复
-    result = re.sub(r"--max-running-requests\s+\S+", "", result)
-    result = re.sub(r"--cuda-graph-max-bs(?:-decode)?\s+\S+", "", result)
-    result = re.sub(r"--disable-overlap-schedule\b", "", result)
+    # 合部保留 Excel 的 --max-running-requests / --cuda-graph-max-bs / --disable-overlap-schedule。
+    # PD decode 运行时会再注入同名参数；模板在出现重复时丢掉 Excel 侧，避免 argparse 冲突。
     return re.sub(r"\s+", " ", result).strip()
 
 

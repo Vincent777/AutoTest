@@ -1,0 +1,846 @@
+========================================================
+Random Testing input=16384, output=128
+========================================================
+Testing concurrency=1, prompts=4
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 128 --num-prompts 4 --request-rate inf --max-concurrency 1
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=9116
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=9116
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=4, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=1, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=4, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=1, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 29319
+#Output tokens: 261
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 1         
+Successful requests:                     4         
+Benchmark duration (s):                  8.41      
+Total input tokens:                      29319     
+Total input text tokens:                 29319     
+Total generated tokens:                  261       
+Total generated tokens (retokenized):    266       
+Request throughput (req/s):              0.48      
+Input token throughput (tok/s):          3487.05   
+Output token throughput (tok/s):         31.04     
+Peak output token throughput (tok/s):    41.00     
+Peak concurrent requests:                2         
+Total token throughput (tok/s):          3518.09   
+Concurrency:                             1.00      
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   2093.52   
+Median E2E Latency (ms):                 2263.97   
+P90 E2E Latency (ms):                    2902.44   
+P95 E2E Latency (ms):                    2917.38   
+P99 E2E Latency (ms):                    2929.34   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          566.22    
+Median TTFT (ms):                        375.72    
+P90 TTFT (ms):                           967.99    
+P95 TTFT (ms):                           1084.70   
+P99 TTFT (ms):                           1178.08   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          23.90     
+Median TPOT (ms):                        24.00     
+P90 TPOT (ms):                           24.48     
+P95 TPOT (ms):                           24.50     
+P99 TPOT (ms):                           24.52     
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           23.77     
+Median ITL (ms):                         23.65     
+P90 ITL (ms):                            25.53     
+P95 ITL (ms):                            27.05     
+P99 ITL (ms):                            30.27     
+Max ITL (ms):                            36.33     
+==================================================
+Testing concurrency=5, prompts=20
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 128 --num-prompts 20 --request-rate inf --max-concurrency 5
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=12216
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=12216
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=20, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=5, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=20, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=5, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 180065
+#Output tokens: 1139
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 5         
+Successful requests:                     20        
+Benchmark duration (s):                  17.01     
+Total input tokens:                      180065    
+Total input text tokens:                 180065    
+Total generated tokens:                  1139      
+Total generated tokens (retokenized):    1184      
+Request throughput (req/s):              1.18      
+Input token throughput (tok/s):          10588.59  
+Output token throughput (tok/s):         66.98     
+Peak output token throughput (tok/s):    165.00    
+Peak concurrent requests:                7         
+Total token throughput (tok/s):          10655.57  
+Concurrency:                             4.82      
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   4094.17   
+Median E2E Latency (ms):                 4037.79   
+P90 E2E Latency (ms):                    6581.61   
+P95 E2E Latency (ms):                    7174.90   
+P99 E2E Latency (ms):                    8306.96   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          908.79    
+Median TTFT (ms):                        843.54    
+P90 TTFT (ms):                           1233.00   
+P95 TTFT (ms):                           1385.25   
+P99 TTFT (ms):                           1402.80   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          56.34     
+Median TPOT (ms):                        55.25     
+P90 TPOT (ms):                           79.38     
+P95 TPOT (ms):                           86.76     
+P99 TPOT (ms):                           92.66     
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           56.93     
+Median ITL (ms):                         28.95     
+P90 ITL (ms):                            49.55     
+P95 ITL (ms):                            134.78    
+P99 ITL (ms):                            729.67    
+Max ITL (ms):                            885.09    
+==================================================
+Testing concurrency=10, prompts=40
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 128 --num-prompts 40 --request-rate inf --max-concurrency 10
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=15104
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=15104
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=40, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=10, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=40, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=10, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 341076
+#Output tokens: 2568
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 10        
+Successful requests:                     40        
+Benchmark duration (s):                  23.56     
+Total input tokens:                      341076    
+Total input text tokens:                 341076    
+Total generated tokens:                  2568      
+Total generated tokens (retokenized):    2722      
+Request throughput (req/s):              1.70      
+Input token throughput (tok/s):          14479.87  
+Output token throughput (tok/s):         109.02    
+Peak output token throughput (tok/s):    241.00    
+Peak concurrent requests:                13        
+Total token throughput (tok/s):          14588.89  
+Concurrency:                             9.32      
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   5486.90   
+Median E2E Latency (ms):                 4831.21   
+P90 E2E Latency (ms):                    9739.73   
+P95 E2E Latency (ms):                    11668.92  
+P99 E2E Latency (ms):                    13262.48  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          844.16    
+Median TTFT (ms):                        799.82    
+P90 TTFT (ms):                           1495.31   
+P95 TTFT (ms):                           2144.34   
+P99 TTFT (ms):                           2174.98   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          68.06     
+Median TPOT (ms):                        65.57     
+P90 TPOT (ms):                           112.21    
+P95 TPOT (ms):                           121.98    
+P99 TPOT (ms):                           142.85    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           73.46     
+Median ITL (ms):                         32.30     
+P90 ITL (ms):                            73.01     
+P95 ITL (ms):                            330.82    
+P99 ITL (ms):                            802.68    
+Max ITL (ms):                            1336.44   
+==================================================
+Testing concurrency=20, prompts=80
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 128 --num-prompts 80 --request-rate inf --max-concurrency 20
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=18675
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=18675
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=80, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=20, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=80, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=20, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 642524
+#Output tokens: 5011
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 20        
+Successful requests:                     80        
+Benchmark duration (s):                  41.35     
+Total input tokens:                      642524    
+Total input text tokens:                 642524    
+Total generated tokens:                  5011      
+Total generated tokens (retokenized):    5304      
+Request throughput (req/s):              1.93      
+Input token throughput (tok/s):          15539.25  
+Output token throughput (tok/s):         121.19    
+Peak output token throughput (tok/s):    396.00    
+Peak concurrent requests:                23        
+Total token throughput (tok/s):          15660.44  
+Concurrency:                             18.98     
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   9812.37   
+Median E2E Latency (ms):                 8992.41   
+P90 E2E Latency (ms):                    19032.24  
+P95 E2E Latency (ms):                    20621.84  
+P99 E2E Latency (ms):                    22661.21  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          1189.17   
+Median TTFT (ms):                        1109.88   
+P90 TTFT (ms):                           2141.33   
+P95 TTFT (ms):                           2209.64   
+P99 TTFT (ms):                           2212.36   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          142.43    
+Median TPOT (ms):                        141.19    
+P90 TPOT (ms):                           199.94    
+P95 TPOT (ms):                           206.41    
+P99 TPOT (ms):                           263.82    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           139.90    
+Median ITL (ms):                         38.74     
+P90 ITL (ms):                            449.78    
+P95 ITL (ms):                            713.34    
+P99 ITL (ms):                            912.31    
+Max ITL (ms):                            1415.77   
+==================================================
+Testing concurrency=50, prompts=200
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 128 --num-prompts 200 --request-rate inf --max-concurrency 50
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=22420
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=22420
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=200, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=50, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=200, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=50, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 1626096
+#Output tokens: 13323
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 50        
+Successful requests:                     200       
+Benchmark duration (s):                  125.97    
+Total input tokens:                      1626096   
+Total input text tokens:                 1626096   
+Total generated tokens:                  13323     
+Total generated tokens (retokenized):    14068     
+Request throughput (req/s):              1.59      
+Input token throughput (tok/s):          12908.75  
+Output token throughput (tok/s):         105.76    
+Peak output token throughput (tok/s):    657.00    
+Peak concurrent requests:                56        
+Total token throughput (tok/s):          13014.51  
+Concurrency:                             48.70     
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   30674.01  
+Median E2E Latency (ms):                 29725.10  
+P90 E2E Latency (ms):                    51369.87  
+P95 E2E Latency (ms):                    57168.18  
+P99 E2E Latency (ms):                    62667.87  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          8563.78   
+Median TTFT (ms):                        6943.70   
+P90 TTFT (ms):                           15893.40  
+P95 TTFT (ms):                           20052.69  
+P99 TTFT (ms):                           25632.76  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          352.15    
+Median TPOT (ms):                        360.98    
+P90 TPOT (ms):                           449.62    
+P95 TPOT (ms):                           511.43    
+P99 TPOT (ms):                           804.06    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           336.97    
+Median ITL (ms):                         53.02     
+P90 ITL (ms):                            1172.71   
+P95 ITL (ms):                            1315.32   
+P99 ITL (ms):                            1636.80   
+Max ITL (ms):                            17252.72  
+==================================================
+Testing concurrency=100, prompts=400
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 128 --num-prompts 400 --request-rate inf --max-concurrency 100
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=27373
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=27373
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=400, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=100, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=400, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=100, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 3246203
+#Output tokens: 26639
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 100       
+Successful requests:                     400       
+Benchmark duration (s):                  254.70    
+Total input tokens:                      3246203   
+Total input text tokens:                 3246203   
+Total generated tokens:                  26639     
+Total generated tokens (retokenized):    28063     
+Request throughput (req/s):              1.57      
+Input token throughput (tok/s):          12745.03  
+Output token throughput (tok/s):         104.59    
+Peak output token throughput (tok/s):    565.00    
+Peak concurrent requests:                106       
+Total token throughput (tok/s):          12849.62  
+Concurrency:                             94.02     
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   59870.82  
+Median E2E Latency (ms):                 59355.16  
+P90 E2E Latency (ms):                    82798.52  
+P95 E2E Latency (ms):                    86350.80  
+P99 E2E Latency (ms):                    93510.58  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          37291.83  
+Median TTFT (ms):                        39619.35  
+P90 TTFT (ms):                           43556.91  
+P95 TTFT (ms):                           46355.76  
+P99 TTFT (ms):                           55438.83  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          341.97    
+Median TPOT (ms):                        358.29    
+P90 TPOT (ms):                           426.80    
+P95 TPOT (ms):                           468.81    
+P99 TPOT (ms):                           576.52    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           344.20    
+Median ITL (ms):                         53.23     
+P90 ITL (ms):                            1151.84   
+P95 ITL (ms):                            1375.97   
+P99 ITL (ms):                            1666.93   
+Max ITL (ms):                            17941.89  
+==================================================
+Testing concurrency=128, prompts=512
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 128 --num-prompts 512 --request-rate inf --max-concurrency 128
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=35887
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=35887
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=512, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=128, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=512, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=128, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=128, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 4116733
+#Output tokens: 33019
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 128       
+Successful requests:                     512       
+Benchmark duration (s):                  353.72    
+Total input tokens:                      4116733   
+Total input text tokens:                 4116733   
+Total generated tokens:                  33019     
+Total generated tokens (retokenized):    34778     
+Request throughput (req/s):              1.45      
+Input token throughput (tok/s):          11638.47  
+Output token throughput (tok/s):         93.35     
+Peak output token throughput (tok/s):    681.00    
+Peak concurrent requests:                133       
+Total token throughput (tok/s):          11731.82  
+Concurrency:                             119.68    
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   82681.52  
+Median E2E Latency (ms):                 82487.00  
+P90 E2E Latency (ms):                    115130.51 
+P95 E2E Latency (ms):                    119887.99 
+P99 E2E Latency (ms):                    125496.88 
+---------------Time to First Token----------------
+Mean TTFT (ms):                          57515.17  
+Median TTFT (ms):                        62391.86  
+P90 TTFT (ms):                           72402.50  
+P95 TTFT (ms):                           73253.56  
+P99 TTFT (ms):                           74982.39  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          407.62    
+Median TPOT (ms):                        404.21    
+P90 TPOT (ms):                           503.83    
+P95 TPOT (ms):                           569.02    
+P99 TPOT (ms):                           920.17    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           396.38    
+Median ITL (ms):                         53.72     
+P90 ITL (ms):                            1340.63   
+P95 ITL (ms):                            1516.23   
+P99 ITL (ms):                            1878.33   
+Max ITL (ms):                            16625.44  
+==================================================
+========================================================
+Random Testing input=16384, output=256
+========================================================
+Testing concurrency=1, prompts=4
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 256 --num-prompts 4 --request-rate inf --max-concurrency 1
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=46620
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=46620
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=4, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=1, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=4, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=1, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 29319
+#Output tokens: 389
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 1         
+Successful requests:                     4         
+Benchmark duration (s):                  11.01     
+Total input tokens:                      29319     
+Total input text tokens:                 29319     
+Total generated tokens:                  389       
+Total generated tokens (retokenized):    396       
+Request throughput (req/s):              0.36      
+Input token throughput (tok/s):          2663.55   
+Output token throughput (tok/s):         35.34     
+Peak output token throughput (tok/s):    46.00     
+Peak concurrent requests:                2         
+Total token throughput (tok/s):          2698.89   
+Concurrency:                             1.00      
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   2743.05   
+Median E2E Latency (ms):                 2758.11   
+P90 E2E Latency (ms):                    4028.70   
+P95 E2E Latency (ms):                    4286.97   
+P99 E2E Latency (ms):                    4493.58   
+---------------Time to First Token----------------
+Mean TTFT (ms):                          519.86    
+Median TTFT (ms):                        379.52    
+P90 TTFT (ms):                           841.68    
+P95 TTFT (ms):                           928.11    
+P99 TTFT (ms):                           997.25    
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          23.35     
+Median TPOT (ms):                        23.61     
+P90 TPOT (ms):                           23.63     
+P95 TPOT (ms):                           23.63     
+P99 TPOT (ms):                           23.64     
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           23.10     
+Median ITL (ms):                         22.98     
+P90 ITL (ms):                            24.89     
+P95 ITL (ms):                            25.56     
+P99 ITL (ms):                            27.13     
+Max ITL (ms):                            32.29     
+==================================================
+Testing concurrency=5, prompts=20
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 256 --num-prompts 20 --request-rate inf --max-concurrency 5
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=50694
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=50694
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=20, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=5, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=20, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=5, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 180065
+#Output tokens: 2547
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 5         
+Successful requests:                     20        
+Benchmark duration (s):                  27.21     
+Total input tokens:                      180065    
+Total input text tokens:                 180065    
+Total generated tokens:                  2547      
+Total generated tokens (retokenized):    2661      
+Request throughput (req/s):              0.73      
+Input token throughput (tok/s):          6617.19   
+Output token throughput (tok/s):         93.60     
+Peak output token throughput (tok/s):    170.00    
+Peak concurrent requests:                7         
+Total token throughput (tok/s):          6710.79   
+Concurrency:                             4.50      
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   6126.85   
+Median E2E Latency (ms):                 6404.70   
+P90 E2E Latency (ms):                    10667.27  
+P95 E2E Latency (ms):                    10917.74  
+P99 E2E Latency (ms):                    11764.48  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          775.45    
+Median TTFT (ms):                        811.83    
+P90 TTFT (ms):                           1149.04   
+P95 TTFT (ms):                           1149.47   
+P99 TTFT (ms):                           1150.11   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          41.79     
+Median TPOT (ms):                        42.94     
+P90 TPOT (ms):                           51.21     
+P95 TPOT (ms):                           52.28     
+P99 TPOT (ms):                           60.15     
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           42.35     
+Median ITL (ms):                         29.46     
+P90 ITL (ms):                            32.35     
+P95 ITL (ms):                            48.83     
+P99 ITL (ms):                            696.64    
+Max ITL (ms):                            824.70    
+==================================================
+Testing concurrency=10, prompts=40
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 256 --num-prompts 40 --request-rate inf --max-concurrency 10
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=56714
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=56714
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=40, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=10, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=40, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=10, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 341076
+#Output tokens: 5256
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 10        
+Successful requests:                     40        
+Benchmark duration (s):                  34.48     
+Total input tokens:                      341076    
+Total input text tokens:                 341076    
+Total generated tokens:                  5256      
+Total generated tokens (retokenized):    5521      
+Request throughput (req/s):              1.16      
+Input token throughput (tok/s):          9891.58   
+Output token throughput (tok/s):         152.43    
+Peak output token throughput (tok/s):    310.00    
+Peak concurrent requests:                13        
+Total token throughput (tok/s):          10044.01  
+Concurrency:                             9.19      
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   7919.36   
+Median E2E Latency (ms):                 7462.46   
+P90 E2E Latency (ms):                    12821.89  
+P95 E2E Latency (ms):                    19299.51  
+P99 E2E Latency (ms):                    19976.83  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          935.85    
+Median TTFT (ms):                        932.30    
+P90 TTFT (ms):                           1644.31   
+P95 TTFT (ms):                           1994.96   
+P99 TTFT (ms):                           2505.62   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          53.83     
+Median TPOT (ms):                        50.24     
+P90 TPOT (ms):                           80.40     
+P95 TPOT (ms):                           81.90     
+P99 TPOT (ms):                           97.00     
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           53.55     
+Median ITL (ms):                         32.74     
+P90 ITL (ms):                            36.72     
+P95 ITL (ms):                            57.94     
+P99 ITL (ms):                            723.62    
+Max ITL (ms):                            1509.35   
+==================================================
+Testing concurrency=20, prompts=80
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 256 --num-prompts 80 --request-rate inf --max-concurrency 20
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=62843
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=62843
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=80, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=20, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=80, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=20, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 642524
+#Output tokens: 10643
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 20        
+Successful requests:                     80        
+Benchmark duration (s):                  57.47     
+Total input tokens:                      642524    
+Total input text tokens:                 642524    
+Total generated tokens:                  10643     
+Total generated tokens (retokenized):    11261     
+Request throughput (req/s):              1.39      
+Input token throughput (tok/s):          11180.39  
+Output token throughput (tok/s):         185.20    
+Peak output token throughput (tok/s):    476.00    
+Peak concurrent requests:                23        
+Total token throughput (tok/s):          11365.58  
+Concurrency:                             18.53     
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   13311.17  
+Median E2E Latency (ms):                 11402.95  
+P90 E2E Latency (ms):                    23985.55  
+P95 E2E Latency (ms):                    27169.40  
+P99 E2E Latency (ms):                    29421.19  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          1370.26   
+Median TTFT (ms):                        883.16    
+P90 TTFT (ms):                           3044.17   
+P95 TTFT (ms):                           3046.24   
+P99 TTFT (ms):                           3048.16   
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          87.02     
+Median TPOT (ms):                        91.50     
+P90 TPOT (ms):                           119.19    
+P95 TPOT (ms):                           122.47    
+P99 TPOT (ms):                           145.04    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           90.44     
+Median ITL (ms):                         39.08     
+P90 ITL (ms):                            94.73     
+P95 ITL (ms):                            490.44    
+P99 ITL (ms):                            861.32    
+Max ITL (ms):                            1639.03   
+==================================================
+Testing concurrency=50, prompts=200
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 256 --num-prompts 200 --request-rate inf --max-concurrency 50
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=69574
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=69574
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=200, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=50, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=200, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=50, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 1626096
+#Output tokens: 28299
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 50        
+Successful requests:                     200       
+Benchmark duration (s):                  160.91    
+Total input tokens:                      1626096   
+Total input text tokens:                 1626096   
+Total generated tokens:                  28299     
+Total generated tokens (retokenized):    29817     
+Request throughput (req/s):              1.24      
+Input token throughput (tok/s):          10105.82  
+Output token throughput (tok/s):         175.87    
+Peak output token throughput (tok/s):    784.00    
+Peak concurrent requests:                54        
+Total token throughput (tok/s):          10281.69  
+Concurrency:                             47.98     
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   38602.33  
+Median E2E Latency (ms):                 37628.61  
+P90 E2E Latency (ms):                    59340.84  
+P95 E2E Latency (ms):                    65782.24  
+P99 E2E Latency (ms):                    74125.89  
+---------------Time to First Token----------------
+Mean TTFT (ms):                          11243.84  
+Median TTFT (ms):                        9722.67   
+P90 TTFT (ms):                           20291.54  
+P95 TTFT (ms):                           22699.51  
+P99 TTFT (ms):                           29797.78  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          206.99    
+Median TPOT (ms):                        205.72    
+P90 TPOT (ms):                           249.47    
+P95 TPOT (ms):                           307.61    
+P99 TPOT (ms):                           694.35    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           194.73    
+Median ITL (ms):                         51.42     
+P90 ITL (ms):                            621.01    
+P95 ITL (ms):                            1220.86   
+P99 ITL (ms):                            1648.86   
+Max ITL (ms):                            20673.57  
+==================================================
+Testing concurrency=100, prompts=400
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 256 --num-prompts 400 --request-rate inf --max-concurrency 100
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=78239
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=78239
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=400, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=100, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=400, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=100, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 3246203
+#Output tokens: 52367
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 100       
+Successful requests:                     400       
+Benchmark duration (s):                  322.93    
+Total input tokens:                      3246203   
+Total input text tokens:                 3246203   
+Total generated tokens:                  52367     
+Total generated tokens (retokenized):    55296     
+Request throughput (req/s):              1.24      
+Input token throughput (tok/s):          10052.41  
+Output token throughput (tok/s):         162.16    
+Peak output token throughput (tok/s):    772.00    
+Peak concurrent requests:                105       
+Total token throughput (tok/s):          10214.57  
+Concurrency:                             93.36     
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   75371.81  
+Median E2E Latency (ms):                 73650.96  
+P90 E2E Latency (ms):                    106347.13 
+P95 E2E Latency (ms):                    110769.17 
+P99 E2E Latency (ms):                    116571.32 
+---------------Time to First Token----------------
+Mean TTFT (ms):                          45823.45  
+Median TTFT (ms):                        48458.05  
+P90 TTFT (ms):                           54978.87  
+P95 TTFT (ms):                           57602.74  
+P99 TTFT (ms):                           65438.12  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          235.54    
+Median TPOT (ms):                        234.99    
+P90 TPOT (ms):                           298.13    
+P95 TPOT (ms):                           323.76    
+P99 TPOT (ms):                           523.48    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           227.44    
+Median ITL (ms):                         51.89     
+P90 ITL (ms):                            1014.04   
+P95 ITL (ms):                            1322.20   
+P99 ITL (ms):                            1729.04   
+Max ITL (ms):                            20065.94  
+==================================================
+Testing concurrency=128, prompts=512
+python3 -m sglang.benchmark.serving --backend sglang --host 10.9.1.30 --port 20000 --model /home/weights/MiniMax-M2.5-eagle3-sgl/ --tokenizer /home/weights/MiniMax-M2.5-eagle3-sgl/ --dataset-name random --dataset-path /home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json --random-input-len 16384 --random-output-len 256 --num-prompts 512 --request-rate inf --max-concurrency 128
+[UNIVERSAL PLUGIN] Module imported, SGLANG_PLATFORM=universal, pid=92974
+[UNIVERSAL PLUGIN] Auto-applying patches in pid=92974
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] _ensure_global_patch called, SGLANG_PLATFORM=universal
+[UNIVERSAL PLUGIN] import-time patch deferred: cannot import name 'is_mps' from partially initialized module 'sglang.srt.utils.common' (most likely due to a circular import) (/sgl-workspace/sglang/python/sglang/srt/utils/common.py)
+benchmark_args=Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=512, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=128, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+Waiting up to 60s for http://10.9.1.30:20000/v1/models to become ready...
+Server ready in 0.0s.
+Namespace(backend='sglang', base_url=None, host='10.9.1.30', port=20000, ready_check_timeout_sec=60, dataset_name='random', dataset_path='/home/s_limingge/ShareGPT_V3_unfiltered_cleaned_split.json', dataset_offset=0, agentic_max_turns=None, speed_bench_category=None, speed_bench_output_len=512, model='/home/weights/MiniMax-M2.5-eagle3-sgl/', served_model_name=None, tokenizer='/home/weights/MiniMax-M2.5-eagle3-sgl/', num_prompts=512, sharegpt_output_len=None, sharegpt_context_len=None, random_input_len=16384, random_output_len=256, random_range_ratio=0.0, image_count=1, image_resolution='1080p', random_image_count=False, image_format='jpeg', image_content='random', request_rate=inf, use_trace_timestamps=False, max_concurrency=128, output_file=None, output_details=False, print_requests=False, disable_tqdm=False, disable_stream=False, return_logprob=False, top_logprobs_num=0, token_ids_logprob=None, logprob_start_len=-1, return_routed_experts=False, cache_report=False, seed=42, disable_ignore_eos=False, temperature=0.0, top_p=1.0, extra_request_body=None, apply_chat_template=False, profile=False, plot_throughput=False, profile_activities=['CPU', 'GPU'], profile_start_step=None, profile_steps=None, profile_num_steps=None, profile_by_stage=False, profile_stages=None, profile_output_dir=None, profile_prefix=None, lora_name=None, lora_request_distribution='uniform', lora_zipf_alpha=1.5, prompt_suffix='', pd_separated=False, profile_prefill_url=None, profile_decode_url=None, flush_cache=False, flush_cache_timeout=60.0, warmup_requests=1, tokenize_prompt=False, gsp_num_groups=64, gsp_prompts_per_group=16, gsp_system_prompt_len=2048, gsp_question_len=128, gsp_output_len=256, gsp_range_ratio=1.0, gsp_fast_prepare=False, gsp_send_routing_key=False, gsp_num_turns=1, gsp_ordered=False, gsp_group_distribution='uniform', gsp_zipf_alpha=None, mooncake_slowdown_factor=1.0, mooncake_num_rounds=1, mooncake_workload='conversation', fake_prefill=False, tag=None, header=None)
+
+#Input tokens: 4116733
+#Output tokens: 67835
+Starting warmup with 1 sequences...
+Warmup completed with 1 sequences. Starting main benchmark run...
+
+============ Serving Benchmark Result ============
+Backend:                                 sglang    
+Traffic request rate:                    inf       
+Max request concurrency:                 128       
+Successful requests:                     512       
+Benchmark duration (s):                  423.06    
+Total input tokens:                      4116733   
+Total input text tokens:                 4116733   
+Total generated tokens:                  67835     
+Total generated tokens (retokenized):    71451     
+Request throughput (req/s):              1.21      
+Input token throughput (tok/s):          9730.77   
+Output token throughput (tok/s):         160.34    
+Peak output token throughput (tok/s):    778.00    
+Peak concurrent requests:                133       
+Total token throughput (tok/s):          9891.11   
+Concurrency:                             117.99    
+----------------End-to-End Latency----------------
+Mean E2E Latency (ms):                   97497.81  
+Median E2E Latency (ms):                 101338.00 
+P90 E2E Latency (ms):                    127303.04 
+P95 E2E Latency (ms):                    133220.29 
+P99 E2E Latency (ms):                    137745.30 
+---------------Time to First Token----------------
+Mean TTFT (ms):                          67302.64  
+Median TTFT (ms):                        73225.45  
+P90 TTFT (ms):                           80242.28  
+P95 TTFT (ms):                           81685.47  
+P99 TTFT (ms):                           89123.62  
+-----Time per Output Token (excl. 1st token)------
+Mean TPOT (ms):                          237.84    
+Median TPOT (ms):                        238.57    
+P90 TPOT (ms):                           281.67    
+P95 TPOT (ms):                           297.47    
+P99 TPOT (ms):                           584.49    
+---------------Inter-Token Latency----------------
+Mean ITL (ms):                           229.64    
+Median ITL (ms):                         51.56     
+P90 ITL (ms):                            1034.77   
+P95 ITL (ms):                            1343.89   
+P99 ITL (ms):                            1634.47   
+Max ITL (ms):                            19706.81  
+==================================================

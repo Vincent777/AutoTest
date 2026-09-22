@@ -22,9 +22,9 @@ VERSION=${10}
 TASK_ID="StabilityTest_${MODEL}_${JOB_COUNT}"
 JOB_ID="StabilityTest_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
 # 锁名 = ${SERVER_NAME}_npu_X.lock；SERVER_NAME 来自 LOCAL_IP（点改下划线）
-# 优先 10.0.0.x；可用 LOCAL_IP 环境变量覆盖；否则取首个非 lo 的 global IPv4
+# 优先 10.9.1.x；可用 LOCAL_IP 环境变量覆盖；否则取首个非 lo 的 global IPv4
 if [ -z "${LOCAL_IP:-}" ]; then
-    LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "^10\.0\.0\." | head -n 1)
+    LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "^10\.9\.1\." | head -n 1)
 fi
 if [ -z "${LOCAL_IP:-}" ]; then
     LOCAL_IP=$(ip -o -4 addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n 1)
@@ -38,7 +38,7 @@ echo "LOCAL_IP=$LOCAL_IP SERVER_NAME=$SERVER_NAME"
 
 # PD 分离（可选）：PD_TOPOLOGY=2P2D PD_ROLE=prefill|decode|proxy
 # 每个 P/D 节点本地分配端口并写入 server_config；协调节点在引擎就绪后 sync Prometheus。
-# scrape IP 使用 server_config 中的地址（通常为 10.0.0.x），Prometheus 需能访问。
+# scrape IP 使用 server_config 中的地址（通常为 10.9.1.x），Prometheus 需能访问。
 PD_TOPOLOGY="${PD_TOPOLOGY:-}"
 PD_ROLE="${PD_ROLE:-}"
 PD_ENGINE="${PD_ENGINE:-sglang}"
@@ -214,11 +214,11 @@ get_free_port() {
     free_port=""
 }
 
-if [ $USE_PREFIX_CACHE -eq 1 ]; then
-    SGLANG_PREFIX_CACHE=""
-else
-    SGLANG_PREFIX_CACHE="--disable-radix-cache"
-fi
+# if [ $USE_PREFIX_CACHE -eq 1 ]; then
+#     SGLANG_PREFIX_CACHE=""
+# else
+#     SGLANG_PREFIX_CACHE="--disable-radix-cache"
+# fi
 
 IMAGE_REPO="quay.io/ascend/sglang"
 # 910B 默认后缀；可用环境变量覆盖，例如 SGLANG_NPU_TAG_SUFFIX=cann9.0.0-a3
@@ -261,7 +261,7 @@ docker_pull_with_retry() {
     return 1
 }
 
-docker_pull_with_retry "${IMAGE_REPO}:$LATEST_TAG" || exit 1
+# docker_pull_with_retry "${IMAGE_REPO}:$LATEST_TAG" || exit 1
 
 ret=`docker ps -a | grep sglang_ascend_StabilityTest_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
 if [ $? -eq 0 ]; then
@@ -456,11 +456,9 @@ EXEC_COMMAND="docker run --name=sglang_ascend_StabilityTest_${SESSION_ID}_${JOB_
   -v /usr/bin/hccn_tool:/usr/bin/hccn_tool \
   -v /root/.cache:/root/.cache \
   -v /data:/data \
-  -v /home/weight:/home/weight \
+  -v /home/s_wangrui/weights:/home/weights \
   -v /home/s_limingge:/home/s_limingge \
-  -e HCCL_SOCKET_IFNAME=${HCCL_SOCKET_IFNAME} \
   -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES \
-  -e PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src \
   ${DOCKER_PD_ENVS} \
   ${IMAGE_REPO}:$LATEST_TAG"
 
@@ -480,20 +478,34 @@ elif [ $MODEL == "Qwen3-235B-A22B" ]; then
     echo "python3 -m sglang.launch_server --model-path /home/weight/Qwen3/Qwen3-235B-A22B --served-model-name Qwen3-235B-A22B --port $PORT --tp-size 8 --host 0.0.0.0 --mem-fraction-static 0.98 --disable-radix-cache --enable-metrics --enable-mfu-metrics $PD_EXTRA_ARGS"
     EXEC_COMMAND+=" $PD_DOCKER_CMD_PREFIX python3 -m sglang.launch_server --model-path /home/weight/Qwen3/Qwen3-235B-A22B --served-model-name Qwen3-235B-A22B --port $PORT --tp-size 8 --host 0.0.0.0 --mem-fraction-static 0.98 --disable-radix-cache --enable-metrics --enable-mfu-metrics $SGLANG_PREFIX_CACHE $PD_EXTRA_ARGS $PD_DOCKER_CMD_SUFFIX > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "DeepSeek-V4-Flash-w8a8-mtp" ]; then
-    echo "bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; bash /home/s_limingge/sglang-universal-plugin/run_dsv4_v0516.sh $PORT\""
-    EXEC_COMMAND+=" bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; bash /home/s_limingge/sglang-universal-plugin/run_dsv4_v0516.sh $PORT\" > $LOG_NAME 2>&1 &"
+    echo "bash -lc \"set -e; cd /work/sglang-pagoda; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; bash /work/sglang-pagoda/run_dsv4_v0516.sh $PORT\""
+    EXEC_COMMAND+=" bash -lc \"set -e; cd /work/sglang-pagoda; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; bash /work/sglang-pagoda/run_dsv4_v0516.sh $PORT\" > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "MiniMax-M2.5-w8a8-QuaRot" ]; then
-    echo "bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_tuned.sh --tp-size 8\""
-    EXEC_COMMAND+=" bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_tuned.sh --tp-size 8\" > $LOG_NAME 2>&1 &"
+    echo "python3 -m sglang.launch_server --model-path /home/weights/MiniMax-M2.5-w8a8-QuaRot --device npu --tp-size 8 --mem-fraction-static 0.66 --max-running-requests 240 --host 0.0.0.0 --port $PORT $PD_EXTRA_ARGS"
+    EXEC_COMMAND+=" $PD_DOCKER_CMD_PREFIX python3 -m sglang.launch_server --model-path /home/weights/MiniMax-M2.5-w8a8-QuaRot --device npu --tp-size 8 --mem-fraction-static 0.66 --max-running-requests 240 --host 0.0.0.0 --port $PORT $SGLANG_PREFIX_CACHE $PD_EXTRA_ARGS $PD_DOCKER_CMD_SUFFIX > $LOG_NAME 2>&1 &"
 elif [ $MODEL == "MiniMax-M2.5-eagle3-sgl" ]; then
-    echo "bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh\""
-    EXEC_COMMAND+=" bash -lc \"set -e; cd /home/s_limingge/sglang-universal-plugin; export PYTHONPATH=/home/s_limingge/sglang-universal-plugin/src; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; DRAFT_PATH=/data/weight/MiniMax-M2.5-eagle3-sgl PORT=$PORT bash /home/s_limingge/sglang-universal-plugin/scripts/run_minimax_eagle3.sh\" > $LOG_NAME 2>&1 &"
+    echo "bash -lc \"set -e; cd /work/sglang-pagoda; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; SGLANG_M2_ATTN_SCATTER=4 TOK_WORKERS=4 PORT=$PORT bash /work/sglang-pagoda/./scripts/run_minimax_scatter.sh\""
+    EXEC_COMMAND+=" bash -lc \"set -e; cd /work/sglang-pagoda; pip install -e . --no-deps; python3 -c 'import sglang_universal_plugin'; SGLANG_M2_ATTN_SCATTER=4 TOK_WORKERS=4 PORT=$PORT bash /work/sglang-pagoda/./scripts/run_minimax_scatter.sh\" > $LOG_NAME 2>&1 &"
 fi
 
 # PD：API/bootstrap 绑定数据面 IP（与官方 Ascend 示例一致；勿用 0.0.0.0 作为对外通告地址）
 if [ -n "$PD_TOPOLOGY" ] && [ "$PD_ROLE" != "proxy" ]; then
     EXEC_COMMAND="${EXEC_COMMAND//--host 0.0.0.0/--host ${LOCAL_IP}}"
     echo "PD bind host overridden to data-plane LOCAL_IP=$LOCAL_IP"
+fi
+
+# PD decode 通过 PD_EXTRA_ARGS 注入 --max-running-requests / --cuda-graph-max-bs。
+# 生成器会保留 Excel 合部同名参数；两者同时出现时丢掉 Excel 侧（首次出现），避免 argparse 重复。
+if [ -n "$PD_TOPOLOGY" ] && [ "$PD_ROLE" = "decode" ]; then
+    if [ "$(grep -o -- '--max-running-requests' <<< "$EXEC_COMMAND" | wc -l)" -ge 2 ]; then
+        EXEC_COMMAND="$(printf '%s\n' "$EXEC_COMMAND" | sed -E 's/--max-running-requests[[:space:]]+[^[:space:]]+//')"
+    fi
+    if [ "$(grep -oE -- '--cuda-graph-max-bs(-decode)?' <<< "$EXEC_COMMAND" | wc -l)" -ge 2 ]; then
+        EXEC_COMMAND="$(printf '%s\n' "$EXEC_COMMAND" | sed -E 's/--cuda-graph-max-bs(-decode)?[[:space:]]+[^[:space:]]+//')"
+    fi
+    if [ "$(grep -o -- '--disable-overlap-schedule' <<< "$EXEC_COMMAND" | wc -l)" -ge 2 ]; then
+        EXEC_COMMAND="$(printf '%s\n' "$EXEC_COMMAND" | sed -E 's/--disable-overlap-schedule//')"
+    fi
 fi
 
 echo "$EXEC_COMMAND"

@@ -772,7 +772,8 @@ for option in "${schedule_policies[@]}"; do
                     if [ $model == "Qwen3-235B-A22B" ] || [[ $model =~ ^Qwen3-32B(-v[0-9]+)?$ ]] || [ $model == "Qwen3-30B-A3B" ] || [ $model == "Qwen3-14B" ]; then
                         data_path="/home/weight/Qwen3"
                     else
-                        data_path="/home/weight"
+                        # data_path="/home/weight"
+                        data_path="/home/weights"
                     fi
 
                     if [ $ENGINE_TYPE == "SigInfer" ]; then
@@ -850,10 +851,10 @@ for option in "${schedule_policies[@]}"; do
                                         # Avoid obvious over-context random cases that only generate warnings/noisy logs.
                                         # input_len 可能是 16K/32K/64K 这类非纯数字，需先判断再做整数比较
                                         if [[ \\\$input_len =~ ^[0-9]+\$ ]]; then
-                                            if [ ${engine_type} == \\\"sglang\\\" ] && [ \\\$input_len -gt 16000 ]; then
-                                                echo \\\"Skip input_len=\\\$input_len for sglang random (over safe context budget)\\\"
-                                                break
-                                            fi
+                                            # if [ ${engine_type} == \\\"sglang\\\" ] && [ \\\$input_len -gt 16000 ]; then
+                                            #     echo \\\"Skip input_len=\\\$input_len for sglang random (over safe context budget)\\\"
+                                            #     break
+                                            # fi
                                             if [ \\\$input_len -ge 30000 ] && [ \\\$concurrency -gt 5 ]; then
                                                 break
                                             fi

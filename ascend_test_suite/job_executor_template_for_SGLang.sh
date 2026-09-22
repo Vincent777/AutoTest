@@ -22,9 +22,9 @@ VERSION=${10}
 TASK_ID="<<<TEST_TYPE>>>_${MODEL}_${JOB_COUNT}"
 JOB_ID="<<<TEST_TYPE>>>_${MODEL}_${SESSION_ID}_${JOB_COUNT}"
 # 锁名 = ${SERVER_NAME}_npu_X.lock；SERVER_NAME 来自 LOCAL_IP（点改下划线）
-# 优先 10.0.0.x；可用 LOCAL_IP 环境变量覆盖；否则取首个非 lo 的 global IPv4
+# 优先 10.9.1.x；可用 LOCAL_IP 环境变量覆盖；否则取首个非 lo 的 global IPv4
 if [ -z "${LOCAL_IP:-}" ]; then
-    LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "^10\.0\.0\." | head -n 1)
+    LOCAL_IP=$(hostname -I | xargs printf "%s\n" | grep "^10\.9\.1\." | head -n 1)
 fi
 if [ -z "${LOCAL_IP:-}" ]; then
     LOCAL_IP=$(ip -o -4 addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1 | head -n 1)
@@ -38,7 +38,7 @@ echo "LOCAL_IP=$LOCAL_IP SERVER_NAME=$SERVER_NAME"
 
 # PD 分离（可选）：PD_TOPOLOGY=2P2D PD_ROLE=prefill|decode|proxy
 # 每个 P/D 节点本地分配端口并写入 server_config；协调节点在引擎就绪后 sync Prometheus。
-# scrape IP 使用 server_config 中的地址（通常为 10.0.0.x），Prometheus 需能访问。
+# scrape IP 使用 server_config 中的地址（通常为 10.9.1.x），Prometheus 需能访问。
 PD_TOPOLOGY="${PD_TOPOLOGY:-}"
 PD_ROLE="${PD_ROLE:-}"
 PD_ENGINE="${PD_ENGINE:-sglang}"
@@ -214,11 +214,11 @@ get_free_port() {
     free_port=""
 }
 
-if [ $USE_PREFIX_CACHE -eq 1 ]; then
-    SGLANG_PREFIX_CACHE=""
-else
-    SGLANG_PREFIX_CACHE="--disable-radix-cache"
-fi
+# if [ $USE_PREFIX_CACHE -eq 1 ]; then
+#     SGLANG_PREFIX_CACHE=""
+# else
+#     SGLANG_PREFIX_CACHE="--disable-radix-cache"
+# fi
 
 IMAGE_REPO="quay.io/ascend/sglang"
 # 910B 默认后缀；可用环境变量覆盖，例如 SGLANG_NPU_TAG_SUFFIX=cann9.0.0-a3
@@ -261,7 +261,7 @@ docker_pull_with_retry() {
     return 1
 }
 
-docker_pull_with_retry "${IMAGE_REPO}:$LATEST_TAG" || exit 1
+# docker_pull_with_retry "${IMAGE_REPO}:$LATEST_TAG" || exit 1
 
 ret=`docker ps -a | grep sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JOB_COUNT}${PD_CONTAINER_SUFFIX}`
 if [ $? -eq 0 ]; then
@@ -456,9 +456,8 @@ EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JO
   -v /usr/bin/hccn_tool:/usr/bin/hccn_tool \
   -v /root/.cache:/root/.cache \
   -v /data:/data \
-  -v /home/weight:/home/weight \
+  -v /home/s_wangrui/weights:/home/weights \
   -v /home/s_limingge:/home/s_limingge \
-  -e HCCL_SOCKET_IFNAME=${HCCL_SOCKET_IFNAME} \
   -e ASCEND_RT_VISIBLE_DEVICES=$ASCEND_RT_VISIBLE_DEVICES \
   ${DOCKER_PD_ENVS} \
   ${IMAGE_REPO}:$LATEST_TAG"
@@ -469,6 +468,20 @@ EXEC_COMMAND="docker run --name=sglang_ascend_<<<TEST_TYPE>>>_${SESSION_ID}_${JO
 if [ -n "$PD_TOPOLOGY" ] && [ "$PD_ROLE" != "proxy" ]; then
     EXEC_COMMAND="${EXEC_COMMAND//--host 0.0.0.0/--host ${LOCAL_IP}}"
     echo "PD bind host overridden to data-plane LOCAL_IP=$LOCAL_IP"
+fi
+
+# PD decode 通过 PD_EXTRA_ARGS 注入 --max-running-requests / --cuda-graph-max-bs。
+# 生成器会保留 Excel 合部同名参数；两者同时出现时丢掉 Excel 侧（首次出现），避免 argparse 重复。
+if [ -n "$PD_TOPOLOGY" ] && [ "$PD_ROLE" = "decode" ]; then
+    if [ "$(grep -o -- '--max-running-requests' <<< "$EXEC_COMMAND" | wc -l)" -ge 2 ]; then
+        EXEC_COMMAND="$(printf '%s\n' "$EXEC_COMMAND" | sed -E 's/--max-running-requests[[:space:]]+[^[:space:]]+//')"
+    fi
+    if [ "$(grep -oE -- '--cuda-graph-max-bs(-decode)?' <<< "$EXEC_COMMAND" | wc -l)" -ge 2 ]; then
+        EXEC_COMMAND="$(printf '%s\n' "$EXEC_COMMAND" | sed -E 's/--cuda-graph-max-bs(-decode)?[[:space:]]+[^[:space:]]+//')"
+    fi
+    if [ "$(grep -o -- '--disable-overlap-schedule' <<< "$EXEC_COMMAND" | wc -l)" -ge 2 ]; then
+        EXEC_COMMAND="$(printf '%s\n' "$EXEC_COMMAND" | sed -E 's/--disable-overlap-schedule//')"
+    fi
 fi
 
 echo "$EXEC_COMMAND"

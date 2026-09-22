@@ -44,12 +44,11 @@ if __name__ == "__main__":
     master_process = None
     engine = "SGLang"
     # latest
-    # version = "cann9.0.0-910b-v0.5.16"
-    # model = "MiniMax-M2.5-eagle3-sgl"
-    # model = "MiniMax-M2.5-w8a8-QuaRot"
+    version = "v0.5.19-cann9.0.0-910b-snapshot"
+    model = "MiniMax-M2.5-eagle3-sgl"
     # baseline
-    version = "v0.5.10-npu.rc1-910b"
-    model = "MiniMax-M2.5-w8a8-QuaRot"
+    # version = "v0.5.10-npu.rc1-910b"
+    # model = "MiniMax-M2.5-w8a8-QuaRot"
     copy_model_list(file_path, engine, version)
 
     if args.test_type == "Performance":
